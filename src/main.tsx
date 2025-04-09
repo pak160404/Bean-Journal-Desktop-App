@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { ClerkProvider } from "@clerk/clerk-react";
 
 //theme provider
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
@@ -10,6 +11,14 @@ import { routeTree } from "./routeTree.gen";
 
 //global styles
 import "./index.css";
+
+// Get your Clerk publishable key from environment variable
+// You'll need to add this to your .env file
+const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+if (!CLERK_PUBLISHABLE_KEY) {
+	throw new Error("Missing Clerk publishable key");
+}
 
 // Create a new router instance
 const router = createRouter({ routeTree });
@@ -27,9 +36,11 @@ if (!rootElement.innerHTML) {
 	const root = ReactDOM.createRoot(rootElement);
 	root.render(
 		<StrictMode>
-			<ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-				<RouterProvider router={router} />
-			</ThemeProvider>
+			<ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+				<ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+					<RouterProvider router={router} />
+				</ThemeProvider>
+			</ClerkProvider>
 		</StrictMode>,
 	);
 }
