@@ -11,21 +11,17 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as DashboardImport } from './routes/dashboard'
-import { Route as BeanJourneyImport } from './routes/bean-journey'
+import { Route as JournalImport } from './routes/journal'
 import { Route as IndexImport } from './routes/index'
+import { Route as JournalIndexImport } from './routes/journal/index'
+import { Route as JournalDashboardImport } from './routes/journal/dashboard'
+import { Route as JournalBeanJourneyImport } from './routes/journal/bean-journey'
 
 // Create/Update Routes
 
-const DashboardRoute = DashboardImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const BeanJourneyRoute = BeanJourneyImport.update({
-  id: '/bean-journey',
-  path: '/bean-journey',
+const JournalRoute = JournalImport.update({
+  id: '/journal',
+  path: '/journal',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -33,6 +29,24 @@ const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
+} as any)
+
+const JournalIndexRoute = JournalIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => JournalRoute,
+} as any)
+
+const JournalDashboardRoute = JournalDashboardImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => JournalRoute,
+} as any)
+
+const JournalBeanJourneyRoute = JournalBeanJourneyImport.update({
+  id: '/bean-journey',
+  path: '/bean-journey',
+  getParentRoute: () => JournalRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -46,63 +60,106 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/bean-journey': {
-      id: '/bean-journey'
-      path: '/bean-journey'
-      fullPath: '/bean-journey'
-      preLoaderRoute: typeof BeanJourneyImport
+    '/journal': {
+      id: '/journal'
+      path: '/journal'
+      fullPath: '/journal'
+      preLoaderRoute: typeof JournalImport
       parentRoute: typeof rootRoute
     }
-    '/dashboard': {
-      id: '/dashboard'
+    '/journal/bean-journey': {
+      id: '/journal/bean-journey'
+      path: '/bean-journey'
+      fullPath: '/journal/bean-journey'
+      preLoaderRoute: typeof JournalBeanJourneyImport
+      parentRoute: typeof JournalImport
+    }
+    '/journal/dashboard': {
+      id: '/journal/dashboard'
       path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardImport
-      parentRoute: typeof rootRoute
+      fullPath: '/journal/dashboard'
+      preLoaderRoute: typeof JournalDashboardImport
+      parentRoute: typeof JournalImport
+    }
+    '/journal/': {
+      id: '/journal/'
+      path: '/'
+      fullPath: '/journal/'
+      preLoaderRoute: typeof JournalIndexImport
+      parentRoute: typeof JournalImport
     }
   }
 }
 
 // Create and export the route tree
 
+interface JournalRouteChildren {
+  JournalBeanJourneyRoute: typeof JournalBeanJourneyRoute
+  JournalDashboardRoute: typeof JournalDashboardRoute
+  JournalIndexRoute: typeof JournalIndexRoute
+}
+
+const JournalRouteChildren: JournalRouteChildren = {
+  JournalBeanJourneyRoute: JournalBeanJourneyRoute,
+  JournalDashboardRoute: JournalDashboardRoute,
+  JournalIndexRoute: JournalIndexRoute,
+}
+
+const JournalRouteWithChildren =
+  JournalRoute._addFileChildren(JournalRouteChildren)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/bean-journey': typeof BeanJourneyRoute
-  '/dashboard': typeof DashboardRoute
+  '/journal': typeof JournalRouteWithChildren
+  '/journal/bean-journey': typeof JournalBeanJourneyRoute
+  '/journal/dashboard': typeof JournalDashboardRoute
+  '/journal/': typeof JournalIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/bean-journey': typeof BeanJourneyRoute
-  '/dashboard': typeof DashboardRoute
+  '/journal/bean-journey': typeof JournalBeanJourneyRoute
+  '/journal/dashboard': typeof JournalDashboardRoute
+  '/journal': typeof JournalIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/bean-journey': typeof BeanJourneyRoute
-  '/dashboard': typeof DashboardRoute
+  '/journal': typeof JournalRouteWithChildren
+  '/journal/bean-journey': typeof JournalBeanJourneyRoute
+  '/journal/dashboard': typeof JournalDashboardRoute
+  '/journal/': typeof JournalIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/bean-journey' | '/dashboard'
+  fullPaths:
+    | '/'
+    | '/journal'
+    | '/journal/bean-journey'
+    | '/journal/dashboard'
+    | '/journal/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/bean-journey' | '/dashboard'
-  id: '__root__' | '/' | '/bean-journey' | '/dashboard'
+  to: '/' | '/journal/bean-journey' | '/journal/dashboard' | '/journal'
+  id:
+    | '__root__'
+    | '/'
+    | '/journal'
+    | '/journal/bean-journey'
+    | '/journal/dashboard'
+    | '/journal/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  BeanJourneyRoute: typeof BeanJourneyRoute
-  DashboardRoute: typeof DashboardRoute
+  JournalRoute: typeof JournalRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  BeanJourneyRoute: BeanJourneyRoute,
-  DashboardRoute: DashboardRoute,
+  JournalRoute: JournalRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -116,18 +173,31 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/bean-journey",
-        "/dashboard"
+        "/journal"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/bean-journey": {
-      "filePath": "bean-journey.tsx"
+    "/journal": {
+      "filePath": "journal.tsx",
+      "children": [
+        "/journal/bean-journey",
+        "/journal/dashboard",
+        "/journal/"
+      ]
     },
-    "/dashboard": {
-      "filePath": "dashboard.tsx"
+    "/journal/bean-journey": {
+      "filePath": "journal/bean-journey.tsx",
+      "parent": "/journal"
+    },
+    "/journal/dashboard": {
+      "filePath": "journal/dashboard.tsx",
+      "parent": "/journal"
+    },
+    "/journal/": {
+      "filePath": "journal/index.tsx",
+      "parent": "/journal"
     }
   }
 }

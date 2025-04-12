@@ -1,0 +1,72 @@
+/* Styles from the old app.css, scoped to landing page if necessary */
+
+/* Styles for the dynamically created shooting star */
+.landing-page-theme .shooting-star {
+  position: absolute;
+  width: 100px;
+  height: 1px;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0));
+  transform: rotate(-45deg);
+  transition: opacity 0.2s linear;
+  pointer-events: none;
+}
+
+.landing-page-theme .glass-card {
+  background: hsla(var(--card), 0.3);
+  box-shadow: 0 8px 32px 0 hsla(var(--primary), 0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid hsla(var(--border), 0.5);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.landing-page-theme .glow-effect {
+  position: relative;
+  transition: transform 0.3s ease;
+}
+
+.landing-page-theme .glow-effect:hover {
+  transform: scale(1.02);
+}
+
+.landing-page-theme .glow-effect::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  z-index: -1;
+  background: linear-gradient(45deg, hsla(var(--primary), 0.3), hsla(var(--accent), 0.3));
+  border-radius: inherit;
+  filter: blur(15px);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.landing-page-theme .glow-effect:hover::after {
+  opacity: 0.7;
+}
+
+.landing-page-theme .text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)));
+}
+
+.landing-page-theme .feature-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: hsla(var(--primary), 0.2);
+  color: hsl(var(--primary));
+  margin-bottom: 1rem;
+}
+
+/* Removed #root and other potentially global styles */
+/* .star-field can likely be removed if StarryBackground handles it */ 

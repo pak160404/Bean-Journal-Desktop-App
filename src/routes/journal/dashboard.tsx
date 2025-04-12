@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AuthWrapper } from "@/components/auth/AuthWrapper";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/journal/dashboard")({
   component: Dashboard
 });
 

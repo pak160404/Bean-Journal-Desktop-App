@@ -1,0 +1,134 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* These are the CSS variables specific to the landing page theme */
+  :root {
+    --background: 222 47% 11%; /* #0f172a */
+    --foreground: 210 40% 98%; /* #f8fafc */
+
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 243 94% 66%; /* #6366f1 - Adjusted primary */
+    --primary-foreground: 0 0% 100%; /* White */
+
+    --secondary: 217 33% 17%; /* #212e47 */
+    --secondary-foreground: 210 40% 98%; /* #f8fafc */
+
+    --muted: 217 33% 17%; /* #212e47 */
+    --muted-foreground: 215 20% 65%; /* #94a3b8 */
+
+    --accent: 217 91% 60%; /* #3b82f6 - Using blue as accent */
+    --accent-foreground: 0 0% 100%; /* White */
+
+    --destructive: 0 84% 60%; /* #f87171 */
+    --destructive-foreground: 210 40% 98%; /* #f8fafc */
+
+    --border: 217 33% 25%; /* Slightly lighter border #334155 */
+    --input: 217 33% 25%; /* #334155 */
+    --ring: 243 94% 66%; /* #6366f1 */
+
+    --radius: 0.5rem;
+  }
+
+  /* Apply base styles to dark mode as well if needed */
+  /* .dark { ... } */
+
+  * {
+    @apply border-border;
+  }
+
+  /* Only apply body styles when a specific class is present, 
+     which we'll add in the landing page component */
+  body.landing-page-theme {
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Space theme utilities - Scope them to the landing page theme */
+  .landing-page-theme .space-bg {
+    background-color: hsl(var(--background));
+    background-image: radial-gradient(circle at 15% 50%, hsla(var(--primary), 0.1) 0%, transparent 25%),
+                      radial-gradient(circle at 85% 30%, hsla(var(--accent), 0.1) 0%, transparent 25%);
+  }
+
+  .landing-page-theme .star {
+    position: absolute;
+    background-color: white;
+    border-radius: 50%;
+    opacity: 0.7;
+    animation: twinkle var(--duration, 4s) ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+  }
+
+  .landing-page-theme .glow-text {
+    text-shadow: 0 0 10px hsla(var(--primary), 0.7);
+  }
+  
+  .landing-page-theme .section {
+    @apply py-16 md:py-24 px-4 md:px-8 relative overflow-hidden;
+  }
+  
+  .landing-page-theme .orb {
+    @apply absolute rounded-full blur-3xl opacity-20 pointer-events-none;
+    background: linear-gradient(to right, hsla(var(--primary), 0.4), hsla(var(--accent), 0.4));
+  }
+}
+
+/* Custom scrollbar - scope to landing page theme */
+.landing-page-theme ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.landing-page-theme ::-webkit-scrollbar-track {
+  background: hsla(var(--background), 0.1);
+}
+
+.landing-page-theme ::-webkit-scrollbar-thumb {
+  background: hsla(var(--primary), 0.5);
+  border-radius: 4px;
+}
+
+.landing-page-theme ::-webkit-scrollbar-thumb:hover {
+  background: hsla(var(--primary), 0.7);
+}
+
+/* Animations - scope to landing page theme */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.landing-page-theme .animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.landing-page-theme .animate-pulse-slow {
+  animation: pulse 4s ease-in-out infinite;
+}
+
+.landing-page-theme .animate-rotate {
+  animation: rotate 20s linear infinite;
+} 

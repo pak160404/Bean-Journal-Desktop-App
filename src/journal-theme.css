@@ -1,0 +1,363 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Base colors */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    
+    /* Card */
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    
+    /* Bean theme colors */
+    --bean-pink: 313 100% 90%;
+    --bean-purple: 280 65% 70%;
+    --bean-text: 247 24% 30%;
+    
+    /* Primary - purple */
+    --primary: 280 65% 60%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary - light purple */
+    --secondary: 280 20% 96%;
+    --secondary-foreground: 247 24% 30%;
+    
+    /* Muted */
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    
+    /* Accent - pink */
+    --accent: 313 100% 90%;
+    --accent-foreground: 240 5.9% 10%;
+    
+    /* Destructive */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    
+    /* Border and input */
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 280 65% 60%;
+    --radius: 0.5rem;
+    
+    /* Sidebar */
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-border: 240 6% 90%;
+    --sidebar-accent: 280 20% 92%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-ring: 280 65% 60%;
+    /* Using transparent for background since we'll apply the gradient separately */
+    --sidebar-background: 0 0% 0% / 0; 
+    --sidebar-primary: 280 65% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    /* Define gradient colors for light mode */
+    --gradient-from: #ffd1fb;
+    --gradient-to: #ae70ff;
+    /* Add helper classes for the gradient colors as RGB for opacity control */
+    --gradient-from-rgb: 255, 209, 251;
+    --gradient-to-rgb: 174, 112, 255;
+    /* Soften hover effects in light mode */
+    --hover-opacity-light: 0.08; /* Very low opacity for light mode */
+    --hover-opacity-dark: 0.3;   /* More visible for dark mode */
+  }
+
+  .dark {
+    /* Base colors - adjusted for gradient background */
+    --background: 267 25% 12%;
+    --foreground: 0 0% 98%;
+    
+    /* Card */
+    --card: 267 30% 15%;
+    --card-foreground: 0 0% 98%;
+    
+    /* Popover */
+    --popover: 267 30% 15%;
+    --popover-foreground: 0 0% 98%;
+    
+    /* Primary - purple */
+    --primary: 280 65% 60%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary - darker purple */
+    --secondary: 267 25% 18%;
+    --secondary-foreground: 0 0% 98%;
+    
+    /* Muted */
+    --muted: 267 25% 18%;
+    --muted-foreground: 240 5% 64.9%;
+    
+    /* Accent - pink toned down */
+    --accent: 313 70% 50%;
+    --accent-foreground: 0 0% 98%;
+    
+    /* Destructive */
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    
+    /* Border and input */
+    --border: 267 25% 18%;
+    --input: 267 25% 18%;
+    --ring: 280 65% 60%;
+    
+    /* Sidebar */
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-border: 267 25% 18%;
+    --sidebar-accent: 267 25% 25%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-ring: 280 65% 60%;
+    /* Using transparent for background since we'll apply the gradient separately */
+    --sidebar-background: 0 0% 0% / 0; 
+    --sidebar-primary: 280 65% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    /* Define gradient colors for dark mode */
+    --gradient-from: #452658;
+    --gradient-to: #2a1a37;
+    --gradient-from-rgb: 69, 38, 88;
+    --gradient-to-rgb: 42, 26, 55;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-gradient-to-b from-[var(--gradient-from)] to-[var(--gradient-to)];
+    min-height: 100vh;
+  }
+  
+  /* Apply gradient background to dark mode */
+  .dark body {
+    @apply bg-gradient-to-b from-[var(--gradient-from)] to-[var(--gradient-to)];
+    min-height: 100vh;
+  }
+}
+
+/* Custom styles for Bean Journal */
+/* Use CSS variables for the gradient colors */
+[data-sidebar="sidebar"] {
+  @apply bg-gradient-to-b from-[var(--gradient-from)] to-[var(--gradient-to)];
+}
+
+/* Apply sidebar background to elements that use bg-sidebar */
+.bg-sidebar {
+  @apply bg-gradient-to-b from-[var(--gradient-from)] to-[var(--gradient-to)];
+}
+
+/* Header styles to match sidebar - change direction to vertical */
+header {
+  @apply bg-white border-b border-border;
+}
+
+.dark header {
+  @apply bg-[#1E1726] border-t-2 border-x-2;
+}
+
+/* Update main background in dark mode to be transparent */
+.dark main {
+  background-color: transparent;
+}
+
+/* Ensure SidebarInset in dark mode has transparent background */
+.dark [data-sidebar="inset"] {
+  background-color: transparent;
+}
+
+/* Updated transition styles for faster reactions in both light and dark modes */
+
+/* Set faster base transitions for all interactive elements */
+button, a, [role="button"], 
+.interactive, [data-sidebar="menu-button"],
+[data-sidebar="menu-item"] > *,
+.hover\:bg-accent:hover,
+.hover\:bg-sidebar-accent:hover {
+  transition-property: background-color, border-color, color, fill, stroke, opacity;
+  transition-timing-function: cubic-bezier(0.2, 0, 0.1, 1); /* Faster easing */
+  transition-duration: 100ms !important; /* Much quicker transition */
+}
+
+/* Remove any existing slow transitions */
+[data-sidebar="menu-button"]:hover,
+[data-sidebar="menu-item"]:hover > *,
+.hover\:bg-accent:hover,
+.hover\:bg-sidebar-accent:hover,
+button:hover,
+.button:hover,
+a:hover,
+.interactive:hover {
+  transition-duration: 100ms !important; /* Force quicker transition */
+}
+
+/* For light mode hover styles */
+.sidebar-menu-button:hover,
+[data-sidebar="menu-button"]:hover,
+.hover\:bg-accent:hover,
+button:hover:not([disabled]),
+.button:hover:not([disabled]),
+a:hover,
+.interactive:hover,
+[data-sidebar="menu-item"]:hover > * {
+  @apply bg-opacity-20 transition-all;
+}
+
+/* For dark mode hover styles */
+.dark .sidebar-menu-button:hover,
+.dark [data-sidebar="menu-button"]:hover,
+.dark .hover\:bg-accent:hover,
+.dark button:hover:not([disabled]),
+.dark .button:hover:not([disabled]),
+.dark a:hover,
+.dark .interactive:hover,
+.dark [data-sidebar="menu-item"]:hover > * {
+  @apply bg-opacity-40 transition-all;
+}
+
+/* Generic hover styles for light mode */
+.hover\:bg-accent:hover:not(.dark .hover\:bg-accent:hover),
+.hover\:bg-sidebar-accent:hover:not(.dark .hover\:bg-sidebar-accent:hover),
+button:hover:not(.dark button:hover):not([disabled]),
+.button:hover:not(.dark .button:hover):not([disabled]),
+[data-sidebar="menu-button"]:hover:not(.dark [data-sidebar="menu-button"]:hover),
+[data-sidebar="menu-item"]:hover:not(.dark [data-sidebar="menu-item"]:hover) > * {
+  background-color: rgba(var(--gradient-from-rgb), var(--hover-opacity-light)) !important;
+  color: inherit !important;
+  box-shadow: none !important;
+}
+
+/* For sidebar items, use an even more subtle effect */
+.sidebar-menu-button:hover:not(.dark .sidebar-menu-button:hover),
+[role="menuitem"]:hover:not(.dark [role="menuitem"]:hover) {
+  background-color: rgba(var(--gradient-to-rgb), var(--hover-opacity-light)) !important;
+  opacity: 1 !important; 
+}
+
+/* For links, just change opacity slightly */
+a:hover:not(.dark a:hover),
+.interactive:hover:not(.dark .interactive:hover) {
+  opacity: 0.85 !important;
+}
+
+/* Override any default hover background colors in light mode */
+.bg-sidebar-accent:not(.dark .bg-sidebar-accent),
+.hover\:bg-sidebar-accent:hover:not(.dark .hover\:bg-sidebar-accent:hover) {
+  background-color: rgba(174, 112, 255, var(--hover-opacity-light)) !important;
+}
+
+/* Reset any hard default focus/hover styles */
+*:focus:not(.dark *:focus),
+*:hover:not(.dark *:hover) {
+  box-shadow: none !important;
+  border-color: rgba(var(--gradient-to-rgb), 0.2) !important;
+}
+
+/* Reduce motion for users with that preference */
+@media (prefers-reduced-motion) {
+  * {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}
+/* Apply a more subtle transition to all hover effects */
+*:hover {
+  transition-property: background-color, border-color, color, fill, stroke, opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Special rules for the user menu to ensure soft hover effects */
+
+/* Ultra-specific selectors for nav-user component */
+[data-sidebar="sidebar"] [data-sidebar="footer"] [data-sidebar="menu-button"],
+[data-sidebar="sidebar"] [data-sidebar="footer"] .SidebarMenuButton,
+[data-sidebar="sidebar"] [data-sidebar="footer"] button {
+  transition: background-color 100ms linear !important;
+}
+
+/* Target all states of the user menu button */
+[data-sidebar="sidebar"] [data-sidebar="footer"] [data-sidebar="menu-button"]:hover,
+[data-sidebar="sidebar"] [data-sidebar="footer"] [data-sidebar="menu-button"]:active,
+[data-sidebar="sidebar"] [data-sidebar="footer"] [data-sidebar="menu-button"][data-state="open"],
+[data-sidebar="sidebar"] [data-sidebar="footer"] .SidebarMenuButton:hover,
+[data-sidebar="sidebar"] [data-sidebar="footer"] button:hover {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  /* Removed color: white to keep original text color */
+  opacity: 1 !important;
+}
+
+/* Only apply to light mode */
+:not(.dark) [data-sidebar="sidebar"] [data-sidebar="footer"] [data-sidebar="menu-button"]:hover,
+:not(.dark) [data-sidebar="sidebar"] [data-sidebar="footer"] [data-sidebar="menu-button"]:active,
+:not(.dark) [data-sidebar="sidebar"] [data-sidebar="footer"] [data-sidebar="menu-button"][data-state="open"] {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Completely remove any background for the user menu */
+.user-menu-button:hover,
+.user-menu-button:active,
+.user-menu-button[data-state="open"] {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Override any dynamic state classes but preserve text color */
+.data-\[state\=open\]\:bg-sidebar-accent {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+/* Ensure text color doesn't change on hover/focus/active */
+[data-sidebar="sidebar"] [data-sidebar="footer"] [data-sidebar="menu-button"] *,
+[data-sidebar="sidebar"] [data-sidebar="footer"] [data-sidebar="menu-button"]:hover *,
+[data-sidebar="sidebar"] [data-sidebar="footer"] [data-sidebar="menu-button"]:active *,
+[data-sidebar="sidebar"] [data-sidebar="footer"] [data-sidebar="menu-button"]:focus *,
+[data-sidebar="sidebar"] [data-sidebar="footer"] [data-sidebar="menu-button"][data-state="open"] * {
+  color: inherit !important;
+}
+
+/* Restore sidebar collapse functionality */
+/* Make sure these don't get overridden by our hover fixes */
+
+/* Keep the sidebar rail visible */
+[data-sidebar="rail"] {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Ensure the trigger works */
+[data-sidebar="trigger"] {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+/* Fix specific classes that might be affected */
+.group-data-\[collapsible\=offcanvas\]\:translate-x-0,
+.group-data-\[collapsible\=offcanvas\]\:after\:left-full,
+.group-data-\[collapsible\=offcanvas\]\:hover\:bg-sidebar {
+  display: flex !important;
+  opacity: 1 !important;
+}
+
+/* Ensure the sidebar toggle transition works properly */
+.transition-\[left\,right\,width\] {
+  transition-property: left, right, width !important;
+  transition-duration: 200ms !important; 
+}
+
+/* Make sure the sidebar toggle button is visible and clickable */
+.SidebarTrigger,
+[data-sidebar="trigger"] {
+  z-index: 50 !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}

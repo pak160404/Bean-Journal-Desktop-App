@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
-import { ClerkProvider } from "@clerk/clerk-react";
+import { ClerkProvider } from '@clerk/clerk-react'
 
 //theme provider
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
@@ -9,8 +9,9 @@ import { ThemeProvider } from "@/components/shared/ThemeProvider";
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
 
-//global styles
-import "./index.css";
+//global styles - REMOVED theme-specific imports
+// import "./index.css"; 
+// import "./app.css";
 
 // Get your Clerk publishable key from environment variable
 // You'll need to add this to your .env file
