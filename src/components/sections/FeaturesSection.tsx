@@ -36,7 +36,7 @@ const FeaturesSection = () => {
           </h2>
           
           <p className="text-lg text-slate-300">
-            Bean Journey combines the power of consistent journaling with artificial intelligence to help you achieve your goals.
+            Bean Journal combines the power of consistent journaling with artificial intelligence to help you achieve your goals.
           </p>
         </motion.div>
 

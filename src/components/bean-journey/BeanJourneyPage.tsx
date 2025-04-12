@@ -112,7 +112,7 @@ export function BeanJourneyPage() {
         </div>
         
         {/* Journey Categories Section */}
-        <h2 className="text-2xl font-bold text-[#2f2569] dark:text-amber-400 mb-6">Explore Bean Journey</h2>
+        <h2 className="text-2xl font-bold text-[#2f2569] dark:text-amber-400 mb-6">Explore Bean Journal</h2>
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6 w-full bean-journey-cards">
           {[
             { 

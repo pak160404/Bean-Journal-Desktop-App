@@ -4,8 +4,8 @@ import { ChevronDown } from 'lucide-react';
 
 const faqs = [
   {
-    question: "What makes Bean Journey different from other journaling apps?",
-    answer: "Bean Journey uniquely combines the proven practice of journaling with AI technology to provide personalized insights and recommendations. Unlike traditional journaling apps, we help you identify patterns, track your progress, and offer suggestions to improve your well-being and productivity."
+    question: "What makes Bean Journal different from other journaling apps?",
+    answer: "Bean Journal uniquely combines the proven practice of journaling with AI technology to provide personalized insights and recommendations. Unlike traditional journaling apps, we help you identify patterns, track your progress, and offer suggestions to improve your well-being and productivity."
   },
   {
     question: "Is my journal data private and secure?",
@@ -21,11 +21,11 @@ const faqs = [
   },
   {
     question: "Do I need to journal every day for this to be effective?",
-    answer: "While consistent journaling yields the best insights, Bean Journey is designed to be flexible. You can journal daily, weekly, or whenever inspiration strikes. Our AI adapts to your schedule and provides value regardless of your journaling frequency."
+    answer: "While consistent journaling yields the best insights, Bean Journal is designed to be flexible. You can journal daily, weekly, or whenever inspiration strikes. Our AI adapts to your schedule and provides value regardless of your journaling frequency."
   },
   {
-    question: "Can I use Bean Journey on multiple devices?",
-    answer: "Yes, Bean Journey synchronizes across all your devices. Whether you're using our mobile app on iOS or Android, or our web application on your desktop, your journal entries and insights are always up-to-date."
+    question: "Can I use Bean Journal on multiple devices?",
+    answer: "Yes, Bean Journal synchronizes across all your devices. Whether you're using our mobile app on iOS or Android, or our web application on your desktop, your journal entries and insights are always up-to-date."
   }
 ];
 
@@ -116,7 +116,7 @@ const FaqSection = () => {
             Frequently Asked <span className="text-gradient">Questions</span>
           </h2>
           <p className="text-lg text-slate-300">
-            Everything you need to know about Bean Journey.
+            Everything you need to know about Bean Journal.
           </p>
         </motion.div>
 

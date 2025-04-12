@@ -34,7 +34,7 @@ const Navbar = () => {
               alt="Bean Journey Logo" 
               className="h-10 w-10"
             />
-            <span className="font-bold text-xl text-white">Bean Journey</span>
+            <span className="font-bold text-xl text-white">Bean Journal</span>
           </a>
 
           {/* Desktop Navigation */}

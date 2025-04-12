@@ -4,7 +4,7 @@ import { Star, Quote } from 'lucide-react';
 
 const testimonials = [
   {
-    content: "Bean Journey has completely transformed how I approach my days. The AI insights are scary accurate and have helped me identify patterns I never noticed before.",
+    content: "Bean Journal has completely transformed how I approach my days. The AI insights are scary accurate and have helped me identify patterns I never noticed before.",
     author: "Sarah Johnson",
     role: "Product Designer",
     stars: 5
@@ -16,7 +16,7 @@ const testimonials = [
     stars: 5
   },
   {
-    content: "As a therapist, I recommend Bean Journey to my clients. The mindfulness features combined with AI guidance create a powerful tool for self-reflection.",
+    content: "As a therapist, I recommend Bean Journal to my clients. The mindfulness features combined with AI guidance create a powerful tool for self-reflection.",
     author: "Dr. Emily Rodriguez",
     role: "Clinical Psychologist",
     stars: 5
@@ -110,7 +110,7 @@ const TestimonialsSection = () => {
             Loved by Journal <span className="text-gradient">Enthusiasts</span>
           </h2>
           <p className="text-lg text-slate-300">
-            Join thousands of users who have transformed their journaling practice with Bean Journey.
+            Join thousands of users who have transformed their journaling practice with Bean Journal.
           </p>
         </motion.div>
 

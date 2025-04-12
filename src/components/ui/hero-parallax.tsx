@@ -117,7 +117,7 @@ export const Header = () => {
           <span className="block mt-2">AI-Powered Insights</span>
         </h1>
         <p className="text-lg md:text-xl text-slate-300 mb-8 max-w-xl mx-auto md:mx-0">
-          Bean Journey combines the power of daily journaling with artificial intelligence to help you track patterns, set goals, and grow mindfully.
+          Bean Journal combines the power of daily journaling with artificial intelligence to help you track patterns, set goals, and grow mindfully.
         </p>
       </div>
 

@@ -30,8 +30,8 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2 mb-6">
-              <img src={logo_bean_journal} alt="Bean Journey Logo" className="h-14 w-14 rounded-lg" />
-              <span className="text-xl font-semibold text-white">Bean Journey</span>
+              <img src={logo_bean_journal} alt="Bean Journal Logo" className="h-14 w-14 rounded-lg" />
+              <span className="text-xl font-semibold text-white">Bean Journal</span>
             </div>
             <p className="text-slate-400 mb-6">
               Your AI-powered journal companion for mindful productivity and personal growth.
@@ -83,7 +83,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-slate-800 mt-12 pt-8 text-center text-slate-500">
-          <p>&copy; {new Date().getFullYear()} Bean Journey. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Bean Journal. All rights reserved.</p>
           <div className="flex justify-center mt-4 text-indigo-400">
             <Star fill="currentColor" size={16} />
             <Star fill="currentColor" size={16} />

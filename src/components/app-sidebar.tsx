@@ -37,7 +37,7 @@ const data = {
       items: [],
     },
     {
-      title: "Bean Journey",
+      title: "Bean Journal",
       url: "/bean-journey",
       icon: BookOpen,
       items: [],

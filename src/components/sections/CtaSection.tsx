@@ -96,7 +96,7 @@ const CtaSection = () => {
               Start Your Journaling <span className="text-gradient">Journey</span> Today
             </h2>
             <p className="text-xl text-slate-300 mb-8">
-              Join thousands of users who are transforming their productivity and well-being with Bean Journey.
+              Join thousands of users who are transforming their productivity and well-being with Bean Journal.
             </p>
             
             <motion.div
@@ -127,7 +127,7 @@ const CtaSection = () => {
               ))}
             </div>
             <p className="italic text-slate-300 mb-6">
-              "Bean Journey has completely transformed my daily routine. The AI insights are incredibly helpful!"
+              "Bean Journal has completely transformed my daily routine. The AI insights are incredibly helpful!"
             </p>
             <div className="flex items-center justify-center">
               <div className="h-10 w-10 rounded-full bg-indigo-500/30 flex items-center justify-center mr-3">

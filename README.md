@@ -13,7 +13,7 @@ A digital companion for coffee enthusiasts to track their coffee journey, explor
 
 ## Features
 
-- **Bean Journey Page**: Learn about coffee from seed to cup
+- **Bean Journal Page**: Learn about coffee from seed to cup
 - **Responsive Design**: Works on all devices
 - **Animations**: Smooth animations powered by Anime.js
 - **Dark Mode**: Toggle between light and dark themes
@@ -88,7 +88,7 @@ animation.play();
 
 - `src/components/`: UI components
 - `src/routes/`: Application routes
-- `src/components/bean-journey/`: Bean Journey components
+- `src/components/bean-journal/`: Bean Journal components
 - `public/images/`: Static images
 
 ## License
