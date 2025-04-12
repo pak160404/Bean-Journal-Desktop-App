@@ -1,90 +1,191 @@
-import { useState, useEffect } from 'react';
-import { motion, useScroll } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import logo_bean_journey from '@/../public/images/bean-journey/figma/logo_bean_journal.png';
+"use client";
+import {
+  Navbar,
+  NavBody,
+  NavItems,
+  MobileNav,
+  NavbarLogo,
+  NavbarButton,
+  MobileNavHeader,
+  MobileNavToggle,
+  MobileNavMenu,
+} from "@/components/ui/resizable-navbar";
+import { useState } from "react";
 
-const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const { scrollY } = useScroll();
+export function NavbarDemo() {
+  const navItems = [
+    {
+      name: "Features",
+      link: "#features",
+    },
+    {
+      name: "Pricing",
+      link: "#pricing",
+    },
+    {
+      name: "Contact",
+      link: "#contact",
+    },
+  ];
 
-  useEffect(() => {
-    const unsubscribe = scrollY.on('change', (y) => {
-      setScrolled(y > 20);
-    });
-
-    return () => unsubscribe();
-  }, [scrollY]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <motion.nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-background/80 backdrop-blur-md shadow-sm' : 'bg-transparent'
-      }`}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <a href="/" className="flex items-center space-x-2">
-            <img 
-              src={logo_bean_journey} 
-              alt="Bean Journey Logo" 
-              className="h-14 w-14"
+    <div className="relative w-full">
+      <Navbar>
+        {/* Desktop Navigation */}
+        <NavBody>
+          <NavbarLogo />
+          <NavItems items={navItems} />
+          <div className="flex items-center gap-4">
+            <NavbarButton variant="secondary">Login</NavbarButton>
+            <NavbarButton variant="primary">Book a call</NavbarButton>
+          </div>
+        </NavBody>
+
+        {/* Mobile Navigation */}
+        <MobileNav>
+          <MobileNavHeader>
+            <NavbarLogo />
+            <MobileNavToggle
+              isOpen={isMobileMenuOpen}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             />
-            <span className="font-bold text-xl text-white">Bean Journey</span>
-          </a>
+          </MobileNavHeader>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Features</a>
-            <a href="#ai-showcase" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">AI</a>
-            <a href="#testimonials" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Testimonials</a>
-            <a href="#pricing" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Pricing</a>
-            <a href="#faq" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">FAQ</a>
-          </div>
-
-          <div className="hidden md:flex items-center space-x-4">
-            <Button variant="outline" className="border-indigo-400/30 text-indigo-400 hover:bg-indigo-400/10">Log In</Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">Get Started</Button>
-          </div>
-
-          {/* Mobile Navigation Button */}
-          <button
-            className="md:hidden text-white"
-            onClick={() => setIsOpen(!isOpen)}
+          <MobileNavMenu
+            isOpen={isMobileMenuOpen}
+            onClose={() => setIsMobileMenuOpen(false)}
           >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Navigation Menu */}
-      {isOpen && (
-        <motion.div
-          className="md:hidden bg-slate-900/95 backdrop-blur-md absolute top-full left-0 right-0 p-4 border-t border-slate-800"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
-        >
-          <div className="flex flex-col space-y-4">
-            <a href="#features" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Features</a>
-            <a href="#ai-showcase" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">AI</a>
-            <a href="#testimonials" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Testimonials</a>
-            <a href="#pricing" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Pricing</a>
-            <a href="#faq" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">FAQ</a>
-            <div className="pt-4 border-t border-slate-800 flex flex-col space-y-2">
-              <Button variant="outline" className="border-indigo-400/30 text-indigo-400 hover:bg-indigo-400/10 w-full">Log In</Button>
-              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white w-full">Get Started</Button>
+            {navItems.map((item, idx) => (
+              <a
+                key={`mobile-link-${idx}`}
+                href={item.link}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="relative text-neutral-600 dark:text-neutral-300"
+              >
+                <span className="block">{item.name}</span>
+              </a>
+            ))}
+            <div className="flex w-full flex-col gap-4">
+              <NavbarButton
+                onClick={() => setIsMobileMenuOpen(false)}
+                variant="primary"
+                className="w-full"
+              >
+                Login
+              </NavbarButton>
+              <NavbarButton
+                onClick={() => setIsMobileMenuOpen(false)}
+                variant="primary"
+                className="w-full"
+              >
+                Book a call
+              </NavbarButton>
             </div>
+          </MobileNavMenu>
+        </MobileNav>
+      </Navbar>
+      <DummyContent />
+
+      {/* Navbar */}
+    </div>
+  );
+}
+
+const DummyContent = () => {
+  return (
+    <div className="container mx-auto p-8 pt-24">
+      <h1 className="mb-4 text-center text-3xl font-bold">
+        Check the navbar at the top of the container
+      </h1>
+      <p className="mb-10 text-center text-sm text-zinc-500">
+        For demo purpose we have kept the position as{" "}
+        <span className="font-medium">Sticky</span>. Keep in mind that this
+        component is <span className="font-medium">fixed</span> and will not
+        move when scrolling.
+      </p>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        {[
+          {
+            id: 1,
+            title: "The",
+            width: "md:col-span-1",
+            height: "h-60",
+            bg: "bg-neutral-100 dark:bg-neutral-800",
+          },
+          {
+            id: 2,
+            title: "First",
+            width: "md:col-span-2",
+            height: "h-60",
+            bg: "bg-neutral-100 dark:bg-neutral-800",
+          },
+          {
+            id: 3,
+            title: "Rule",
+            width: "md:col-span-1",
+            height: "h-60",
+            bg: "bg-neutral-100 dark:bg-neutral-800",
+          },
+          {
+            id: 4,
+            title: "Of",
+            width: "md:col-span-3",
+            height: "h-60",
+            bg: "bg-neutral-100 dark:bg-neutral-800",
+          },
+          {
+            id: 5,
+            title: "F",
+            width: "md:col-span-1",
+            height: "h-60",
+            bg: "bg-neutral-100 dark:bg-neutral-800",
+          },
+          {
+            id: 6,
+            title: "Club",
+            width: "md:col-span-2",
+            height: "h-60",
+            bg: "bg-neutral-100 dark:bg-neutral-800",
+          },
+          {
+            id: 7,
+            title: "Is",
+            width: "md:col-span-2",
+            height: "h-60",
+            bg: "bg-neutral-100 dark:bg-neutral-800",
+          },
+          {
+            id: 8,
+            title: "You",
+            width: "md:col-span-1",
+            height: "h-60",
+            bg: "bg-neutral-100 dark:bg-neutral-800",
+          },
+          {
+            id: 9,
+            title: "Do NOT TALK about",
+            width: "md:col-span-2",
+            height: "h-60",
+            bg: "bg-neutral-100 dark:bg-neutral-800",
+          },
+          {
+            id: 10,
+            title: "F Club",
+            width: "md:col-span-1",
+            height: "h-60",
+            bg: "bg-neutral-100 dark:bg-neutral-800",
+          },
+        ].map((box) => (
+          <div
+            key={box.id}
+            className={`${box.width} ${box.height} ${box.bg} flex items-center justify-center rounded-lg p-4 shadow-sm`}
+          >
+            <h2 className="text-xl font-medium">{box.title}</h2>
           </div>
-        </motion.div>
-      )}
-    </motion.nav>
+        ))}
+      </div>
+    </div>
   );
 };
-
-export default Navbar;
