@@ -1,6 +1,6 @@
 import { Facebook, Twitter, Instagram, Linkedin, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
-import logo_bean_journal from '@/../public/images/bean-journey/figma/logo_bean_journal.png';
+import logo_bean_journal from '@/images/logo_bean_journal.png';
 
 const Footer = () => {
   return (
