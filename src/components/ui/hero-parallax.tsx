@@ -1,14 +1,16 @@
 "use client";
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import {
   motion,
   useScroll,
   useTransform,
   useSpring,
   MotionValue,
+  AnimatePresence
 } from "framer-motion";
-import { Star, Sparkles, BarChart3, Shield, Activity, ChevronRight, Check } from 'lucide-react';
+import { Sparkles, BarChart3, Shield, Activity, ChevronRight, Check, ChevronLeft, Calendar, Smile, Frown, Clock, BookOpen } from 'lucide-react';
 import { ContainerTextFlip } from "./container-text-flip";
+import gsap from "gsap";
 
 // Text animation helper component
 const AnimatedText = ({ text, className = "", delay = 0 }: { text: string; className?: string; delay?: number }) => {
@@ -89,27 +91,31 @@ const InfiniteMarquee: React.FC<InfiniteMarqueeProps> = ({
   
   // Measure the width of the content
   React.useEffect(() => {
-    if (contentRef.current) {
-      setContentWidth(contentRef.current.offsetWidth);
+    const node = contentRef.current; // Store the current value
+
+    if (node) {
+      setContentWidth(node.offsetWidth);
     }
     
     // Add resize observer to remeasure if window resizes
     const resizeObserver = new ResizeObserver(() => {
+      // Check current ref inside observer as it runs asynchronously
       if (contentRef.current) {
         setContentWidth(contentRef.current.offsetWidth);
       }
     });
     
-    if (contentRef.current) {
-      resizeObserver.observe(contentRef.current);
+    if (node) {
+      resizeObserver.observe(node);
     }
     
+    // Cleanup function uses the stored 'node' variable
     return () => {
-      if (contentRef.current) {
-        resizeObserver.unobserve(contentRef.current);
+      if (node) {
+        resizeObserver.unobserve(node);
       }
     };
-  }, []);
+  }, []); // Empty dependency array ensures this runs on mount/unmount
   
   // Create dynamic style for marquee animation
   React.useEffect(() => {
@@ -320,13 +326,180 @@ export const HeroParallax = ({
 };
 
 export const Header = () => {
-  const [activeTab, setActiveTab] = React.useState(0);
-  const glassCardStyle = "bg-slate-800/40 backdrop-blur-md p-6 rounded-xl border border-slate-700/30 shadow-xl relative";
+  const [currentJournalPage, setCurrentJournalPage] = React.useState(0);
+  const [isWriting, setIsWriting] = React.useState(false);
+  const [typedTextLength, setTypedTextLength] = React.useState(0);
+  const [cursorPosition, setCursorPosition] = React.useState<{top: number; left: number} | null>(null);
+  const [moodValue, setMoodValue] = React.useState(75);
+  const [promptIndex, setPromptIndex] = React.useState(0);
+
+  const journalContainerRef = useRef<HTMLDivElement>(null);
+  const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const typingRef = useRef<HTMLDivElement>(null);
+  const cursorTargetRef = useRef<HTMLSpanElement>(null);
+  const moodSliderRef = useRef<HTMLDivElement>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
+  
   const features = [
     { title: "AI-Powered Analysis", icon: <Activity className="h-5 w-5" /> },
     { title: "Daily Reflections", icon: <BarChart3 className="h-5 w-5" /> },
     { title: "Privacy First", icon: <Shield className="h-5 w-5" /> }
   ];
+
+  // Prompts to cycle through
+  const journalPrompts = [
+    "What are you grateful for today?",
+    "Describe a challenge you overcame this week.",
+    "What brought you joy recently?",
+    "Write about a goal you're working toward.",
+    "Reflect on a meaningful conversation."
+  ];
+
+  // Journal entries for animation
+  const journalEntries = [
+    {
+      date: "April 12, 2025",
+      prompt: journalPrompts[0],
+      content: "Today I'm grateful for the team's enthusiasm about our launch. Their energy keeps me motivated even when facing tight deadlines.",
+      mood: 75,
+      tags: ["work", "gratitude", "team"]
+    },
+    {
+      date: "April 11, 2025",
+      prompt: journalPrompts[1],
+      content: "This week I struggled with balancing work priorities, but managed to delegate effectively and maintain focus on what matters most.",
+      mood: 68,
+      tags: ["challenge", "work", "growth"]
+    },
+    {
+      date: "April 10, 2025",
+      prompt: journalPrompts[2],
+      content: "The morning walk in the park today was unexpectedly refreshing. Seeing the spring flowers bloom put me in a great mood for the day.",
+      mood: 85,
+      tags: ["nature", "joy", "mindfulness"]
+    }
+  ];
+
+  // For typing animation - only updates length state
+  useEffect(() => {
+    let typingInterval: NodeJS.Timeout | null = null;
+    // Reset length when page changes or writing starts
+    setTypedTextLength(0); 
+
+    if (isWriting) {
+      const fullText = journalEntries[currentJournalPage].content;
+      let i = 0;
+      
+      typingInterval = setInterval(() => {
+        if (i < fullText.length) {
+          setTypedTextLength(prev => prev + 1); // Increment length state
+          i++;
+        } else {
+          if (typingInterval) clearInterval(typingInterval);
+          setIsWriting(false); // Done writing
+        }
+      }, 50);
+
+    } else {
+      // If not writing initially, set full length for correct display
+      setTypedTextLength(journalEntries[currentJournalPage]?.content?.length || 0);
+    }
+
+    // Cleanup function
+    return () => {
+      if (typingInterval) clearInterval(typingInterval);
+    };
+    // Rerun only when writing starts/stops or page changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isWriting, currentJournalPage]); 
+
+  // For cursor position measurement
+  useEffect(() => {
+    if (isWriting && cursorTargetRef.current && typingRef.current) {
+      const targetRect = cursorTargetRef.current.getBoundingClientRect();
+      const containerRect = typingRef.current.getBoundingClientRect();
+      
+      const top = targetRect.top - containerRect.top;
+      const left = targetRect.left - containerRect.left;
+      
+      setCursorPosition({ top, left });
+    } else {
+      // Hide cursor when not writing
+      setCursorPosition(null); 
+    }
+    // Rerun whenever the typed text length changes or writing state changes
+  }, [typedTextLength, isWriting]); 
+
+  // Journal page flip animation with GSAP
+  useEffect(() => {
+    if (pageRefs.current.length) {
+      pageRefs.current.forEach((page, index) => {
+        if (page) {
+          gsap.set(page, {
+            rotationY: index === currentJournalPage ? 0 : -90,
+            opacity: index === currentJournalPage ? 1 : 0,
+            zIndex: journalEntries.length - index
+          });
+        }
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentJournalPage]);
+
+  // Mood tracking animation
+  useEffect(() => {
+    if (moodSliderRef.current) {
+      gsap.to(moodSliderRef.current, {
+        width: `${moodValue}%`,
+        duration: 1,
+        ease: "power2.out"
+      });
+    }
+  }, [moodValue]);
+
+  // Init animations
+  useEffect(() => {
+    // Initialize page references array
+    pageRefs.current = pageRefs.current.slice(0, journalEntries.length);
+    
+    // Removed GSAP timeline animation here - handled by Framer Motion below
+    
+    // Start writing animation for the initial page after a delay
+    const timer = setTimeout(() => {
+      setIsWriting(true);
+    }, 1000);
+    
+    return () => {
+      clearTimeout(timer);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Initial mount effect
+
+  // Page navigation functions - simplified timing
+  const nextPage = () => {
+    if (currentJournalPage < journalEntries.length - 1) {
+      setIsWriting(true);
+      setCurrentJournalPage(prev => prev + 1);
+      setMoodValue(journalEntries[currentJournalPage + 1].mood);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentJournalPage > 0) {
+      setIsWriting(true);
+      setCurrentJournalPage(prev => prev - 1);
+      setMoodValue(journalEntries[currentJournalPage - 1].mood);
+    }
+  };
+
+  // Rotate journal prompts
+  useEffect(() => {
+    const promptInterval = setInterval(() => {
+      setPromptIndex((prev) => (prev + 1) % journalPrompts.length);
+    }, 5000);
+    
+    return () => clearInterval(promptInterval);
+  }, [journalPrompts.length]);
 
   return (
     <div className="max-w-7xl relative mx-auto py-20 md:py-32 px-4 w-full left-0 top-0 z-20 flex flex-col md:flex-row items-center gap-8 md:gap-16">
@@ -343,11 +516,6 @@ export const Header = () => {
         </motion.div>
         
         <div className="text-4xl md:text-7xl font-bold leading-relaxed mb-6 w-full overflow-visible">
-          {/* <AnimatedText
-            text="Navigate"
-            className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-blue-400"
-            delay={1}
-          /> */}
           <ContainerTextFlip
             words={["Tracking", "Charting", "Evolving", "Learning", "Refining"]}
             className="bg-transparent shadow-none border-none h-[5rem] p-0 m-0 align-baseline text-inherit dark:text-inherit"
@@ -415,91 +583,360 @@ export const Header = () => {
         </motion.div>
       </div>
 
+      {/* Interactive Journal Experience */}
       <motion.div
-        className="flex-1 relative"
+        className="flex-1 relative h-[500px] max-w-lg mx-auto"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8, delay: 0.3 }}
+        ref={journalContainerRef}
       >
-        <div className="relative max-w-md mx-auto">
-          {/* Main card */}
+        <div className="relative w-full h-full">
+          {/* Journal Book - Removed initial rotation */}
           <motion.div 
-            className={`${glassCardStyle} z-30`}
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-            whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgba(76, 29, 149, 0.1), 0 10px 10px -5px rgba(76, 29, 149, 0.04)" }}
+            className="relative w-full h-full"
           >
-            <div className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-indigo-500 via-blue-500 to-purple-500 rounded-t-xl"></div>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-medium text-lg text-white">Today's Reflection</h3>
-              <span className="text-sm text-slate-400">April 12, 2025</span>
-            </div>
-            <div className="space-y-3">
-              <p className="text-sm text-slate-300">Making progress on the new AI features. The team is excited about the launch, but I'm still a bit anxious about the timeline...</p>
-              <div className="h-2 w-full rounded-full bg-slate-700/50">
+            {/* Journal Cover - Removed rotation animation and 3D styles */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-br from-indigo-900 to-slate-800 rounded-lg shadow-xl border-t border-l border-indigo-700 overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+              <div className="absolute top-0 right-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-indigo-500/40 to-transparent"></div>
+              
+              {/* Cover Design */}
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center w-[80%]">
                 <motion.div 
-                  className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-blue-500"
-                  initial={{ width: "0%" }}
-                  animate={{ width: "75%" }}
-                  transition={{ duration: 1.5, ease: "easeOut" }}
+                  className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-blue-300 pb-2"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8, duration: 0.8 }}
+                >
+                  Bean Journal
+                </motion.div>
+                <motion.div 
+                  className="w-12 h-1 mx-auto bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full my-4"
+                  initial={{ width: 0 }}
+                  animate={{ width: 48 }}
+                  transition={{ delay: 1.2, duration: 0.6 }}
                 />
+                <motion.div 
+                  className="text-sm text-indigo-300/70"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.4, duration: 0.8 }}
+                >
+                  Your journey to mindful growth
+                </motion.div>
               </div>
-              <div className="bg-slate-900/60 backdrop-blur-sm p-4 rounded-lg border border-slate-700/20">
+
+              {/* Bookmark */}
+              <motion.div
+                className="absolute -right-1 top-10 h-20 w-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-l-md shadow-md"
+                initial={{ x: 20 }}
+                animate={{ x: 0 }}
+                transition={{ delay: 1.2, type: "spring", stiffness: 100 }}
+              />
+            </motion.div>
+
+            {/* Create a container for pages - Removed 3D styles */}
+            <div 
+              className="absolute inset-0 m-3" 
+            >
+              {/* Journal Pages - Fade Transition */}
+              <AnimatePresence initial={false} mode="wait">
+                <motion.div
+                  key={`page-${currentJournalPage}`}
+                  className="absolute inset-0 bg-slate-100/95 dark:bg-slate-800/95 rounded-md p-6 pb-12 shadow-inner"
+                  variants={{
+                    enter: {
+                      opacity: 1,
+                      transition: {
+                        duration: 0.4, // Faster fade in
+                        ease: "easeOut"
+                      }
+                    },
+                    initial: {
+                      opacity: 0,
+                    },
+                    exit: {
+                      opacity: 0,
+                      transition: {
+                        duration: 0.3, // Faster fade out
+                        ease: "easeIn"
+                      }
+                    }
+                  }}
+                  initial="initial"
+                  animate="enter"
+                  exit="exit"
+                  ref={(el) => {
+                    if (pageRefs.current) {
+                      pageRefs.current[currentJournalPage] = el;
+                    }
+                  }}
+                >
+                  {/* Page Header */}
+                  <div className="flex justify-between items-center mb-4 border-b border-slate-300/30 pb-3">
+                    <div className="flex items-center">
+                      <Calendar className="w-4 h-4 text-indigo-500 mr-2" />
+                      <span className="text-sm text-slate-600 dark:text-slate-300">{journalEntries[currentJournalPage].date}</span>
+                    </div>
+                    
+                    <div className="flex space-x-1">
+                      {journalEntries[currentJournalPage].tags.map((tag, tagIndex) => (
+                        <span 
+                          key={`tag-${currentJournalPage}-${tagIndex}`} 
+                          className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Prompt */}
+                  <div className="bg-slate-200/50 dark:bg-slate-700/20 p-3 rounded-md mb-4 flex items-start">
+                    <div className="mr-2 mt-1 p-1 bg-indigo-100 dark:bg-indigo-900/40 rounded">
+                      <Sparkles className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 italic">{journalEntries[currentJournalPage].prompt}</p>
+                  </div>
+                  
+                  {/* Journal Content - Render text based on state */}
+                  <div className="min-h-[150px] mb-4 relative">
+                    <div 
+                      ref={typingRef} // Ref is now on the container
+                      className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-wrap"
+                    >
+                      {/* Render typed text */} 
+                      <span>{journalEntries[currentJournalPage].content.substring(0, typedTextLength)}</span>
+                      {/* Empty span for cursor measurement */} 
+                      <span ref={cursorTargetRef} className="inline-block w-0"></span> {/* Ensure span takes space */}
+                    </div>
+                    
+                    {/* Cursor - position based on measurement state */}
+                    {isWriting && cursorPosition && (
+                      <motion.div 
+                        className="absolute inline-block w-0.5 h-4 bg-indigo-500"
+                        key={`cursor-${currentJournalPage}`} 
+                        animate={{ opacity: [1, 0, 1] }}
+                        transition={{ duration: 0.8, repeat: Infinity }}
+                        style={{ 
+                          // Use direct top/left positioning with vertical adjustment
+                          position: 'absolute',
+                          top: (cursorPosition.top - 13) + 'px', // Nudge up by 13px
+                          left: (cursorPosition.left + 2) + 'px', // Nudge right by 4px
+                        }}
+                      />
+                    )}
+                  </div>
+                  
+                  {/* Mood Tracker */}
+                  <div className="mb-2">
+                    <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                      <div className="flex items-center">
+                        <Frown className="w-3 h-3 mr-1" />
+                        <span>Mood</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span>Feeling Good</span>
+                        <Smile className="w-3 h-3 ml-1" />
+                      </div>
+                    </div>
+                    <div className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <motion.div 
+                        ref={moodSliderRef}
+                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-500"
+                        initial={{ width: `${moodValue}%` }} 
+                        animate={{ width: `${moodValue}%` }} 
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* AI Insights Section */}
+                  <motion.div 
+                    className="bg-gradient-to-r from-slate-800/90 to-indigo-900/90 p-3 rounded-md mt-6 text-white"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7, duration: 0.5 }}
+                  >
                 <div className="flex items-center mb-2">
                   <div className="w-5 h-5 rounded-full bg-indigo-500/20 flex items-center justify-center mr-2">
                     <Sparkles className="h-3 w-3 text-indigo-300" />
                   </div>
-                  <p className="text-sm font-medium text-white">AI Insight:</p>
+                      <p className="text-xs font-medium">AI Insight:</p>
                 </div>
-                <p className="text-xs text-slate-300">You seem to be experiencing mixed emotions today. Your anxiety level is 30% lower than last week. Great progress!</p>
+                    <p className="text-xs text-slate-300">
+                      {/* Display insight based on current page */}
+                      {currentJournalPage === 0 ? "Your emotional awareness is improving. Try reflecting on what specific aspects of teamwork energize you the most." :
+                       currentJournalPage === 1 ? "You're developing stronger prioritization skills. Consider documenting your successful delegation strategies." :
+                       "Nature seems to have a significant positive impact on your mood. Perhaps schedule more outdoor activities?"}
+                    </p>
+                  </motion.div>
+                  
+                  {/* Page Number */}
+                  <div className="absolute bottom-2 right-4 text-xs text-slate-400">
+                    {currentJournalPage + 1} / {journalEntries.length}
               </div>
+                </motion.div>
+              </AnimatePresence>
             </div>
 
-            <div className="flex gap-2 mt-4">
-              {[0, 1, 2].map(index => (
+          </motion.div>
+
+          {/* Page Turn Controls */}
+          <motion.div 
+            className="absolute top-1/2 -left-5 z-50"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: currentJournalPage > 0 ? 1 : 0.3, x: 0 }}
+            transition={{ delay: 1 }}
+          >
+            <motion.button
+              className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center border border-indigo-500/20 shadow-lg"
+              onClick={prevPage}
+              whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.2)" }}
+              whileTap={{ scale: 0.95 }}
+              disabled={currentJournalPage === 0}
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </motion.button>
+          </motion.div>
+
+          <motion.div 
+            className="absolute top-1/2 -right-5 z-50"
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: currentJournalPage < journalEntries.length - 1 ? 1 : 0.3, x: 0 }}
+            transition={{ delay: 1 }}
+          >
                 <motion.button
-                  key={index}
-                  className={`h-1.5 rounded-full ${activeTab === index ? 'bg-indigo-500 w-6' : 'bg-slate-700 w-3'}`}
-                  onClick={() => setActiveTab(index)}
-                  whileHover={{ scale: 1.2 }}
-                  transition={{ duration: 0.2 }}
-                />
-              ))}
-            </div>
+              className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center border border-indigo-500/20 shadow-lg"
+              onClick={nextPage}
+              whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.2)" }}
+              whileTap={{ scale: 0.95 }}
+              disabled={currentJournalPage === journalEntries.length - 1}
+            >
+              <ChevronRight className="h-5 w-5" />
+            </motion.button>
           </motion.div>
 
-          {/* Floating satellite cards */}
+          {/* Repositioned Tomorrow's Prompt outside the Journal component */}
           <motion.div
-            className={`${glassCardStyle} absolute -bottom-10 -right-10 w-32 h-32 p-4 z-10`}
-            animate={{ y: [0, -15, 0] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            whileHover={{ scale: 1.05, rotate: -5 }}
+            layout
+            className="absolute -top-10 right-0 bg-gradient-to-r from-purple-900/80 to-indigo-900/80 backdrop-blur-md p-3 rounded-lg shadow-lg border border-indigo-500/20 max-w-[250px]"
+            initial={{ opacity: 0, y: 10, rotateZ: 5 }}
+            animate={{ opacity: 1, y: 0, rotateZ: 0 }}
+            transition={{ 
+              delay: 2, 
+              duration: 0.5, 
+              layout: {
+                duration: 0.35,
+                ease: [0.34, 1.56, 0.64, 1], // Spring-like cubic bezier curve similar to Apple's animations
+                type: "tween"
+              }
+            }}
+            style={{ zIndex: 50 }}
           >
-            <div className="h-full flex flex-col items-center justify-center">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500/20 to-blue-500/20 flex items-center justify-center mb-2 border border-indigo-500/20">
-                <Sparkles className="h-5 w-5 text-indigo-300" />
+            <div className="flex mb-2">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500/20 to-indigo-500/20 flex items-center justify-center mr-2 border border-purple-500/20">
+                <BookOpen className="h-3 w-3 text-purple-300" />
               </div>
-              <p className="text-xs text-center font-medium text-indigo-300">7-Day Streak</p>
+              <p className="text-xs font-medium text-white">Tomorrow's Prompt:</p>
             </div>
+            <AnimatePresence mode="wait">
+              <motion.p 
+                layout
+                key={`prompt-${promptIndex}`}
+                className="text-xs text-slate-300"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ 
+                  duration: 0.5,
+                  layout: {
+                    duration: 0.35,
+                    ease: [0.34, 1.56, 0.64, 1], // Same spring-like curve for content
+                    type: "tween"
+                  }
+                }}
+              >
+                {journalPrompts[promptIndex]}
+              </motion.p>
+            </AnimatePresence>
           </motion.div>
 
+          {/* Timeline of past entries - Use Framer Motion stagger */}
           <motion.div
-            className={`${glassCardStyle} absolute -top-10 -left-10 w-32 h-32 p-4 z-20`}
-            animate={{ y: [0, 15, 0] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-            whileHover={{ scale: 1.05, rotate: 5 }}
+            className="absolute -bottom-14 left-1/2 transform -translate-x-1/2 flex space-x-2 z-30"
+            ref={timelineRef}
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  delay: 1.5, // Delay the whole group
+                  staggerChildren: 0.1 // Stagger individual items
+                }
+              }
+            }}
           >
-            <div className="h-full flex flex-col items-center justify-center">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center mb-2 border border-blue-500/20">
-                <Star className="h-5 w-5 text-blue-300" />
+            {journalEntries.map((_, index) => (
+              <motion.button
+                key={`timeline-${index}`}
+                className={`timeline-item h-2 rounded-full transition-all duration-300 ease-in-out ${index === currentJournalPage ? 'bg-indigo-500 w-12' : 'bg-slate-700 w-6'}`}
+                onClick={() => {
+                  // Prevent changing to the same page
+                  if (index !== currentJournalPage) { 
+                    setCurrentJournalPage(index);
+                    setIsWriting(true); // Trigger writing animation
+                    setMoodValue(journalEntries[index].mood);
+                  }
+                }}
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.9 }}
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                // Removed initial/animate here, handled by parent stagger
+              />
+            ))}
+          </motion.div>
+
+          {/* Daily Streak Indicator */}
+          <motion.div
+            className="absolute -bottom-10 -left-4 bg-gradient-to-r from-blue-900/80 to-cyan-900/80 backdrop-blur-md p-3 rounded-lg shadow-lg border border-blue-500/20"
+            initial={{ opacity: 0, y: 10, rotateZ: -5 }}
+            animate={{ opacity: 1, y: 0, rotateZ: 0 }}
+            transition={{ delay: 2.2, duration: 0.5 }}
+          >
+            <div className="flex items-center">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center mr-2 border border-blue-500/20">
+                <Clock className="h-3 w-3 text-blue-300" />
               </div>
-              <p className="text-xs text-center font-medium text-blue-300">Mood Trends</p>
+              <div>
+                <p className="text-xs font-medium text-white">7-Day Streak</p>
+                <div className="flex space-x-1 mt-1">
+                  {Array(7).fill(0).map((_, i) => (
+                    <motion.div 
+                      key={`streak-${i}`}
+                      className={`h-1 rounded-full ${i < 5 ? 'bg-blue-400' : 'bg-slate-600'}`}
+                      style={{ width: i === 6 ? 6 : 4 }}
+                      initial={{ scaleY: 0 }}
+                      animate={{ scaleY: 1 }}
+                      transition={{ delay: 2.4 + i * 0.1, duration: 0.4 }}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
           </motion.div>
 
           {/* Decorative elements */}
-          <div className="absolute -z-10 -bottom-6 -right-6 w-64 h-64 bg-indigo-500 rounded-full opacity-5 blur-3xl"></div>
-          <div className="absolute -z-10 -top-6 -left-6 w-64 h-64 bg-blue-500 rounded-full opacity-5 blur-3xl"></div>
+          <div className="absolute -z-10 -bottom-10 right-0 w-64 h-64 bg-indigo-600 rounded-full opacity-10 blur-[80px]"></div>
+          <div className="absolute -z-10 top-0 -left-20 w-80 h-80 bg-blue-600 rounded-full opacity-10 blur-[100px]"></div>
         </div>
       </motion.div>
     </div>
