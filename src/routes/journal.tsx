@@ -41,7 +41,7 @@ function JournalLayout() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="bg-white dark:bg-transparent">
-        <header className="flex h-16 shrink-0 items-center gap-2 rounded-t-lg">
+        <header className="flex h-16 items-center gap-2 rounded-t-lg">
           <div className="flex items-center justify-between w-full px-4">
             <div className="flex items-center gap-2">
               <SidebarTrigger 
