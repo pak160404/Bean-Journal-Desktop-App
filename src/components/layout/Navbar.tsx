@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, useScroll } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
+import { SignedIn, SignedOut, UserButton, SignInButton, SignUpButton } from "@clerk/clerk-react";
 import { Button } from '@/components/ui/Button';
 import logo_bean_journey from '@/images/logo_bean_journal.png';
 
@@ -47,8 +48,25 @@ const Navbar = () => {
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="outline" className="border-indigo-400/30 text-indigo-400 hover:bg-indigo-400/10">Log In</Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">Get Started</Button>
+            <SignedIn>
+              <UserButton 
+                afterSignOutUrl="/" 
+                appearance={{
+                  elements: {
+                    userButtonAvatarBox: "h-10 w-10",
+                    rootBox: "mr-2"
+                  }
+                }}
+              />
+            </SignedIn>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <Button variant="outline" className="border-indigo-400/30 text-indigo-400 hover:bg-indigo-400/10">Log In</Button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">Get Started</Button>
+              </SignUpButton>
+            </SignedOut>
           </div>
 
           {/* Mobile Navigation Button */}
@@ -77,8 +95,24 @@ const Navbar = () => {
             <a href="#pricing" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Pricing</a>
             <a href="#faq" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">FAQ</a>
             <div className="pt-4 border-t border-slate-800 flex flex-col space-y-2">
-              <Button variant="outline" className="border-indigo-400/30 text-indigo-400 hover:bg-indigo-400/10 w-full">Log In</Button>
-              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white w-full">Get Started</Button>
+              <SignedIn>
+                <UserButton 
+                  afterSignOutUrl="/" 
+                  appearance={{
+                    elements: {
+                      userButtonAvatarBox: "h-10 w-10"
+                    }
+                  }}
+                />
+              </SignedIn>
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <Button variant="outline" className="border-indigo-400/30 text-indigo-400 hover:bg-indigo-400/10 w-full">Log In</Button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <Button className="bg-indigo-600 hover:bg-indigo-700 text-white w-full">Get Started</Button>
+                </SignUpButton>
+              </SignedOut>
             </div>
           </div>
         </motion.div>

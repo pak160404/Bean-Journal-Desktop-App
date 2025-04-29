@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
-import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { RouterProvider, createRouter, useNavigate } from "@tanstack/react-router";
 import { ClerkProvider } from '@clerk/clerk-react'
 
 //theme provider
@@ -9,9 +9,9 @@ import { ThemeProvider } from "@/components/shared/ThemeProvider";
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
 
-//global styles - REMOVED theme-specific imports
-// import "./index.css"; 
-// import "./app.css";
+//global styles
+import "./index.css";
+import "./app.css";
 
 // Get your Clerk publishable key from environment variable
 // You'll need to add this to your .env file
@@ -22,13 +22,41 @@ if (!CLERK_PUBLISHABLE_KEY) {
 }
 
 // Create a new router instance
-const router = createRouter({ routeTree });
+// Pass the router tree and context (including Clerk config)
+const router = createRouter({
+	routeTree,
+	context: {
+		auth: undefined!, // Initialize auth context, will be overridden
+	},
+});
 
 // Register the router instance for type safety
 declare module "@tanstack/react-router" {
 	interface Register {
 		router: typeof router;
 	}
+	// Define the auth context shape
+	interface RouterContext {
+		auth: { publishableKey: string; routerPush: (to: string) => void; routerReplace: (to: string) => void };
+	}
+}
+
+// This component will wrap the Outlet in the root route
+export function ClerkAndThemeProvider({ children }: { children: React.ReactNode }) {
+	const navigate = useNavigate();
+
+	return (
+		<ClerkProvider 
+			publishableKey={CLERK_PUBLISHABLE_KEY}
+			// Pass the navigate function to Clerk
+			routerPush={(to) => navigate({ to })}
+			routerReplace={(to) => navigate({ to, replace: true })}
+		>
+			<ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+				{children}
+			</ThemeProvider>
+		</ClerkProvider>
+	);
 }
 
 // Render the app
@@ -37,11 +65,8 @@ if (!rootElement.innerHTML) {
 	const root = ReactDOM.createRoot(rootElement);
 	root.render(
 		<StrictMode>
-			<ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
-				<ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-					<RouterProvider router={router} />
-				</ThemeProvider>
-			</ClerkProvider>
+			{/* RouterProvider remains the top-level router component */}
+			<RouterProvider router={router} />
 		</StrictMode>,
 	);
 }

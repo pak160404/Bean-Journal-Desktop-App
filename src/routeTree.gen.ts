@@ -11,6 +11,8 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as SignUpImport } from './routes/sign-up'
+import { Route as LoginImport } from './routes/login'
 import { Route as JournalImport } from './routes/journal'
 import { Route as IndexImport } from './routes/index'
 import { Route as JournalIndexImport } from './routes/journal/index'
@@ -18,6 +20,18 @@ import { Route as JournalDashboardImport } from './routes/journal/dashboard'
 import { Route as JournalBeanJourneyImport } from './routes/journal/bean-journey'
 
 // Create/Update Routes
+
+const SignUpRoute = SignUpImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LoginRoute = LoginImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const JournalRoute = JournalImport.update({
   id: '/journal',
@@ -67,6 +81,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JournalImport
       parentRoute: typeof rootRoute
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginImport
+      parentRoute: typeof rootRoute
+    }
+    '/sign-up': {
+      id: '/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof SignUpImport
+      parentRoute: typeof rootRoute
+    }
     '/journal/bean-journey': {
       id: '/journal/bean-journey'
       path: '/bean-journey'
@@ -111,6 +139,8 @@ const JournalRouteWithChildren =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/journal': typeof JournalRouteWithChildren
+  '/login': typeof LoginRoute
+  '/sign-up': typeof SignUpRoute
   '/journal/bean-journey': typeof JournalBeanJourneyRoute
   '/journal/dashboard': typeof JournalDashboardRoute
   '/journal/': typeof JournalIndexRoute
@@ -118,6 +148,8 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/sign-up': typeof SignUpRoute
   '/journal/bean-journey': typeof JournalBeanJourneyRoute
   '/journal/dashboard': typeof JournalDashboardRoute
   '/journal': typeof JournalIndexRoute
@@ -127,6 +159,8 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/journal': typeof JournalRouteWithChildren
+  '/login': typeof LoginRoute
+  '/sign-up': typeof SignUpRoute
   '/journal/bean-journey': typeof JournalBeanJourneyRoute
   '/journal/dashboard': typeof JournalDashboardRoute
   '/journal/': typeof JournalIndexRoute
@@ -137,15 +171,25 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/journal'
+    | '/login'
+    | '/sign-up'
     | '/journal/bean-journey'
     | '/journal/dashboard'
     | '/journal/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/journal/bean-journey' | '/journal/dashboard' | '/journal'
+  to:
+    | '/'
+    | '/login'
+    | '/sign-up'
+    | '/journal/bean-journey'
+    | '/journal/dashboard'
+    | '/journal'
   id:
     | '__root__'
     | '/'
     | '/journal'
+    | '/login'
+    | '/sign-up'
     | '/journal/bean-journey'
     | '/journal/dashboard'
     | '/journal/'
@@ -155,11 +199,15 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   JournalRoute: typeof JournalRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  SignUpRoute: typeof SignUpRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   JournalRoute: JournalRouteWithChildren,
+  LoginRoute: LoginRoute,
+  SignUpRoute: SignUpRoute,
 }
 
 export const routeTree = rootRoute
@@ -173,7 +221,9 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/journal"
+        "/journal",
+        "/login",
+        "/sign-up"
       ]
     },
     "/": {
@@ -186,6 +236,12 @@ export const routeTree = rootRoute
         "/journal/dashboard",
         "/journal/"
       ]
+    },
+    "/login": {
+      "filePath": "login.tsx"
+    },
+    "/sign-up": {
+      "filePath": "sign-up.tsx"
     },
     "/journal/bean-journey": {
       "filePath": "journal/bean-journey.tsx",

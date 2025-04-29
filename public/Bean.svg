@@ -1,0 +1,15 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background shape -->
+  <path d="M40,100 C40,40 100,20 150,40 C200,60 200,140 150,170 C100,200 40,160 40,100 Z" fill="#B6DE86"/>
+  
+  <!-- Top shadow/highlight -->
+  <path d="M40,100 C40,40 100,20 150,40 C180,50 190,80 190,110 C150,80 100,40 40,100 Z" fill="#387C50"/>
+  
+  <!-- Middle highlight -->
+  <path d="M60,130 C90,150 130,150 170,130 C160,160 120,180 70,160 C50,150 60,130 60,130 Z" fill="#9DD073"/>
+  
+  <!-- Face -->
+  <circle cx="80" cy="90" r="6" fill="#000000"/> <!-- Left eye -->
+  <circle cx="120" cy="90" r="6" fill="#000000"/> <!-- Right eye -->
+  <path d="M75,120 Q100,135 125,120" stroke="#000000" stroke-width="4" fill="none"/> <!-- Smile -->
+</svg>
