@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as SignUpImport } from './routes/sign-up'
+import { Route as PricingImport } from './routes/pricing'
 import { Route as LoginImport } from './routes/login'
 import { Route as JournalImport } from './routes/journal'
 import { Route as IndexImport } from './routes/index'
@@ -24,6 +25,12 @@ import { Route as JournalBeanJourneyImport } from './routes/journal/bean-journey
 const SignUpRoute = SignUpImport.update({
   id: '/sign-up',
   path: '/sign-up',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const PricingRoute = PricingImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -88,6 +95,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
     }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingImport
+      parentRoute: typeof rootRoute
+    }
     '/sign-up': {
       id: '/sign-up'
       path: '/sign-up'
@@ -140,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/journal': typeof JournalRouteWithChildren
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/sign-up': typeof SignUpRoute
   '/journal/bean-journey': typeof JournalBeanJourneyRoute
   '/journal/dashboard': typeof JournalDashboardRoute
@@ -149,6 +164,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/sign-up': typeof SignUpRoute
   '/journal/bean-journey': typeof JournalBeanJourneyRoute
   '/journal/dashboard': typeof JournalDashboardRoute
@@ -160,6 +176,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/journal': typeof JournalRouteWithChildren
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/sign-up': typeof SignUpRoute
   '/journal/bean-journey': typeof JournalBeanJourneyRoute
   '/journal/dashboard': typeof JournalDashboardRoute
@@ -172,6 +189,7 @@ export interface FileRouteTypes {
     | '/'
     | '/journal'
     | '/login'
+    | '/pricing'
     | '/sign-up'
     | '/journal/bean-journey'
     | '/journal/dashboard'
@@ -180,6 +198,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/pricing'
     | '/sign-up'
     | '/journal/bean-journey'
     | '/journal/dashboard'
@@ -189,6 +208,7 @@ export interface FileRouteTypes {
     | '/'
     | '/journal'
     | '/login'
+    | '/pricing'
     | '/sign-up'
     | '/journal/bean-journey'
     | '/journal/dashboard'
@@ -200,6 +220,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   JournalRoute: typeof JournalRouteWithChildren
   LoginRoute: typeof LoginRoute
+  PricingRoute: typeof PricingRoute
   SignUpRoute: typeof SignUpRoute
 }
 
@@ -207,6 +228,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   JournalRoute: JournalRouteWithChildren,
   LoginRoute: LoginRoute,
+  PricingRoute: PricingRoute,
   SignUpRoute: SignUpRoute,
 }
 
@@ -223,6 +245,7 @@ export const routeTree = rootRoute
         "/",
         "/journal",
         "/login",
+        "/pricing",
         "/sign-up"
       ]
     },
@@ -239,6 +262,9 @@ export const routeTree = rootRoute
     },
     "/login": {
       "filePath": "login.tsx"
+    },
+    "/pricing": {
+      "filePath": "pricing.tsx"
     },
     "/sign-up": {
       "filePath": "sign-up.tsx"

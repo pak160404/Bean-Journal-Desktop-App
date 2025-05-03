@@ -1,0 +1,6 @@
+@font-face {
+  font-family: 'Publica Sans';
+  src: url('../components/fonts/PublicaSans-Regular.otf') format('opentype');
+  font-weight: normal; /* Assuming regular weight */
+  font-style: normal;  /* Assuming normal style */
+} 

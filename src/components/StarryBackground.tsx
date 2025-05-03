@@ -51,7 +51,7 @@ const StarryBackground = () => {
       stars.forEach(star => {
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+        ctx.fillStyle = `rgba(15, 23, 42, ${star.alpha})`;
         ctx.fill();
         
         // Move stars

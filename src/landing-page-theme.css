@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,33 +8,37 @@
 @layer base {
   /* These are the CSS variables specific to the landing page theme */
   :root {
-    --background: 222 47% 11%; /* #0f172a */
-    --foreground: 210 40% 98%; /* #f8fafc */
+    --background: 0 0% 100%; /* White background */
+    --foreground: 222 47% 11%; /* Dark text for contrast */
+    --color-white: 0 0% 100%; /* Explicit white color variable */
+    --color-blue-600: 217 90% 61%; /* Standard blue shade */
+    --color-main: 305 100% 91%;
+    --color-main2: 86 49% 69%;
 
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 243 94% 66%; /* #6366f1 - Adjusted primary */
+    --primary: 330 80% 70%; /* Pink/magenta */
     --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 217 33% 17%; /* #212e47 */
-    --secondary-foreground: 210 40% 98%; /* #f8fafc */
+    --secondary: 148 30% 80%; /* Pastel green */
+    --secondary-foreground: 148 60% 20%; /* Darker green for text */
 
-    --muted: 217 33% 17%; /* #212e47 */
-    --muted-foreground: 215 20% 65%; /* #94a3b8 */
+    --muted: 0 0% 96%;
+    --muted-foreground: 222 47% 40%;
 
-    --accent: 217 91% 60%; /* #3b82f6 - Using blue as accent */
+    --accent: 310 70% 60%; /* Magenta accent */
     --accent-foreground: 0 0% 100%; /* White */
 
     --destructive: 0 84% 60%; /* #f87171 */
     --destructive-foreground: 210 40% 98%; /* #f8fafc */
 
-    --border: 217 33% 25%; /* Slightly lighter border #334155 */
-    --input: 217 33% 25%; /* #334155 */
-    --ring: 243 94% 66%; /* #6366f1 */
+    --border: 220 13% 91%; /* Light border */
+    --input: 220 13% 91%;
+    --ring: 330 80% 70%; /* Matching primary */
 
     --radius: 0.5rem;
   }
@@ -48,24 +53,21 @@
   /* Only apply body styles when a specific class is present, 
      which we'll add in the landing page component */
   body.landing-page-theme {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-white text-slate-900 font-sans;
     font-family: 'Inter', sans-serif;
+    background-color: #ffffff; /* Explicit white background */
   }
 
-  /* Space theme utilities - Scope them to the landing page theme */
+  /* Light theme decorative elements - Scope them to the landing page theme */
   .landing-page-theme .space-bg {
     background-color: hsl(var(--background));
-    background-image: radial-gradient(circle at 15% 50%, hsla(var(--primary), 0.1) 0%, transparent 25%),
-                      radial-gradient(circle at 85% 30%, hsla(var(--accent), 0.1) 0%, transparent 25%);
+    background-image: 
+      radial-gradient(circle at 15% 50%, hsla(var(--primary), 0.1) 0%, transparent 25%),
+      radial-gradient(circle at 85% 30%, hsla(var(--secondary), 0.1) 0%, transparent 25%);
   }
 
   .landing-page-theme .star {
-    position: absolute;
-    background-color: white;
-    border-radius: 50%;
-    opacity: 0.7;
-    animation: twinkle var(--duration, 4s) ease-in-out infinite;
-    animation-delay: var(--delay, 0s);
+    display: none; /* Hide stars in light theme */
   }
 
   .landing-page-theme .glow-text {

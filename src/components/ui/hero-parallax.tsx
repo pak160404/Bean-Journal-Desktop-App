@@ -70,8 +70,6 @@ const AnimatedText = ({ text, className = "", delay = 0 }: { text: string; class
 interface InfiniteMarqueeProps {
   thickness?: string;
   speed?: number;
-  fromColor?: string;
-  toColor?: string;
   fontSize?: string;
   reverse?: boolean;
 }
@@ -79,8 +77,6 @@ interface InfiniteMarqueeProps {
 const InfiniteMarquee: React.FC<InfiniteMarqueeProps> = ({ 
   thickness = "py-2", 
   speed = 20, 
-  fromColor = "from-indigo-600", 
-  toColor = "to-blue-600",
   fontSize = "text-lg",
   reverse = false
 }) => {
@@ -184,7 +180,7 @@ const InfiniteMarquee: React.FC<InfiniteMarqueeProps> = ({
   
   return (
     <div 
-      className={`w-full overflow-hidden bg-gradient-to-r ${fromColor} ${toColor} ${thickness} relative`}
+      className={`w-full overflow-hidden bg-gradient-to-r from-[#ffd1fb] to-[#B6D78A] ${thickness} relative`}
       ref={containerRef}
     >
       <div 
@@ -246,7 +242,7 @@ export const HeroParallax = ({
   return (
     <div
       ref={ref}
-      className="h-[190vh] py-40 overflow-hidden antialiased relative flex flex-col self-auto [perspective:1000px] [transform-style:preserve-3d] bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950"
+      className="h-[190vh] py-40 overflow-hidden antialiased relative flex flex-col self-auto [perspective:1000px] [transform-style:preserve-3d] bg-gradient-to-b from-[#ffd1fb]/60 via-[#B6D78A] to-[#B6D78A]/20"
     >
       {/* Background elements */}
       <div className="absolute inset-0 overflow-hidden">
@@ -256,7 +252,7 @@ export const HeroParallax = ({
       </div>
       
       <motion.div
-        className="absolute inset-0 h-full w-full bg-slate-900/50 z-10 pointer-events-none"
+        className="absolute inset-0 h-full w-full bg-[#ffd1fb]/10 z-10 pointer-events-none"
         style={{ opacity: overlayOpacity }}
       ></motion.div>
       
@@ -266,8 +262,6 @@ export const HeroParallax = ({
       <div className="relative w-[120%] z-30 mt-8 ml-[-10%] ">
         <InfiniteMarquee 
           thickness="py-2" 
-          fromColor="from-indigo-600" 
-          toColor="to-blue-600"
           speed={40}
           fontSize="text-lg"
         />
@@ -276,8 +270,6 @@ export const HeroParallax = ({
       <div className="relative w-[120%] z-20 -mt-1 ml-[-1%] rotate-[5deg] opacity-70">
         <InfiniteMarquee 
           thickness="py-[0.4rem]" 
-          fromColor="from-blue-500" 
-          toColor="to-purple-600"
           speed={30}
           fontSize="text-sm"
           reverse
@@ -519,7 +511,7 @@ export const Header = () => {
           <ContainerTextFlip
             words={["Tracking", "Charting", "Evolving", "Learning", "Refining"]}
             className="bg-transparent shadow-none border-none h-[5rem] p-0 m-0 align-baseline text-inherit dark:text-inherit"
-            textClassName="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-blue-400 p-0 m-0"
+            textClassName="text-transparent bg-clip-text bg-gradient-to-r from-[#ffd1fb] to-[#B6D78A] p-0 m-0"
           />
           <AnimatedText text=" Your" delay={3} />
           <AnimatedText text=" Growth" delay={4} />
@@ -529,14 +521,14 @@ export const Header = () => {
           <div className="overflow-visible min-h-[1.2em]">
             <AnimatedText
               text="AI-Powered Insights"
-              className="block mt-2 text-[3.7rem] text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-400 pb-2 md:w-full"
+              className="block mt-2 text-[3.7rem] text-transparent bg-clip-text bg-gradient-to-r from-[#ffd1fb] via-[#B6D78A] to-[#ffd1fb] pb-2 md:w-full"
               delay={7}
             />
           </div>
         </div>
         
         <motion.p 
-          className="text-lg md:text-xl text-slate-300 mb-8 max-w-xl mx-auto md:mx-0"
+          className="text-lg md:text-xl text-slate-900 dark:text-white mb-8 max-w-xl mx-auto md:mx-0"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -551,14 +543,14 @@ export const Header = () => {
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <motion.button 
-            className="px-8 py-3 rounded-lg bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-medium transition-all flex items-center justify-center hover:from-indigo-600 hover:to-blue-600 shadow-lg shadow-indigo-500/20"
+            className="px-8 py-3 rounded-lg bg-gradient-to-r from-[#ffd1fb] to-[#B6D78A] text-white font-medium transition-all flex items-center justify-center hover:from-[#ffd1fb]/90 hover:to-[#B6D78A]/90 shadow-lg shadow-indigo-500/20"
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
           >
             Get Started Free <ChevronRight className="ml-2 h-4 w-4" />
           </motion.button>
           <motion.button 
-            className="px-8 py-3 rounded-lg border border-slate-700 text-slate-300 font-medium transition-all hover:bg-slate-800/50"
+            className="px-8 py-3 rounded-lg border border-slate-700 text-slate-800 dark:text-slate-200 font-medium transition-all hover:bg-slate-800/50"
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -567,14 +559,14 @@ export const Header = () => {
         </motion.div>
         
         <motion.div 
-          className="flex flex-wrap gap-y-3 gap-x-6 justify-center md:justify-start text-sm text-slate-400"
+          className="flex flex-wrap gap-y-3 gap-x-6 justify-center md:justify-start text-sm text-slate-700 dark:text-slate-300"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
           {features.map((feature, index) => (
             <div key={index} className="flex items-center">
-              <div className="w-5 h-5 rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 flex items-center justify-center mr-2">
+              <div className="w-5 h-5 rounded-full bg-gradient-to-r from-[#ffd1fb] to-[#B6D78A] flex items-center justify-center mr-2">
                 <Check className="h-3 w-3 text-white" />
               </div>
               <span>{feature.title}</span>
@@ -598,15 +590,15 @@ export const Header = () => {
           >
             {/* Journal Cover - Removed rotation animation and 3D styles */}
             <motion.div
-              className="absolute inset-0 bg-gradient-to-br from-indigo-900 to-slate-800 rounded-lg shadow-xl border-t border-l border-indigo-700 overflow-hidden"
+              className="absolute inset-0 bg-gradient-to-br from-[#ffd1fb] to-[#B6D78A] rounded-lg shadow-xl border-t border-l border-indigo-700 overflow-hidden"
             >
               <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-              <div className="absolute top-0 right-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-indigo-500/40 to-transparent"></div>
+              <div className="absolute top-0 right-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-[#B6D78A]/40 to-transparent"></div>
               
               {/* Cover Design */}
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center w-[80%]">
                 <motion.div 
-                  className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-blue-300 pb-2"
+                  className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ffd1fb] to-[#B6D78A] pb-2"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.8, duration: 0.8 }}
@@ -614,13 +606,13 @@ export const Header = () => {
                   Bean Journal
                 </motion.div>
                 <motion.div 
-                  className="w-12 h-1 mx-auto bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full my-4"
+                  className="w-12 h-1 mx-auto bg-gradient-to-r from-[#ffd1fb] to-[#B6D78A] rounded-full my-4"
                   initial={{ width: 0 }}
                   animate={{ width: 48 }}
                   transition={{ delay: 1.2, duration: 0.6 }}
                 />
                 <motion.div 
-                  className="text-sm text-indigo-300/70"
+                  className="text-sm text-slate-700 dark:text-indigo-300/70"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.4, duration: 0.8 }}
@@ -631,7 +623,7 @@ export const Header = () => {
 
               {/* Bookmark */}
               <motion.div
-                className="absolute -right-1 top-10 h-20 w-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-l-md shadow-md"
+                className="absolute -right-1 top-10 h-20 w-8 bg-gradient-to-r from-[#ffd1fb] to-[#B6D78A] rounded-l-md shadow-md"
                 initial={{ x: 20 }}
                 animate={{ x: 0 }}
                 transition={{ delay: 1.2, type: "spring", stiffness: 100 }}
@@ -686,7 +678,7 @@ export const Header = () => {
                       {journalEntries[currentJournalPage].tags.map((tag, tagIndex) => (
                         <span 
                           key={`tag-${currentJournalPage}-${tagIndex}`} 
-                          className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
+                          className="text-xs px-2 py-0.5 rounded-full bg-[#ffd1fb]/30 dark:bg-[#ffd1fb]/20 text-pink-800 dark:text-pink-200"
                         >
                           #{tag}
                         </span>
@@ -746,7 +738,7 @@ export const Header = () => {
                     <div className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                       <motion.div 
                         ref={moodSliderRef}
-                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-500"
+                        className="h-full bg-gradient-to-r from-[#ffd1fb] to-[#B6D78A]"
                         initial={{ width: `${moodValue}%` }} 
                         animate={{ width: `${moodValue}%` }} 
                         transition={{ duration: 0.5, ease: "easeOut" }}
@@ -756,18 +748,18 @@ export const Header = () => {
                   
                   {/* AI Insights Section */}
                   <motion.div 
-                    className="bg-gradient-to-r from-slate-800/90 to-indigo-900/90 p-3 rounded-md mt-6 text-white"
+                    className="bg-gradient-to-r from-[#ffd1fb]/90 to-[#B6D78A]/90 p-3 rounded-md mt-6 text-slate-900"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.7, duration: 0.5 }}
                   >
                 <div className="flex items-center mb-2">
-                  <div className="w-5 h-5 rounded-full bg-indigo-500/20 flex items-center justify-center mr-2">
-                    <Sparkles className="h-3 w-3 text-indigo-300" />
+                  <div className="w-5 h-5 rounded-full bg-[#B6D78A]/30 flex items-center justify-center mr-2">
+                    <Sparkles className="h-3 w-3 text-green-800" />
                   </div>
                       <p className="text-xs font-medium">AI Insight:</p>
                 </div>
-                    <p className="text-xs text-slate-300">
+                    <p className="text-xs text-slate-800">
                       {/* Display insight based on current page */}
                       {currentJournalPage === 0 ? "Your emotional awareness is improving. Try reflecting on what specific aspects of teamwork energize you the most." :
                        currentJournalPage === 1 ? "You're developing stronger prioritization skills. Consider documenting your successful delegation strategies." :
@@ -823,7 +815,7 @@ export const Header = () => {
           {/* Repositioned Tomorrow's Prompt outside the Journal component */}
           <motion.div
             layout
-            className="absolute -top-10 right-0 bg-gradient-to-r from-purple-900/80 to-indigo-900/80 backdrop-blur-md p-3 rounded-lg shadow-lg border border-indigo-500/20 max-w-[250px]"
+            className="absolute -top-10 right-0 bg-gradient-to-r from-[#ffd1fb]/80 to-[#B6D78A]/80 backdrop-blur-md p-3 rounded-lg shadow-lg border border-indigo-500/20 max-w-[250px]"
             initial={{ opacity: 0, y: 10, rotateZ: 5 }}
             animate={{ opacity: 1, y: 0, rotateZ: 0 }}
             transition={{ 
@@ -838,16 +830,16 @@ export const Header = () => {
             style={{ zIndex: 50 }}
           >
             <div className="flex mb-2">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500/20 to-indigo-500/20 flex items-center justify-center mr-2 border border-purple-500/20">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#ffd1fb]/20 to-[#B6D78A]/20 flex items-center justify-center mr-2 border border-purple-500/20">
                 <BookOpen className="h-3 w-3 text-purple-300" />
               </div>
-              <p className="text-xs font-medium text-white">Tomorrow's Prompt:</p>
+              <p className="text-xs font-medium text-slate-900">Tomorrow's Prompt:</p>
             </div>
             <AnimatePresence mode="wait">
               <motion.p 
                 layout
                 key={`prompt-${promptIndex}`}
-                className="text-xs text-slate-300"
+                className="text-xs text-slate-800"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
@@ -907,22 +899,22 @@ export const Header = () => {
 
           {/* Daily Streak Indicator */}
           <motion.div
-            className="absolute -bottom-10 -left-4 bg-gradient-to-r from-blue-900/80 to-cyan-900/80 backdrop-blur-md p-3 rounded-lg shadow-lg border border-blue-500/20"
+            className="absolute -bottom-10 -left-4 bg-gradient-to-r from-[#ffd1fb]/80 to-[#B6D78A]/80 backdrop-blur-md p-3 rounded-lg shadow-lg border border-blue-500/20"
             initial={{ opacity: 0, y: 10, rotateZ: -5 }}
             animate={{ opacity: 1, y: 0, rotateZ: 0 }}
             transition={{ delay: 2.2, duration: 0.5 }}
           >
             <div className="flex items-center">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center mr-2 border border-blue-500/20">
-                <Clock className="h-3 w-3 text-blue-300" />
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#ffd1fb]/20 to-[#B6D78A]/20 flex items-center justify-center mr-2 border border-blue-500/20">
+                <Clock className="h-3 w-3 text-pink-800" />
               </div>
               <div>
-                <p className="text-xs font-medium text-white">7-Day Streak</p>
+                <p className="text-xs font-medium text-slate-900">7-Day Streak</p>
                 <div className="flex space-x-1 mt-1">
                   {Array(7).fill(0).map((_, i) => (
                     <motion.div 
                       key={`streak-${i}`}
-                      className={`h-1 rounded-full ${i < 5 ? 'bg-blue-400' : 'bg-slate-600'}`}
+                      className={`h-1 rounded-full ${i < 5 ? 'bg-green-600' : 'bg-slate-600'}`}
                       style={{ width: i === 6 ? 6 : 4 }}
                       initial={{ scaleY: 0 }}
                       animate={{ scaleY: 1 }}
@@ -974,7 +966,7 @@ export const ProductCard = ({
         className="object-cover object-left-top absolute h-full w-full inset-0 transition-transform duration-500 group-hover/product:scale-110"
         alt={product.title}
       />
-      <div className="absolute inset-0 h-full w-full opacity-0 group-hover/product:opacity-80 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent transition-all duration-300"></div>
+      <div className="absolute inset-0 h-full w-full opacity-0 group-hover/product:opacity-80 bg-gradient-to-t from-[#ffd1fb] via-[#B6D78A]/80 to-transparent transition-all duration-300"></div>
       <div className="absolute bottom-0 left-0 p-6 transform translate-y-4 opacity-0 group-hover/product:opacity-100 group-hover/product:translate-y-0 transition-all duration-300">
         <h2 className="text-2xl font-bold text-white mb-2">
           {product.title}

@@ -1,18 +1,20 @@
 /* Styles from the old app.css, scoped to landing page if necessary */
 
-/* Styles for the dynamically created shooting star */
+/* Ensure the background is white */
+.landing-page-theme,
+.landing-page-theme body,
+.landing-page-theme #root {
+  background-color: #ffffff !important;
+}
+
+/* Styles for the dynamically created shooting star - dark color for light theme */
 .landing-page-theme .shooting-star {
-  position: absolute;
-  width: 100px;
-  height: 1px;
-  background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0));
-  transform: rotate(-45deg);
-  transition: opacity 0.2s linear;
-  pointer-events: none;
+  background-color: rgba(15, 23, 42, 0.7); /* Dark slate color */
+  box-shadow: 0 0 10px rgba(15, 23, 42, 0.5); /* Subtle glow effect */
 }
 
 .landing-page-theme .glass-card {
-  background: hsla(var(--card), 0.3);
+  background: hsla(var(--card), 0.7);
   box-shadow: 0 8px 32px 0 hsla(var(--primary), 0.2);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -38,7 +40,7 @@
   right: -4px;
   bottom: -4px;
   z-index: -1;
-  background: linear-gradient(45deg, hsla(var(--primary), 0.3), hsla(var(--accent), 0.3));
+  background: linear-gradient(45deg, hsla(var(--primary), 0.3), hsla(var(--secondary), 0.3));
   border-radius: inherit;
   filter: blur(15px);
   opacity: 0;
@@ -66,6 +68,26 @@
   background: hsla(var(--primary), 0.2);
   color: hsl(var(--primary));
   margin-bottom: 1rem;
+}
+
+/* Journal-inspired decorative elements */
+.landing-page-theme .journal-decoration {
+  position: absolute;
+  border-radius: 50%;
+  background-color: hsla(var(--secondary), 0.2);
+  z-index: 0;
+}
+
+.landing-page-theme .journal-tag {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background-color: hsla(var(--secondary), 0.2);
+  color: hsl(var(--secondary-foreground));
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 /* Removed #root and other potentially global styles */
