@@ -13,6 +13,9 @@ export const Route = createFileRoute("/login")({
 });
 
 function RouteComponent() {
+  const signUpUrl = import.meta.env.VITE_CLERK_SIGN_UP_URL || "/sign-up";
+  const afterSignInUrl = import.meta.env.VITE_CLERK_AFTER_SIGN_IN_URL || "/journal";
+
   return (
     <div className="grid min-h-screen place-items-center bg-gradient-to-b from-[#f6efff] to-[#ead6ff] px-4 py-10">
       <div className="w-full max-w-sm space-y-6">
@@ -25,17 +28,20 @@ function RouteComponent() {
             alt="Bean Journey Logo"
             className="w-[6rem] h-[6rem] object-contain mx-auto"
           />
-          <h1 className="text-xl font-semibold tracking-tight text-gray-900">
+          <h1 className="text-xl font-publica-sans font-semibold tracking-tight text-gray-900">
             Sign in to Bean Journal
           </h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 font-mono text-sm text-gray-600">
             Welcome back! Please sign in to continue
           </p>
         </div>
         {/* 2. Clerk Sign In Component */}
         <SignIn
-          routing="virtual"
-          signUpUrl="/sign-up"
+          routing="path"
+          path="/login"
+          signUpUrl={signUpUrl}
+          afterSignInUrl={afterSignInUrl}
+          redirectUrl="/login/sso-callback"
           appearance={{
             variables: {
               colorPrimary: "#9645FF",
@@ -44,10 +50,18 @@ function RouteComponent() {
               colorTextSecondary: "#4B5563", // Medium gray text
               colorInputText: "#111827",
               colorBackground: "#ffffff", // Ensure card bg is white
+              fontFamily: "Publica Sans",
             },
             elements: {
               rootBox: "bg-transparent",
-              card: "bg-white shadow-md border-none rounded-2xl p-6 md:p-8", // Adjusted shadow, radius, padding
+              card: {
+                backgroundColor: 'white',
+                border: 'none',
+                borderRadius: '1rem',
+                padding: '1.5rem 2rem',
+                boxShadow: 'none',
+                borderColor: 'transparent'
+              },
               header: "hidden",
               socialButtonsContainer: "mb-4 gap-4", // Add gap between social buttons
               socialButtonsBlockButton:
@@ -56,9 +70,9 @@ function RouteComponent() {
               dividerText: "text-gray-500 text-xs",
               formFieldLabel: "text-gray-800 text-sm font-medium mb-1",
               formInput:
-                "bg-white border border-gray-300 rounded-lg focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder:text-gray-400 py-2", // Updated input style
+                "bg-white border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-400 py-2", // Updated input style
               formButtonPrimary:
-                "border border-[#9645FF] bg-white text-[#9645FF] hover:bg-purple-50 text-sm font-medium rounded-lg py-2.5 shadow-sm", // Updated button style
+                "border border-[#9645FF] bg-white text-[#9645FF] hover:bg-purple-50 text-sm font-medium rounded-lg py-2.5", // Updated button style
               alternativeMethodsContainer: "pt-4", // Spacing above footer link
               footer: "bg-transparent pt-2", // Adjust footer container if needed
               footerActionText: "text-sm text-gray-500",

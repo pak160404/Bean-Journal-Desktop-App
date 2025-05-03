@@ -5,12 +5,13 @@ import React from 'react'
 import { cn } from '@/utils/css'
 import { Link } from '@tanstack/react-router'
 import { motion, AnimatePresence } from 'framer-motion'
+import windowIcon from '@/images/xt2uot9yhpma85juvk.svg'
 
 const menuItems = [
-    { name: 'Features', href: '/#link' },
-    { name: 'Solution', href: '/#link' },
-    { name: 'Pricing', href: '/pricing' },
-    { name: 'About', href: '/#link' },
+    { name: 'FEATURES', href: '/#link' },
+    { name: 'BLOG', href: '/#link' },
+    { name: 'PRICING', href: '/pricing' },
+    { name: 'ABOUT', href: '/#link' },
 ]
 
 export const HeroHeader = () => {
@@ -30,7 +31,22 @@ export const HeroHeader = () => {
                 data-state={menuState ? 'active' : undefined}
                 className="fixed z-20 w-full px-2">
                 <div className={cn('mx-auto mt-2 max-w-6xl px-6 transition-all duration-300 lg:px-12', isScrolled && 'bg-background/50 max-w-4xl rounded-2xl border backdrop-blur-lg lg:px-5')}>
-                    <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
+                    <AnimatePresence>
+                        {menuState && (
+                            <motion.div 
+                                layout
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ 
+                                    height: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
+                                    opacity: { duration: 0.25, delay: 0.1 }
+                                }}
+                                className="absolute top-0 left-0 right-0 -z-10 bg-background/50 backdrop-blur-lg border rounded-2xl overflow-hidden lg:hidden"
+                            />
+                        )}
+                    </AnimatePresence>
+                    <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4 overflow-hidden">
                         <div className="flex w-full justify-between lg:w-auto">
                             <Link
                                 to="/"
@@ -65,10 +81,10 @@ export const HeroHeader = () => {
                         <AnimatePresence>
                             {menuState && (
                                 <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
+                                    initial={{ opacity: 0, y: -300 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.2 }}
+                                    exit={{ opacity: 0, y: -300 }}
+                                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                                     className={cn("bg-background mb-6 w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border p-6 shadow-2xl shadow-zinc-300/20 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none dark:shadow-none dark:lg:bg-transparent", "block", "lg:hidden")}>
                                     <div className="lg:hidden">
                                         <ul className="space-y-6 text-base">
@@ -104,7 +120,7 @@ export const HeroHeader = () => {
                             )}
                         </AnimatePresence>
 
-                        <div className="hidden lg:flex lg:w-fit lg:gap-6 font-publica-sans">
+                        <div className="hidden lg:flex lg:w-fit lg:gap-4 font-publica-sans">
                             <Button
                                 asChild
                                 variant="outline"
@@ -119,7 +135,8 @@ export const HeroHeader = () => {
                                 size="default"
                                 className={cn(isScrolled && 'lg:hidden')}>
                                 <Link to="/sign-up">
-                                    <span>Sign Up</span>
+                                    <img src={windowIcon} alt="Cube Icon" className="h-5 w-5" />
+                                    <span>Download</span>
                                 </Link>
                             </Button>
                             {isScrolled && (

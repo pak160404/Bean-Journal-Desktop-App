@@ -4,6 +4,7 @@ import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { ClerkAndThemeProvider } from "../main";
 import { NotFound } from "@/components/shared/NotFound";
 import { useEffect } from "react";
+import { useAuthProtection } from "@/utils/authUtils";
 
 export const Route = createRootRoute({
   component: LandingRoot,
@@ -21,6 +22,7 @@ function LandingRoot() {
 
   return (
     <ClerkAndThemeProvider>
+      <AuthProtector />
       <div className={`landing-page-theme min-h-screen ${!isJournalRoute ? 'bg-white dark:bg-transparent' : ''}`}>
         {/* Simple floating header - Conditionally rendered */}
 
@@ -34,4 +36,10 @@ function LandingRoot() {
       </div>
     </ClerkAndThemeProvider>
   );
+}
+
+// Separate component to use the auth hook inside the Clerk context
+function AuthProtector() {
+  useAuthProtection();
+  return null;
 } 

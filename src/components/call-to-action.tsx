@@ -15,11 +15,11 @@ export default function CallToAction() {
                         <Button
                             asChild
                             size="lg"
-                            className="w-full sm:w-auto bg-white text-black hover:bg-gray-200 border border-white px-2 py-4"
+                            className="w-full sm:w-auto bg-white text-black hover:bg-gray-200 border border-white px-2 pr-4 py-4"
                         >
                             <a href="/" className="flex items-center justify-center">
                                 <img src={CubeIcon} alt="Cube Icon" className="h-8 w-8" />
-                                <span className="text-xl font-montserrat font-normal">Download for Free</span>
+                                <span className="text-xl font-mono font-normal">Download for Free</span>
                             </a>
                         </Button>
                     </div>

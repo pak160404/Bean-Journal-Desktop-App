@@ -4,6 +4,139 @@ import { AnimatedGroup } from "@/components/ui/animated-group";
 import LogoCloud from "@/components/logo-cloud";
 import { ArrowRight } from "lucide-react";
 import headerImage from "@/images/bean-journal.png";
+import React from "react";
+import { Link } from "@tanstack/react-router";
+// Infinite marquee component
+interface InfiniteMarqueeProps {
+  thickness?: string;
+  speed?: number;
+  fontSize?: string;
+  reverse?: boolean;
+}
+
+const InfiniteMarquee: React.FC<InfiniteMarqueeProps> = ({
+  thickness = "py-2",
+  speed = 20,
+  fontSize = "text-lg",
+  reverse = false,
+}) => {
+  const [contentWidth, setContentWidth] = React.useState(0);
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const animationId = React.useMemo(
+    () => `marquee-animation-${Math.random().toString(36).substr(2, 9)}`,
+    []
+  );
+
+  // Measure the width of the content
+  React.useEffect(() => {
+    const node = contentRef.current; // Store the current value
+
+    if (node) {
+      setContentWidth(node.offsetWidth);
+    }
+
+    // Add resize observer to remeasure if window resizes
+    const resizeObserver = new ResizeObserver(() => {
+      // Check current ref inside observer as it runs asynchronously
+      if (contentRef.current) {
+        setContentWidth(contentRef.current.offsetWidth);
+      }
+    });
+
+    if (node) {
+      resizeObserver.observe(node);
+    }
+
+    // Cleanup function uses the stored 'node' variable
+    return () => {
+      if (node) {
+        resizeObserver.unobserve(node);
+      }
+    };
+  }, []); // Empty dependency array ensures this runs on mount/unmount
+
+  // Create dynamic style for marquee animation
+  React.useEffect(() => {
+    // Create and append keyframe animation dynamically
+    if (contentWidth > 0) {
+      const styleSheet = document.createElement("style");
+      styleSheet.id = animationId;
+      styleSheet.innerHTML = `
+          @keyframes marquee-${animationId} {
+            0% {
+              transform: translateX(${reverse ? `calc(-50% - ${contentWidth / 2}px)` : "0"});
+            }
+            100% {
+              transform: translateX(${reverse ? "0" : `-${contentWidth}px`});
+            }
+          }
+          
+          .marquee-animate-${animationId} {
+            animation: marquee-${animationId} ${contentWidth > 0 ? speed : 0}s linear infinite;
+          }
+          
+          @media (prefers-reduced-motion: reduce) {
+            .marquee-animate-${animationId} {
+              animation-play-state: paused;
+            }
+          }
+        `;
+
+      // Remove any existing marquee animation style with this ID
+      const existingStyle = document.getElementById(animationId);
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+
+      // Add the new style
+      document.head.appendChild(styleSheet);
+    }
+
+    return () => {
+      // Clean up the style element on unmount
+      const styleElement = document.getElementById(animationId);
+      if (styleElement) {
+        styleElement.remove();
+      }
+    };
+  }, [contentWidth, speed, reverse, animationId]);
+
+  // Prepare the marquee items - "beanjournal" text with dot separators
+  const marqueeItem = (
+    <span
+      className={`text-white font-bold mx-4 ${fontSize} uppercase tracking-wider inline-flex items-center gap-3`}
+    >
+      <span>BEANJOURNAL</span>
+      <span className={`${fontSize} ml-[1.25rem]`} aria-hidden="true">
+        •
+      </span>
+    </span>
+  );
+
+  // Create enough copies to ensure seamless scrolling
+  const createContent = () => {
+    // We need at least enough items to fill the container twice
+    // to ensure the animation appears seamless
+    return Array(50)
+      .fill(0)
+      .map((_, i) => <React.Fragment key={i}>{marqueeItem}</React.Fragment>);
+  };
+
+  return (
+    <div
+      className={`w-full overflow-hidden bg-gradient-to-r from-[#ffd1fb] to-[#B6D78A] ${thickness} relative`}
+      ref={containerRef}
+    >
+      <div
+        className={`flex whitespace-nowrap marquee-animate-${animationId}`}
+        ref={contentRef}
+      >
+        {createContent()}
+      </div>
+    </div>
+  );
+};
 
 const transitionVariants = {
   item: {
@@ -137,9 +270,11 @@ export default function HeroSection() {
                       size="lg"
                       className="rounded-xl px-5 text-base"
                     >
-                      <a href="#link">
-                        <span className="text-nowrap font-publica-sans">Get Started</span>
-                      </a>
+                      <Link to="/login">
+                        <span className="text-nowrap font-publica-sans">
+                          Get Started
+                        </span>
+                      </Link>
                     </Button>
                   </div>
                   <Button
@@ -149,9 +284,11 @@ export default function HeroSection() {
                     variant="ghost"
                     className="h-10.5 rounded-xl px-5"
                   >
-                    <a href="#link">
-                      <span className="text-nowrap font-publica-sans">View Pricing</span>
-                    </a>
+                    <Link to="/pricing">
+                      <span className="text-nowrap font-publica-sans">
+                        View Pricing
+                      </span>
+                    </Link>
                   </Button>
                 </AnimatedGroup>
               </div>
@@ -189,9 +326,22 @@ export default function HeroSection() {
               </div>
             </AnimatedGroup>
           </div>
+          {/* Double infinite marquee lines */}
+          <div className="relative w-[120%] z-30 mt-8 ml-[-10%] ">
+            <InfiniteMarquee thickness="py-2" speed={40} fontSize="text-lg" />
+          </div>
+
+          <div className="relative w-[120%] z-20 -mt-1 ml-[-1%] rotate-[5deg] opacity-70">
+            <InfiniteMarquee
+              thickness="py-[0.4rem]"
+              speed={30}
+              fontSize="text-sm"
+              reverse
+            />
+          </div>
         </section>
         <div className="mt-[2rem] mb-[2rem]">
-            <LogoCloud />
+          <LogoCloud />
         </div>
       </main>
     </>
