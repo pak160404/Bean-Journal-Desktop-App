@@ -101,9 +101,16 @@ export const HeroHeader = () => {
                                             ))}
                                         </ul>
                                     </div>
-                                    <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit font-publica-sans">
+                                    <div className="flex flex-row gap-3 justify-end items-center font-publica-sans">
                                         {isSignedIn ? (
-                                            <UserButton afterSignOutUrl="/" />
+                                            <UserButton 
+                                                afterSignOutUrl="/" 
+                                                appearance={{
+                                                    elements: {
+                                                        userButtonAvatarBox: "h-11 w-11" 
+                                                    }
+                                                }} 
+                                            />
                                         ) : (
                                             <>
                                                 <Button
@@ -130,7 +137,14 @@ export const HeroHeader = () => {
 
                         <div className="hidden lg:flex lg:w-fit lg:gap-4 font-publica-sans">
                             {isSignedIn ? (
-                                <UserButton afterSignOutUrl="/" />
+                                <UserButton 
+                                    afterSignOutUrl="/" 
+                                    appearance={{
+                                        elements: {
+                                            userButtonAvatarBox: "h-11 w-11" 
+                                        }
+                                    }} 
+                                />
                             ) : (
                                 <>
                                     <Button

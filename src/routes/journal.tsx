@@ -40,7 +40,7 @@ function JournalLayout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="bg-white dark:bg-transparent">
+      <SidebarInset className="bg-white dark:bg-transparent font-mono">
         <header className="flex h-16 items-center gap-2 rounded-t-lg">
           <div className="flex items-center justify-between w-full px-4">
             <div className="flex items-center gap-2">

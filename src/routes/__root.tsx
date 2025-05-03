@@ -15,9 +15,11 @@ function LandingRoot() {
   const { location } = useRouterState();
   const isJournalRoute = location.pathname.startsWith('/journal');
   
-  // Scroll to top whenever the route changes
+  // Explicitly scroll to top on route change
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Try targeting documentElement and window, ensuring instant scroll
+    document.documentElement.scrollTo({ top: 0, behavior: 'instant' }); 
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }, [location.pathname]);
 
   return (

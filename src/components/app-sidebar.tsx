@@ -83,7 +83,7 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar variant="inset" {...props} className="text-[#1e1742] dark:text-white">
+    <Sidebar variant="inset" {...props} className="text-[#1e1742] font-['Readex_Pro'] dark:text-white">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
