@@ -5,8 +5,8 @@ import { useEffect } from "react";
 // Public routes that don't require authentication
 const publicRoutes = [
   "/",
-  "/login",
-  "/login/sso-callback",
+  "/sign-in",
+  "/sign-in/sso-callback",
   "/sign-up",
   "/sign-up/continue",
   "/pricing"
@@ -44,7 +44,7 @@ export function useAuthProtection() {
       // If not authenticated and trying to access a protected route, 
       // redirect to login with the intended destination
       navigate({ 
-        to: getEnvVar("SIGN_IN_URL", "/login"), 
+        to: getEnvVar("SIGN_IN_URL", "/sign-in"), 
         search: { redirect: currentPath } 
       });
       return;
@@ -53,18 +53,8 @@ export function useAuthProtection() {
     // 3. Handle authenticated users on auth pages
     if (isSignedIn) {
       // If user is already signed in and on an auth page, redirect to destination
-      if (currentPath === "/login" || currentPath === "/sign-up" || currentPath === "/sign-up/continue") {
+      if (currentPath === "/sign-in" || currentPath === "/sign-up" || currentPath === "/sign-up/continue") {
         navigate({ to: getEnvVar("AFTER_SIGN_IN_URL", "/journal") });
-        return;
-      }
-    }
-    
-    // 4. Handle special case for continuation page
-    if (currentPath === "/sign-up/continue") {
-      // Only allow accessing this page with a valid ticket parameter
-      const hasClerkTicket = window.location.href.includes("__clerk_ticket");
-      if (!hasClerkTicket && !isSignedIn) {
-        navigate({ to: getEnvVar("SIGN_UP_URL", "/sign-up") });
         return;
       }
     }
@@ -85,7 +75,7 @@ export function useAuthProtection() {
  */
 export function useAuthUrls() {
   return {
-    signInUrl: getEnvVar("SIGN_IN_URL", "/login"),
+    signInUrl: getEnvVar("SIGN_IN_URL", "/sign-in"),
     signUpUrl: getEnvVar("SIGN_UP_URL", "/sign-up"),
     signUpContinueUrl: getEnvVar("SIGN_UP_CONTINUE_URL", "/sign-up/continue"),
     afterSignInUrl: getEnvVar("AFTER_SIGN_IN_URL", "/journal"),

@@ -6,6 +6,7 @@ import { cn } from '@/utils/css'
 import { Link } from '@tanstack/react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import windowIcon from '@/images/xt2uot9yhpma85juvk.svg'
+import { UserButton, useAuth } from '@clerk/clerk-react'
 
 const menuItems = [
     { name: 'FEATURES', href: '/#link' },
@@ -17,6 +18,7 @@ const menuItems = [
 export const HeroHeader = () => {
     const [menuState, setMenuState] = React.useState(false)
     const [isScrolled, setIsScrolled] = React.useState(false)
+    const { isSignedIn } = useAuth()
 
     React.useEffect(() => {
         const handleScroll = () => {
@@ -100,46 +102,58 @@ export const HeroHeader = () => {
                                         </ul>
                                     </div>
                                     <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit font-publica-sans">
-                                        <Button
-                                            asChild
-                                            variant="outline"
-                                            size="default">
-                                            <Link to="/login">
-                                                <span>Login</span>
-                                            </Link>
-                                        </Button>
-                                        <Button
-                                            asChild
-                                            size="default">
-                                            <Link to="/sign-up">
-                                                <span>Sign Up</span>
-                                            </Link>
-                                        </Button>
+                                        {isSignedIn ? (
+                                            <UserButton afterSignOutUrl="/" />
+                                        ) : (
+                                            <>
+                                                <Button
+                                                    asChild
+                                                    variant="outline"
+                                                    size="default">
+                                                    <Link to="/sign-in">
+                                                        <span>Login</span>
+                                                    </Link>
+                                                </Button>
+                                                <Button
+                                                    asChild
+                                                    size="default">
+                                                    <Link to="/sign-up">
+                                                        <span>Sign Up</span>
+                                                    </Link>
+                                                </Button>
+                                            </>
+                                        )}
                                     </div>
                                 </motion.div>
                             )}
                         </AnimatePresence>
 
                         <div className="hidden lg:flex lg:w-fit lg:gap-4 font-publica-sans">
-                            <Button
-                                asChild
-                                variant="outline"
-                                size="default"
-                                className={cn(isScrolled && 'lg:hidden')}>
-                                <Link to="/login">
-                                    <span>Login</span>
-                                </Link>
-                            </Button>
-                            <Button
-                                asChild
-                                size="default"
-                                className={cn(isScrolled && 'lg:hidden')}>
-                                <Link to="/sign-up">
-                                    <img src={windowIcon} alt="Cube Icon" className="h-5 w-5" />
-                                    <span>Download</span>
-                                </Link>
-                            </Button>
-                            {isScrolled && (
+                            {isSignedIn ? (
+                                <UserButton afterSignOutUrl="/" />
+                            ) : (
+                                <>
+                                    <Button
+                                        asChild
+                                        variant="outline"
+                                        size="default"
+                                        className={cn(isScrolled && 'lg:hidden')}>
+                                        <Link to="/sign-in">
+                                            <span>Login</span>
+                                        </Link>
+                                    </Button>
+                                    <Button
+                                        asChild
+                                        size="default"
+                                        className={cn(isScrolled && 'lg:hidden')}>
+                                        <Link to="/sign-up">
+                                            <img src={windowIcon} alt="Cube Icon" className="h-5 w-5" />
+                                            <span>Download</span>
+                                        </Link>
+                                    </Button>
+                                </>
+                            )}
+                            {isScrolled && !isSignedIn && (
                                 <Button
                                     asChild
                                     size="default"

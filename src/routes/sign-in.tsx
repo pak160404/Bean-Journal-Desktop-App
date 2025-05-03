@@ -8,7 +8,7 @@ import { SignIn } from "@clerk/clerk-react"; // Import standard SignIn
 // import { AppleIcon } from '@/components/icons'
 import logo_bean_journey from "@/images/logo_bean_journal.png";
 
-export const Route = createFileRoute("/login")({
+export const Route = createFileRoute("/sign-in")({
   component: RouteComponent,
 });
 
@@ -38,10 +38,10 @@ function RouteComponent() {
         {/* 2. Clerk Sign In Component */}
         <SignIn
           routing="path"
-          path="/login"
+          path="/sign-in"
           signUpUrl={signUpUrl}
           afterSignInUrl={afterSignInUrl}
-          redirectUrl="/login/sso-callback"
+          redirectUrl="/sign-in/sso-callback"
           appearance={{
             variables: {
               colorPrimary: "#9645FF",

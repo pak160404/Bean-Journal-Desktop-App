@@ -8,7 +8,7 @@ export const Route = createFileRoute("/sign-up")({
 });
 
 function RouteComponent() {
-  const signInUrl = import.meta.env.VITE_CLERK_SIGN_IN_URL || "/login";
+  const signInUrl = import.meta.env.VITE_CLERK_SIGN_IN_URL || "/sign-in";
   const afterSignUpUrl = import.meta.env.VITE_CLERK_AFTER_SIGN_UP_URL || "/sign-up/continue";
 
   return (

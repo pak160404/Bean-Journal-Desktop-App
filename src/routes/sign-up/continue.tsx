@@ -15,7 +15,7 @@ function RouteComponent() {
   const { signUp, isLoaded } = useSignUp();
   const [debugInfo, setDebugInfo] = useState('Loading...');
   
-  const signInUrl = import.meta.env.VITE_CLERK_SIGN_IN_URL || "/login";
+  const signInUrl = import.meta.env.VITE_CLERK_SIGN_IN_URL || "/sign-in";
   const signUpUrl = import.meta.env.VITE_CLERK_SIGN_UP_URL || "/sign-up";
   const afterSignUpUrl = import.meta.env.VITE_CLERK_AFTER_SIGN_IN_URL || "/journal";
 

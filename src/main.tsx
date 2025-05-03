@@ -51,6 +51,11 @@ export function ClerkAndThemeProvider({ children }: { children: React.ReactNode 
 			// Pass the navigate function to Clerk
 			routerPush={(to) => navigate({ to })}
 			routerReplace={(to) => navigate({ to, replace: true })}
+			// Explicitly define fallback URLs
+			signInFallbackRedirectUrl="/journal" // Where to go after successful sign-in
+			signUpFallbackRedirectUrl="/sign-up/continue" // Where to go if sign-up needs completion (e.g., from SSO)
+			// afterSignInUrl="/journal" // Deprecated, use fallback/force instead
+			// afterSignUpUrl="/sign-up/continue" // Deprecated, use fallback/force instead
 		>
 			<ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
 				{children}

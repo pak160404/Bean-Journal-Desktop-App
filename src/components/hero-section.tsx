@@ -270,7 +270,7 @@ export default function HeroSection() {
                       size="lg"
                       className="rounded-xl px-5 text-base"
                     >
-                      <Link to="/login">
+                      <Link to="/sign-in">
                         <span className="text-nowrap font-publica-sans">
                           Get Started
                         </span>
