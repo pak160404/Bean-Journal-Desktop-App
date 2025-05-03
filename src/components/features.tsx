@@ -38,12 +38,36 @@ const data = [
 export function Features() {
   const [featureOpen, setFeatureOpen] = useState<number>(0);
   const [timer, setTimer] = useState<number>(0);
+  const [isPageVisible, setIsPageVisible] = useState<boolean>(true);
+
+  // Handle page visibility changes
   useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(document.visibilityState === "visible");
+    };
+
+    // Set initial visibility state
+    setIsPageVisible(document.visibilityState === "visible");
+    
+    // Add event listener for visibility changes
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    // Clean up
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  // Timer that only runs when page is visible
+  useEffect(() => {
+    if (!isPageVisible) return;
+    
     const interval = setInterval(() => {
       setTimer((prev) => prev + 10);
     }, 10);
+    
     return () => clearInterval(interval);
-  }, []);
+  }, [isPageVisible]);
 
   useEffect(() => {
     if (timer > 10000) {
