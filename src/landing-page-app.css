@@ -2,10 +2,6 @@
 
 /* Ensure the background is white */
 .landing-page-theme,
-.landing-page-theme body,
-.landing-page-theme #root {
-  background-color: #ffffff !important;
-}
 
 /* Styles for the dynamically created shooting star - dark color for light theme */
 .landing-page-theme .shooting-star {
