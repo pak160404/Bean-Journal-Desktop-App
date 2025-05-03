@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { cn } from "@/utils/css";
 
 //TODO : Improve mobile version to display the image down the corresponding text instead of at the full bottom
@@ -39,6 +39,8 @@ export function Features() {
   const [featureOpen, setFeatureOpen] = useState<number>(0);
   const [timer, setTimer] = useState<number>(0);
   const [isPageVisible, setIsPageVisible] = useState<boolean>(true);
+  const [isComponentVisible, setIsComponentVisible] = useState<boolean>(true);
+  const componentRef = useRef<HTMLDivElement>(null);
 
   // Handle page visibility changes
   useEffect(() => {
@@ -46,28 +48,74 @@ export function Features() {
       setIsPageVisible(document.visibilityState === "visible");
     };
 
+    const handleFocus = () => {
+      setIsPageVisible(true);
+    };
+
+    const handleBlur = () => {
+      setIsPageVisible(false);
+    };
+
     // Set initial visibility state
     setIsPageVisible(document.visibilityState === "visible");
     
-    // Add event listener for visibility changes
+    // Add event listeners for visibility changes
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    // Add window focus/blur events for better mobile support
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("blur", handleBlur);
+    
+    // Add mobile-specific events
+    window.addEventListener("pagehide", handleBlur);
+    window.addEventListener("pageshow", handleFocus);
     
     // Clean up
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("pagehide", handleBlur);
+      window.removeEventListener("pageshow", handleFocus);
     };
   }, []);
 
-  // Timer that only runs when page is visible
+  // Set up Intersection Observer to detect when component is in viewport
   useEffect(() => {
-    if (!isPageVisible) return;
+    if (!componentRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Update visibility state based on intersection
+        entries.forEach((entry) => {
+          setIsComponentVisible(entry.isIntersecting);
+        });
+      },
+      {
+        root: null, // viewport
+        threshold: 0.1, // trigger when at least 10% of the component is visible
+      }
+    );
+
+    observer.observe(componentRef.current);
+
+    return () => {
+      if (componentRef.current) {
+        observer.unobserve(componentRef.current);
+      }
+    };
+  }, []);
+
+  // Timer that only runs when page and component are visible
+  useEffect(() => {
+    if (!isPageVisible || !isComponentVisible) return;
     
     const interval = setInterval(() => {
       setTimer((prev) => prev + 10);
     }, 10);
     
     return () => clearInterval(interval);
-  }, [isPageVisible]);
+  }, [isPageVisible, isComponentVisible]);
 
   useEffect(() => {
     if (timer > 10000) {
@@ -77,7 +125,7 @@ export function Features() {
   }, [timer]);
 
   return (
-    <div className="container my-[3rem]">
+    <div className="container my-[3rem]" ref={componentRef}>
       <div className="mb-20 text-center">
         <p className=" mb-2 font-medium text-neutral-500 text-sm uppercase">
           How does it work ?
