@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { AppSidebar } from "@/components/app-sidebar";
-import { ModeToggle } from "@/components/shared/ModeToggle";
+//import { ModeToggle } from "@/components/shared/ModeToggle";
 import { useEffect } from 'react';
 import '../journal-theme.css'; 
 
@@ -68,11 +68,11 @@ function JournalLayout() {
                 </BreadcrumbList>
               </Breadcrumb>
             </div>
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <div className="text-[#2f2569] dark:text-white">
                 <ModeToggle />
               </div>
-            </div>
+            </div> */}
           </div>
         </header>
         <main className="flex-1">

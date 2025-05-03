@@ -52,7 +52,7 @@ export function ClerkAndThemeProvider({ children }: { children: React.ReactNode 
 			routerPush={(to) => navigate({ to })}
 			routerReplace={(to) => navigate({ to, replace: true })}
 		>
-			<ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+			<ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
 				{children}
 			</ThemeProvider>
 		</ClerkProvider>
