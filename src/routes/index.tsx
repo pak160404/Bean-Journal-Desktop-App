@@ -1,14 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { motion, useScroll } from 'framer-motion';
 import Footer from '@/components/layout/Footer';
-//import Navbar from '@/components/layout/Navbar';
-//import HeroSection from '@/components/sections/HeroSection';
-//import FeaturesSection from '@/components/sections/FeaturesSection';
-//import AIShowcaseSection from '@/components/sections/AIShowcaseSection';
-//import TestimonialsSection from '@/components/sections/TestimonialsSection';
-//import PricingSection from '@/components/sections/PricingSection';
-//import FaqSection from '@/components/sections/FaqSection';
-//import CtaSection from '@/components/sections/CtaSection';
 import { createFileRoute } from '@tanstack/react-router'
 import Hero from '@/components/hero-section';
 import Features from '@/components/features';
@@ -45,13 +37,6 @@ function Index() {
       <HeroHeader />
 
       <main className="relative z-10">
-        {/* <HeroSection /> */}
-        {/* <FeaturesSection /> */}
-        {/* <AIShowcaseSection /> */}
-        {/* <TestimonialsSection /> */}
-        {/* <PricingSection /> */}
-        {/* <FaqSection /> */}
-        {/* <CtaSection /> */}
         <Hero />
         <Features />
         {/* <Features10 /> */}
