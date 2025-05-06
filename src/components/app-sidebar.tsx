@@ -23,6 +23,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { UserButton } from "@clerk/clerk-react";
+import logoBean from "@/images/logo_bean_journal.png";
 
 const data = {
   user: {
@@ -48,18 +49,6 @@ const data = {
       title: "Dashboard",
       url: "/dashboard",
       icon: PieChart,
-      items: [],
-    },
-    {
-      title: "Billing",
-      url: "/billing",
-      icon: CreditCard,
-      items: [],
-    },
-    {
-      title: "Theme",
-      url: "/theme",
-      icon: Palette,
       items: [],
     },
     {
@@ -107,11 +96,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <a href="#">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-white text-[#9645ff]">
-                  <span className="text-lg font-bold">🌱</span>
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">BeanJournal</span>
+                <img src={logoBean} alt="bean journal" className="w-14 h-14 ml-[-1rem] mr-[-0.4rem]" />
+                <div className="grid flex-1 text-left text-lg leading-tight">
+                  <span className="truncate font-semibold">bean journal</span>
                 </div>
               </a>
             </SidebarMenuButton>
