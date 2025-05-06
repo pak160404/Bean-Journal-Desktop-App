@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import "@fontsource/readex-pro/400.css"; // Regular weight
 import "@fontsource/readex-pro/500.css"; // Medium weight
+import "@fontsource/readex-pro/600.css"; // Medium weight
 // import { CalendarIcon, ClockIcon } from "lucide-react"; // Assuming lucide-react for icons - Removed unused import
 import { DayPicker, useNavigation } from 'react-day-picker'; // Import DayPicker, useNavigation, removed CaptionProps
 import 'react-day-picker/dist/style.css'; // Import default styles (we'll override)
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from 'date-fns'; // Import date-fns utils
+import beanLogo from "@/images/logo_bean_journal.png";
 
 // Update the route path to make it a child of the journal root
 export const Route = createFileRoute("/journal/")({
@@ -21,6 +23,166 @@ type CalendarEvent = {
     textBg: string;  // Background for the text label
     mood?: 'happy' | 'sad' | 'neutral' | 'mad' | 'amazing'; // Add amazing to mood property
 };
+
+// Streak Modal Component
+interface StreakModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    streakDays: number;
+    activeDaysOfWeek: ('M' | 'Tu' | 'W' | 'Th' | 'F' | 'Sa' | 'Su')[];
+}
+
+function StreakModal({ isOpen, onClose, streakDays, activeDaysOfWeek }: StreakModalProps) {
+    if (!isOpen) return null;
+
+    // Map of days to determine which ones are active
+    const daysMap: Record<string, boolean> = {
+        'M': activeDaysOfWeek.includes('M'),
+        'Tu': activeDaysOfWeek.includes('Tu'),
+        'W': activeDaysOfWeek.includes('W'),
+        'Th': activeDaysOfWeek.includes('Th'),
+        'F': activeDaysOfWeek.includes('F'),
+        'Sa': activeDaysOfWeek.includes('Sa'),
+        'Su': activeDaysOfWeek.includes('Su')
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white rounded-2xl shadow-xl w-[600px] overflow-hidden transform transition-all">
+                {/* Modal content from Figma design */}
+                <div className="p-8 flex flex-col items-center">
+                    {/* Bean logo with number */}
+                    <div className="relative mb-8">
+                        <img 
+                            src={beanLogo} 
+                            alt="Bean Logo" 
+                            className="w-48 h-48 scale-150 ml-[-1rem] mr-[1rem]" 
+                        />
+                        <div className="absolute inset-0 mt-[5.75rem] flex items-center justify-center">
+                            <span className="text-white text-6xl font-bold">
+                                {streakDays}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Days of the week with check circles */}
+                    <div className="flex justify-between w-full mb-8 px-8 font-montserrat font-bold">
+                        {/* Monday */}
+                        <div className="flex flex-col items-center">
+                            <span className={`text-3xl mb-2 ${daysMap['M'] ? 'text-[#A192F8]' : 'text-[#ADA0F9]'}`}>
+                                M
+                            </span>
+                            <div className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap['M'] ? 'border-[#B6D78A]' : 'border-[#DBDBDB]'}`}>
+                                {daysMap['M'] && (
+                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M1 6L6 11L15 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                )}
+                            </div>
+                        </div>
+                        
+                        {/* Tuesday */}
+                        <div className="flex flex-col items-center">
+                            <span className={`text-3xl mb-2 ${daysMap['Tu'] ? 'text-[#A192F8]' : 'text-[#ADA0F9]'}`}>
+                                Tu
+                            </span>
+                            <div className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap['Tu'] ? 'border-[#B6D78A]' : 'border-[#DBDBDB]'}`}>
+                                {daysMap['Tu'] && (
+                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M1 6L6 11L15 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                )}
+                            </div>
+                        </div>
+                        
+                        {/* Wednesday */}
+                        <div className="flex flex-col items-center">
+                            <span className={`text-3xl mb-2 ${daysMap['W'] ? 'text-[#A192F8]' : 'text-[#ADA0F9]'}`}>
+                                W
+                            </span>
+                            <div className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap['W'] ? 'border-[#B6D78A]' : 'border-[#DBDBDB]'}`}>
+                                {daysMap['W'] && (
+                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M1 6L6 11L15 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                )}
+                            </div>
+                        </div>
+                        
+                        {/* Thursday */}
+                        <div className="flex flex-col items-center">
+                            <span className={`text-3xl mb-2 ${daysMap['Th'] ? 'text-[#A192F8]' : 'text-[#ADA0F9]'}`}>
+                                Th
+                            </span>
+                            <div className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap['Th'] ? 'border-[#B6D78A]' : 'border-[#DBDBDB]'}`}>
+                                {daysMap['Th'] && (
+                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M1 6L6 11L15 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                )}
+                            </div>
+                        </div>
+                        
+                        {/* Friday */}
+                        <div className="flex flex-col items-center">
+                            <span className={`text-3xl mb-2 ${daysMap['F'] ? 'text-[#2F2569]' : 'text-[#ADA0F9]'}`}>
+                                F
+                            </span>
+                            <div className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap['F'] ? 'border-[#B6D78A] bg-[#B6D78A]' : 'border-[#DBDBDB]'}`}>
+                                {daysMap['F'] && (
+                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M1 6L6 11L15 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                )}
+                            </div>
+                        </div>
+                        
+                        {/* Saturday */}
+                        <div className="flex flex-col items-center">
+                            <span className={`text-3xl mb-2 ${daysMap['Sa'] ? 'text-[#A192F8]' : 'text-[#ADA0F9]'}`}>
+                                Sa
+                            </span>
+                            <div className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap['Sa'] ? 'border-[#B6D78A]' : 'border-[#DBDBDB]'}`}>
+                                {daysMap['Sa'] && (
+                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M1 6L6 11L15 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                )}
+                            </div>
+                        </div>
+                        
+                        {/* Sunday */}
+                        <div className="flex flex-col items-center">
+                            <span className={`text-3xl mb-2 ${daysMap['Su'] ? 'text-[#A192F8]' : 'text-[#ADA0F9]'}`}>
+                                Su
+                            </span>
+                            <div className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap['Su'] ? 'border-[#B6D78A]' : 'border-[#DBDBDB]'}`}>
+                                {daysMap['Su'] && (
+                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M1 6L6 11L15 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Text */}
+                    <p className="text-[#2F2569] text-2xl mb-8 font-semibold">
+                        Write down your Bean Journey everyday
+                    </p>
+
+                    {/* Continue button */}
+                    <button 
+                        onClick={onClose}
+                        className="w-full py-5 bg-[#E5D1FE] rounded-xl text-[#9645FF] text-2xl font-medium hover:bg-[#d9bbff] transition-colors"
+                    >
+                        Continue
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 function Homepage() {
     // CSS for animations
@@ -292,6 +454,93 @@ function Homepage() {
     }
     `;
 
+	// Streak modal state
+	const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
+	const [streakDays, setStreakDays] = useState(3); // Example: 3 days streak
+	const [activeDaysOfWeek, setActiveDaysOfWeek] = useState<('M' | 'Tu' | 'W' | 'Th' | 'F' | 'Sa' | 'Su')[]>(['M', 'Tu', 'W']);
+
+	// Debug button to manually trigger the streak modal
+	const [showDebugButton, setShowDebugButton] = useState(true);
+	
+	// Function to handle closing the streak modal and marking today
+	const handleCloseStreakModal = () => {
+		// Get current day of week
+		const now = new Date();
+		const currentDayIndex = now.getDay(); // 0 is Sunday, 1 is Monday, etc.
+		const dayMapping = ['Su', 'M', 'Tu', 'W', 'Th', 'F', 'Sa'] as const;
+		const today = dayMapping[currentDayIndex];
+		
+		// Add today to activeDaysOfWeek if not already included
+		if (!activeDaysOfWeek.includes(today)) {
+			setActiveDaysOfWeek([...activeDaysOfWeek, today]);
+		}
+		
+		// Close the modal
+		setIsStreakModalOpen(false);
+	};
+	
+	useEffect(() => {
+		// Check if it's the first visit of the day
+		const checkFirstVisitOfDay = () => {
+			const lastVisit = localStorage.getItem('beanJourney_lastVisit');
+			const now = new Date();
+			const today = now.toISOString().split('T')[0]; // Get YYYY-MM-DD format
+			
+			if (!lastVisit || lastVisit !== today) {
+				// First visit today - show the streak modal
+				// Calculate and update streak
+				let streak = Number(localStorage.getItem('beanJourney_streak') || '0');
+				
+				// Check if the last visit was yesterday to maintain streak
+				if (lastVisit) {
+					const yesterday = new Date(now);
+					yesterday.setDate(yesterday.getDate() - 1);
+					const yesterdayStr = yesterday.toISOString().split('T')[0];
+					
+					if (lastVisit !== yesterdayStr) {
+						// If last visit wasn't yesterday, reset streak
+						streak = 1;
+					} else {
+						// Increment streak if last visit was yesterday
+						streak += 1;
+					}
+				} else {
+					// First time ever, set streak to 1
+					streak = 1;
+				}
+				
+				// Save updated streak and today's date
+				localStorage.setItem('beanJourney_streak', streak.toString());
+				localStorage.setItem('beanJourney_lastVisit', today);
+				
+				// Update state
+				setStreakDays(streak);
+				
+				// Update active days (this is simplified, in a real app you'd track which days user was active)
+				const currentDayIndex = now.getDay(); // 0 is Sunday, 1 is Monday, etc.
+				// Map Sunday (0) to position 6 for Monday-first week
+				const mondayFirstIndex = currentDayIndex === 0 ? 6 : currentDayIndex - 1;
+				
+				// Convert to our day format and track last N days (up to current streak, max 7)
+				const dayMapping = ['M', 'Tu', 'W', 'Th', 'F', 'Sa', 'Su'] as const;
+				const activeDays: typeof activeDaysOfWeek = [];
+				
+				for (let i = 0; i < Math.min(streak, 7); i++) {
+					const dayIndex = (mondayFirstIndex - i + 7) % 7; // Go backwards from today
+					activeDays.unshift(dayMapping[dayIndex]); // Add to beginning so most recent is last
+				}
+				
+				setActiveDaysOfWeek(activeDays);
+				
+				// Show modal
+				setIsStreakModalOpen(true);
+			}
+		};
+		
+		// Run check on component mount
+		checkFirstVisitOfDay();
+	}, []);
+
 	// Sample data for recently visited
 	const recentCards = [
 		{ title: "Study", date: "Dec 20, 2023", img: "/images/bean-journey/figma/card_study_img.png", icon: "/images/bean-journey/figma/card_study_icon.png" },
@@ -512,6 +761,20 @@ function Homepage() {
         );
     }
 
+    // Function to handle debug button click
+    const handleDebugClick = () => {
+        // Clear localStorage items to simulate first visit
+        localStorage.removeItem('beanJourney_lastVisit');
+        
+        // Refresh the page to trigger the useEffect
+        window.location.reload();
+    };
+
+    // Function to toggle debug button visibility
+    const toggleDebugButton = () => {
+        setShowDebugButton(prev => !prev);
+    };
+
 	return (
 		<>
 			<style>{animationStyles}</style>
@@ -667,6 +930,44 @@ function Homepage() {
                         />
 					</div>
 				</div>
+				
+				{/* Debug button */}
+				{showDebugButton && (
+					<div className="fixed top-4 right-4 z-30">
+						<button 
+							onClick={handleDebugClick}
+							className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md shadow-md transition-colors mr-2"
+						>
+							Test Streak Modal
+						</button>
+						<button 
+							onClick={toggleDebugButton}
+							className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md shadow-md transition-colors"
+						>
+							Hide Debug
+						</button>
+					</div>
+				)}
+				
+				{/* Show debug button toggle when debug button is hidden */}
+				{!showDebugButton && (
+					<div className="fixed top-4 right-4 z-30">
+						<button 
+							onClick={toggleDebugButton}
+							className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md shadow-md transition-colors"
+						>
+							Show Debug
+						</button>
+					</div>
+				)}
+				
+				{/* Streak Modal */}
+				<StreakModal 
+					isOpen={isStreakModalOpen}
+					onClose={handleCloseStreakModal}
+					streakDays={streakDays}
+					activeDaysOfWeek={activeDaysOfWeek}
+				/>
 				
 				{/* Updated Chat bubble / Floating Action Button */}
 				<div className="fixed bottom-8 right-8 z-20"> {/* Added z-index */} 

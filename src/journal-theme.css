@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 @layer base {
   :root {
     /* Base colors */
@@ -61,6 +62,9 @@
     /* Define gradient colors for light mode */
     --gradient-from: #ffd1fb;
     --gradient-to: #ae70ff;
+    /* Journal-specific gradient colors to avoid conflict with landing page */
+    --journal-gradient-from: #ffd1fb;
+    --journal-gradient-to: #ae70ff;
     /* Add helper classes for the gradient colors as RGB for opacity control */
     --gradient-from-rgb: 255, 209, 251;
     --gradient-to-rgb: 174, 112, 255;
@@ -119,10 +123,13 @@
     --sidebar-primary: 280 65% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
     /* Define gradient colors for dark mode */
-    --gradient-from: #452658;
-    --gradient-to: #2a1a37;
-    --gradient-from-rgb: 69, 38, 88;
-    --gradient-to-rgb: 42, 26, 55;
+    --gradient-from-dark: #452658;
+    --gradient-to-dark: #2a1a37;
+    /* Journal-specific dark mode gradients */
+    --journal-gradient-from-dark: #452658;
+    --journal-gradient-to-dark: #2a1a37;
+    --gradient-from-rgb-dark: 69, 38, 88;
+    --gradient-to-rgb-dark: 42, 26, 55;
   }
 }
 
@@ -131,14 +138,15 @@
     @apply border-border;
   }
 
-  body {
-    @apply bg-gradient-to-b from-[var(--gradient-from)] to-[var(--gradient-to)];
+  /* Apply gradient ONLY to journal theme */
+  body.journal-theme {
+    background-image: linear-gradient(to bottom, var(--journal-gradient-from), var(--journal-gradient-to));
     min-height: 100vh;
   }
   
   /* Apply gradient background to dark mode */
-  .dark body {
-    @apply bg-gradient-to-b from-[var(--gradient-from)] to-[var(--gradient-to)];
+  .dark body.journal-theme {
+    background-image: linear-gradient(to bottom, var(--journal-gradient-from-dark), var(--journal-gradient-to-dark));
     min-height: 100vh;
   }
 }

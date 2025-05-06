@@ -3,4 +3,18 @@
   src: url('../components/fonts/PublicaSans-Regular.otf') format('opentype');
   font-weight: normal; /* Assuming regular weight */
   font-style: normal;  /* Assuming normal style */
+}
+
+@font-face {
+  font-family: 'Publica Sans';
+  src: url('../components/fonts/PublicaSans-Bold.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Publica Sans';
+  src: url('../components/fonts/PublicaSans-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
 } 

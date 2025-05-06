@@ -81,6 +81,7 @@ module.exports = {
       },
       fontFamily: {
         sans: [
+          "Publica Sans",
           "var(--font-sans)",
           ...fontFamily.sans
         ],

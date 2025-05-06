@@ -13,7 +13,6 @@ export const Route = createRootRoute({
 
 function LandingRoot() {
   const { location } = useRouterState();
-  const isJournalRoute = location.pathname.startsWith('/journal');
   
   // Explicitly scroll to top on route change
   useEffect(() => {
@@ -25,7 +24,7 @@ function LandingRoot() {
   return (
     <ClerkAndThemeProvider>
       <AuthProtector />
-      <div className={`landing-page-theme min-h-screen ${!isJournalRoute ? 'bg-white dark:bg-transparent' : ''}`}>
+      <div className={`min-h-screen`}>
         {/* Simple floating header - Conditionally rendered */}
 
         
@@ -34,7 +33,7 @@ function LandingRoot() {
         </main>
         
         {/* Footer - Conditionally rendered */}
-        <TanStackRouterDevtools />
+        {/* <TanStackRouterDevtools /> */}
       </div>
     </ClerkAndThemeProvider>
   );

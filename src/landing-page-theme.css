@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Publica+Sans:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -53,9 +54,9 @@
   /* Only apply body styles when a specific class is present, 
      which we'll add in the landing page component */
   body.landing-page-theme {
-    @apply bg-white text-slate-900 font-sans;
-    font-family: 'Inter', sans-serif;
-    background-color: #ffffff; /* Explicit white background */
+    @apply text-slate-900;
+    font-family: 'Publica Sans', sans-serif;
+    background-color: #ffffff !important; /* Explicit white background */
   }
 
   /* Light theme decorative elements - Scope them to the landing page theme */

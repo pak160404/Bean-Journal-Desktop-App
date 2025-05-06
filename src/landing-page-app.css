@@ -2,6 +2,21 @@
 
 /* Ensure the background is white */
 .landing-page-theme,
+.landing-page-theme body,
+.landing-page-theme #root {
+  background: #ffffff !important;
+}
+
+/* Define landing page specific variables */
+:root {
+  --landing-gradient-from: #ffd1fb;
+  --landing-gradient-to: #ae70ff;
+}
+
+.dark {
+  --landing-gradient-from: #452658;
+  --landing-gradient-to: #2a1a37;
+}
 
 /* Styles for the dynamically created shooting star - dark color for light theme */
 .landing-page-theme .shooting-star {

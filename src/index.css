@@ -1,2 +1,6 @@
 /* This file can be removed or kept for truly global, theme-agnostic styles */
 /* Content moved to src/landing-page-theme.css */
+
+body {
+  font-family: 'Publica Sans', sans-serif;
+}
