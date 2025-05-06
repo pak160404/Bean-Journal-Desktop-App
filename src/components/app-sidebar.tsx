@@ -138,7 +138,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   afterSignOutUrl="/"
                   appearance={{
                     elements: {
-                      avatarBox: "h-12 w-12 order-1",
+                      avatarBox: "h-10 w-10 order-1",
                       userButtonOuterIdentifier:
                         "text-left font-semibold text-base truncate order-2",
                       userButtonBox: "flex w-full items-center gap-3",
