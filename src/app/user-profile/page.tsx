@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Edit3, Image as ImageIcon, Trash2, Share2, BarChart2 } from 'lucide-react';
 import { useClerk } from '@clerk/clerk-react';
+import ActivityCalendar from '@/components/ui/ActivityCalendar';
 
 const defaultCoverBg = 'rgba(209, 213, 219, 0.5)'; // Default light gray, similar to bg-gray-300/50
 
@@ -264,6 +265,19 @@ const UserProfilePage = () => {
 
               {/* Right Column */}
               <div className="md:col-span-1 space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Activity</h3>
+                  <div className="mb-6">
+                    <ActivityCalendar 
+                      colors={{
+                        light: '#ffd1fb',
+                        dark: '#ae70ff',
+                        noActivity: 'rgba(209, 213, 219, 0.3)' // Example, can be themed
+                      }}
+                      // activityData={[]} // Later, pass real data here
+                    />
+                  </div>
+                </div>
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Profile</h3>
                   <div className="p-4 bg-white/20 dark:bg-slate-800/30 backdrop-blur-sm rounded-lg shadow text-sm text-gray-600 dark:text-gray-400">
