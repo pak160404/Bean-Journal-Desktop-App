@@ -8,6 +8,7 @@ import {
   CheckSquare,
   CreditCard,
   Palette,
+  UserCircle,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -134,8 +135,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     },
                   }}
                 >
-                  <UserButton.UserProfilePage label="account" />
-                  <UserButton.UserProfilePage label="security" />
+                  <UserButton.MenuItems>
+                    <UserButton.Link 
+                      href="/journal/user-profile" 
+                      label="My Profile"
+                      labelIcon={<UserCircle size={16} />}
+                    />
+                    <UserButton.UserProfilePage label="account" />
+                    <UserButton.UserProfilePage label="security" />
+                  </UserButton.MenuItems>
                   <UserButton.UserProfilePage
                     label="Theme"
                     url="theme"
@@ -180,7 +188,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                           </h2>
                           <div className="flex space-x-3">
                             <button className="flex-1 py-3 px-4 bg-[#B274FF] text-white rounded-lg shadow-md text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:ring-[#9645ff]">
-                              Readex Pro
+                              Publica Sans
                             </button>
                             <button className="flex-1 py-3 px-4 bg-[#F5C5FC] text-gray-800 rounded-lg shadow-md text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:ring-[#9645ff]">
                               Roboto
