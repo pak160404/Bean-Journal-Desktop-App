@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import DiaryCard from '@/components/diary/DiaryCard'; // Assuming this path
 import DiaryCreateForm from '@/components/diary/DiaryCreateForm'; // Assuming this path
 import DiaryDetailView from '@/components/diary/DiaryDetailView'; // Import the new component

@@ -1,6 +1,6 @@
 import { createRootRoute, Outlet, useRouterState } from "@tanstack/react-router";
 //import { ModeToggle } from "@/components/shared/ModeToggle";
-import { TanStackRouterDevtools } from "@tanstack/router-devtools";
+//import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { ClerkAndThemeProvider } from "../main";
 import { NotFound } from "@/components/shared/NotFound";
 import { useEffect } from "react";
