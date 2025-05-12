@@ -49,7 +49,7 @@ function Index() {
 
       {/* Scroll progress indicator */}
       <motion.div
-        className="fixed bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[#ffd1fb] to-[#B6D78A] origin-left z-50"
+        className="fixed bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[#E4EFE7] to-[#B6D78A] origin-left z-50"
         style={{ scaleX: scrollYProgress }}
       />
     </div>

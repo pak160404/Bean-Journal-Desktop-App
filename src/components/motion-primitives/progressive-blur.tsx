@@ -24,11 +24,16 @@ export function ProgressiveBlur({
   blurIntensity = 0.25,
   ...props
 }: ProgressiveBlurProps) {
+  const { ref, ...rest } = props;
   const layers = Math.max(blurLayers, 2);
   const segmentSize = 1 / (blurLayers + 1);
 
   return (
-    <div className={cn('relative', className)}>
+    <motion.div
+      className={cn('relative', className)}
+      {...(typeof ref === 'string' ? {} : { ref })}
+      {...rest}
+    >
       {Array.from({ length: layers }).map((_, index) => {
         const angle = GRADIENT_ANGLES[direction];
         const gradientStops = [
@@ -54,10 +59,9 @@ export function ProgressiveBlur({
               WebkitMaskImage: gradient,
               backdropFilter: `blur(${index * blurIntensity}px)`,
             }}
-            {...props}
           />
         );
       })}
-    </div>
+    </motion.div>
   );
 }

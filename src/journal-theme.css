@@ -60,11 +60,11 @@
     --sidebar-primary: 280 65% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
     /* Define gradient colors for light mode */
-    --gradient-from: #ffd1fb;
-    --gradient-to: #ae70ff;
+    --gradient-from: #E4EFE7;
+    --gradient-to: #99BC85;
     /* Journal-specific gradient colors to avoid conflict with landing page */
-    --journal-gradient-from: #ffd1fb;
-    --journal-gradient-to: #ae70ff;
+    --journal-gradient-from: #E4EFE7;
+    --journal-gradient-to: #99BC85;
     /* Add helper classes for the gradient colors as RGB for opacity control */
     --gradient-from-rgb: 255, 209, 251;
     --gradient-to-rgb: 174, 112, 255;

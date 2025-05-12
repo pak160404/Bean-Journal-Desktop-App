@@ -270,8 +270,8 @@ const UserProfilePage = () => {
                   <div className="mb-6">
                     <ActivityCalendar 
                       colors={{
-                        light: '#ffd1fb',
-                        dark: '#ae70ff',
+                        light: '#E4EFE7',
+                        dark: '#99BC85',
                         noActivity: 'rgba(209, 213, 219, 0.3)' // Example, can be themed
                       }}
                       // activityData={[]} // Later, pass real data here

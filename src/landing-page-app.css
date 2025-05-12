@@ -9,8 +9,8 @@
 
 /* Define landing page specific variables */
 :root {
-  --landing-gradient-from: #ffd1fb;
-  --landing-gradient-to: #ae70ff;
+  --landing-gradient-from: #E4EFE7;
+  --landing-gradient-to: #99BC85;
 }
 
 .dark {

@@ -94,7 +94,7 @@ export function BeanJourneyPage() {
           </div>
           <div className="w-full md:w-1/2 flex justify-center">
             <div className="relative w-full max-w-md p-6">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#ffd1fb] to-[#ae70ff] rounded-3xl transform rotate-3 opacity-25"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-[#E4EFE7] to-[#99BC85] rounded-3xl transform rotate-3 opacity-25"></div>
               <div className="relative bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-6 transform -rotate-1">
                 <img 
                   src="/images/bean-journey/bean-hero.jpg" 

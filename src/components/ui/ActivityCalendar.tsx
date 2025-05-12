@@ -22,8 +22,8 @@ const MIN_WEEKS = 4; // Minimum number of weeks to display
 const DEFAULT_WEEKS = 12; // Default number of weeks if width calculation isn't possible initially
 
 const defaultColors = {
-  light: '#ffd1fb',
-  dark: '#ae70ff',
+  light: '#E4EFE7',
+  dark: '#99BC85',
   noActivity: 'rgba(209, 213, 219, 0.3)',
 };
 

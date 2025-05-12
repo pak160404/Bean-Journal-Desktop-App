@@ -160,7 +160,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             Theme
                           </h2>
                           <div className="flex flex-col gap-4">
-                            <button className="h-20 w-full bg-gradient-to-r from-[#FFD1FB] to-[#AE70FF] rounded-xl shadow-md focus:ring-2 focus:ring-offset-2 focus:ring-[#9645ff] transition-all hover:scale-105 active:scale-95"></button>
+                            <button className="h-20 w-full bg-gradient-to-r from-[#E4EFE7] to-[#99BC85] rounded-xl shadow-md focus:ring-2 focus:ring-offset-2 focus:ring-[#9645ff] transition-all hover:scale-105 active:scale-95"></button>
                             <button
                               className="h-20 w-full rounded-xl shadow-md focus:ring-2 focus:ring-offset-2 focus:ring-[#9645ff] transition-all hover:scale-105 active:scale-95 overflow-hidden bg-cover bg-center"
                               style={{

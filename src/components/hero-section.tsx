@@ -125,7 +125,7 @@ const InfiniteMarquee: React.FC<InfiniteMarqueeProps> = ({
 
   return (
     <div
-      className={`w-full overflow-hidden bg-gradient-to-r from-[#ffd1fb] to-[#B6D78A] ${thickness} relative`}
+      className={`w-full overflow-hidden bg-gradient-to-r from-[#E4EFE7] to-[#B6D78A] ${thickness} relative`}
       ref={containerRef}
     >
       <div
