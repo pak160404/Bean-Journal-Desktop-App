@@ -185,14 +185,14 @@ const UserProfilePage = () => {
           {/* Profile Header */}
           <div className="pb-6 -mt-16 md:-mt-20 relative">
             <div className="flex flex-col md:flex-row items-center md:items-end">
-              <Avatar className="w-24 h-24 md:w-32 md:h-32 border-4 border-white dark:border-gray-800 shadow-lg">
+              <Avatar className="w-24 h-24 md:w-32 md:h-32 border-4 border-white dark:border-gray-800">
                 <AvatarImage src={avatarSrc} alt={userName} />
                 <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
               </Avatar>
               <Button
                 variant="outline"
                 size="icon"
-                className="w-8 h-8 rounded-full bg-white/80 hover:bg-white dark:bg-gray-800/80 dark:hover:bg-gray-700 absolute left-1/2 md:left-24 -translate-x-1/2 md:translate-x-0 top-20 md:top-28 shadow-md"
+                className="w-8 h-8 rounded-full bg-white/80 hover:bg-white dark:bg-gray-800/80 dark:hover:bg-gray-700 absolute left-1/2 md:left-24 -translate-x-1/2 md:translate-x-0 top-20 md:top-28"
               >
                 <ImageIcon size={14} />
               </Button>
@@ -207,20 +207,20 @@ const UserProfilePage = () => {
               </div>
               <div className="mt-2 md:mt-0 md:ml-auto flex space-x-2">
                 <Button variant="outline" className="text-xs dark:text-gray-300 dark:border-gray-600">New Page</Button>
-                <Button className="text-xs bg-[#FFB4ED] hover:bg-[#fca5e3] text-[#2F2569]">Edit Profile</Button>
+                <Button className="text-xs bg-[#b1dc98] text-[#2F2569]">Edit Profile</Button>
               </div>
             </div>
           </div>
 
           {/* Main Content Area - Using staticProfileData for diary, etc. */}
-          <div className="py-4 md:py-8 border-t border-gray-200/30 dark:border-gray-700/30">
+          <div className="py-4 md:py-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Left Column / Main Content */}
               <div className="md:col-span-2 space-y-8">
                 {/* Mood Stat Section */}
                 <div>
                   <h2 className="text-xl font-semibold mb-3">Mood Stat This Week</h2>
-                  <div className="p-4 bg-white/20 dark:bg-slate-800/30 backdrop-blur-sm rounded-lg shadow">
+                  <div className="p-4 bg-white/20 dark:bg-slate-800/30 backdrop-blur-sm rounded-lg">
                     <BarChart2 size={64} className="mx-auto text-gray-400 dark:text-gray-500" />
                     <p className='text-center text-sm text-gray-500 mt-2'>Mood chart will appear here.</p>
                   </div>
@@ -229,10 +229,10 @@ const UserProfilePage = () => {
                 {/* Latest Diary Section */}
                 <div>
                   <h2 className="text-xl font-semibold mb-3">Latest Diary</h2>
-                  <div className="bg-purple-100/50 dark:bg-purple-900/40 backdrop-blur-sm p-4 rounded-lg shadow relative">
+                  <div className="bg-[#b1dc98]/20 dark:bg-purple-900/40 backdrop-blur-sm p-4 rounded-lg relative">
                     <div className="flex items-start space-x-3">
                       {staticProfileData.latestDiary.moodImageUrl && (
-                         <img src={staticProfileData.latestDiary.moodImageUrl} alt="Mood" className="w-12 h-12 rounded-full shadow-sm"/>
+                         <img src={staticProfileData.latestDiary.moodImageUrl} alt="Mood" className="w-12 h-12 rounded-full"/>
                       )}
                       <div>
                         <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{staticProfileData.latestDiary.date}</p>
@@ -245,7 +245,7 @@ const UserProfilePage = () => {
                       <img 
                         src={staticProfileData.latestDiary.imageUrl} 
                         alt="Diary entry" 
-                        className="mt-3 rounded-lg shadow-sm w-full max-h-64 object-cover" 
+                        className="mt-3 rounded-lg w-full max-h-64 object-cover" 
                       />
                     )}
                     <div className="absolute top-3 right-3 flex space-x-2">
@@ -280,7 +280,7 @@ const UserProfilePage = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Profile</h3>
-                  <div className="p-4 bg-white/20 dark:bg-slate-800/30 backdrop-blur-sm rounded-lg shadow text-sm text-gray-600 dark:text-gray-400">
+                  <div className="p-4 bg-white/20 dark:bg-slate-800/30 backdrop-blur-sm rounded-lg text-sm text-gray-600 dark:text-gray-400">
                     More profile information or settings can go here.
                   </div>
                 </div>

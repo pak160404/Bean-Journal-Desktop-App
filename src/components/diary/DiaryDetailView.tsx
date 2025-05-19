@@ -99,7 +99,7 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary }) => {
       <header className="p-4 md:p-6 flex justify-between items-start border-b border-slate-200">
         <div>
           <h2 
-            className="text-2xl md:text-3xl font-semibold text-purple-700 leading-tight"
+            className="text-2xl md:text-3xl font-semibold text-[#667760] leading-tight"
             style={{ fontFamily: 'Readex Pro, sans-serif' }}
           >
             {diary.title} {/* This is the main title like "Everyday Activity" */}
@@ -113,7 +113,7 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary }) => {
           )}
         </div>
         <div className="flex space-x-1.5 flex-shrink-0">
-            <button title="Add to entry" className="p-2 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-600 transition-colors">
+            <button title="Add to entry" className="p-2 rounded-full bg-[#F5F8F4] hover:bg-[#E9F0E6] text-[#7A8C74] transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v4h4a1 1 0 110 2h-4v4a1 1 0 11-2 0v-4H5a1 1 0 110-2h4V4a1 1 0 011-1z" clipRule="evenodd" /></svg>
             </button>
             <button title="Add photo" className="p-2 rounded-full bg-pink-100 hover:bg-pink-200 text-pink-600 transition-colors">
@@ -184,8 +184,8 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary }) => {
                 );
             case 'highlight':
               return (
-                <div key={index} className="p-3 my-3 bg-purple-100 border-l-4 border-purple-500 rounded-md text-purple-800 flex items-center space-x-2" style={{ fontFamily: 'Readex Pro, sans-serif' }}>
-                  <svg className="w-5 h-5 text-purple-600 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                <div key={index} className="p-3 my-3 bg-[#F5F8F4] border-l-4 border-[#8FA188] rounded-md text-[#54614F] flex items-center space-x-2" style={{ fontFamily: 'Readex Pro, sans-serif' }}>
+                  <svg className="w-5 h-5 text-[#7A8C74] flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                   <p className="text-sm font-medium">{block.content}</p>
                 </div>
               );

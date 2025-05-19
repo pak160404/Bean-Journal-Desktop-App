@@ -2,13 +2,13 @@ import { createRootRoute, Outlet, useRouterState } from "@tanstack/react-router"
 //import { ModeToggle } from "@/components/shared/ModeToggle";
 //import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { ClerkAndThemeProvider } from "../main";
-import { NotFound } from "@/components/shared/NotFound";
+import { NotFoundPageContent } from "./__404";
 import { useEffect } from "react";
 import { useAuthProtection } from "@/utils/authUtils";
 
 export const Route = createRootRoute({
   component: LandingRoot,
-  notFoundComponent: NotFound,
+  notFoundComponent: NotFoundPageContent,
 });
 
 function LandingRoot() {

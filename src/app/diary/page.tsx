@@ -99,7 +99,7 @@ const DiaryPage = () => {
           
           <button 
             onClick={handleCreateNew}
-            className="w-full mt-3 mb-3 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+            className="w-full mt-3 mb-3 px-4 py-2 text-sm font-medium text-black bg-[#DAE6D4] rounded-lg hover:bg-[#DAE6D4] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#DAE6D4] transition-colors"
           >
             + Create New Diary
           </button>
@@ -108,7 +108,7 @@ const DiaryPage = () => {
             <input 
               type="text" 
               placeholder="Search diaries" // Text from Figma node 88:410
-              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 bg-white text-slate-700 placeholder-slate-400"
+              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-[#DAE6D4] focus:border-[#DAE6D4] bg-white text-slate-700 placeholder-slate-400"
               style={{ fontFamily: 'Readex Pro, sans-serif', fontSize: '14px' }} // Approximating style_SSNUMJ for placeholder/input
             />
             {/* Search Icon - Figma node 88:411 - using SVG for now */}

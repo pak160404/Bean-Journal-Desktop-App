@@ -15,7 +15,7 @@ const DiaryCard: React.FC<DiaryCardProps> = ({ diary, onSelectDiary, isSelected 
       className={cn(
         "p-3 rounded-lg cursor-pointer transition-all duration-200 ease-in-out",
         "border", // Basic border
-        isSelected ? "bg-purple-100 border-purple-400 shadow-md" : "bg-pink-50 hover:bg-pink-100 border-pink-200 hover:border-pink-300", // Figma: #FFEBF2 for cards, selected state purple
+        isSelected ? "bg-[#F5F8F4] border-[#A7BAA1] shadow-md" : "bg-[#F5F8F4] hover:bg-[#E9F0E6] border-[#DDE8DA] hover:border-[#CFE0CA]", // Figma: #FFEBF2 for cards, selected state purple
         "shadow-sm hover:shadow-md"
       )}
       style={{
@@ -41,7 +41,7 @@ const DiaryCard: React.FC<DiaryCardProps> = ({ diary, onSelectDiary, isSelected 
         {/* Category - Figma style_SQAN8F */}
         {diary.category && (
           <span 
-            className="text-xs px-1.5 py-0.5 rounded-full bg-purple-200 text-purple-700"
+            className="text-xs px-1.5 py-0.5 rounded-full bg-[#E9F0E6] text-[#667760]"
             style={{ fontFamily: 'Readex Pro, sans-serif' }}
           >
             {diary.category}

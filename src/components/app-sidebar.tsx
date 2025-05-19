@@ -4,7 +4,6 @@ import {
   Map,
   PieChart,
   Home,
-  Settings,
   CheckSquare,
   CreditCard,
   Palette,
@@ -25,6 +24,7 @@ import {
 } from "@/components/ui/sidebar";
 import { UserButton } from "@clerk/clerk-react";
 import logoBean from "@/images/logo_bean_journal.png";
+import { Link } from "@tanstack/react-router";
 
 const data = {
   user: {
@@ -41,21 +41,15 @@ const data = {
       items: [],
     },
     {
-      title: "Bean Journal",
-      url: "/bean-journey",
+      title: "Calendar",
+      url: "/journal",
       icon: BookOpen,
       items: [],
     },
     {
-      title: "Dashboard",
-      url: "/dashboard",
+      title: "Diaries",
+      url: "/journal/diary",
       icon: PieChart,
-      items: [],
-    },
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings,
       items: [],
     },
     {
@@ -96,12 +90,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="#">
+              <Link to="/">
                 <img src={logoBean} alt="bean journal" className="w-14 h-14 ml-[-1rem] mr-[-0.4rem]" />
                 <div className="grid flex-1 text-left text-lg leading-tight">
                   <span className="truncate font-semibold">bean journal</span>
                 </div>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
