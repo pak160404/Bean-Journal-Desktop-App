@@ -1,3 +1,5 @@
+
+![repository-open-graph-template(1)](https://github.com/user-attachments/assets/2117493b-d280-41b5-b081-30e94247f52e)
 # Bean Journal
 
 A digital companion for coffee enthusiasts to track their coffee journey, explore new beans, and connect with other coffee lovers.
