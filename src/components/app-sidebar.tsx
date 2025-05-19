@@ -7,6 +7,7 @@ import {
   CheckSquare,
   CreditCard,
   Palette,
+  ShoppingBag,
   UserCircle,
 } from "lucide-react";
 
@@ -22,9 +23,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { UserButton } from "@clerk/clerk-react";
+import { UserButton, useUser } from "@clerk/clerk-react";
 import logoBean from "@/images/logo_bean_journal.png";
 import { Link } from "@tanstack/react-router";
+import { ThemeShopPage } from '@/routes/theme-shop';
 
 const data = {
   user: {
@@ -80,6 +82,16 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { isSignedIn } = useUser();
+
+  if (!isSignedIn) {
+    return (
+      <div className="p-4">
+        <p>Please sign in to access settings.</p>
+      </div>
+    );
+  }
+
   return (
     <Sidebar
       variant="inset"
@@ -127,6 +139,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       userButtonTrigger:
                         "flex items-center w-full my-6 pr-12 pl-4",
                     },
+                  }}
+                  userProfileProps={{
+                    appearance: { variables: { colorPrimary: "#99BC85" } },
                   }}
                 >
                   <UserButton.MenuItems>
@@ -215,15 +230,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </div>
                   </UserButton.UserProfilePage>
                   <UserButton.UserProfilePage
+                    label="Shop"
+                    url="theme-shop-modal" // Unique identifier for this page within the modal
+                    labelIcon={<ShoppingBag size={16} />}
+                  >
+                    <ThemeShopPage />
+                  </UserButton.UserProfilePage>
+                  <UserButton.UserProfilePage
                     label="Billing"
                     url="billing"
                     labelIcon={<CreditCard size={16} />}
                   >
-                    <div className="p-4 w-full">
-                      <h1 className="text-lg font-medium mb-3">
+                    <div className="w-full">
+                      <h1 className="text-[1.05rem] font-bold text-gray-900 dark:text-white mb-2 border-b border-gray-200 dark:border-gray-700 pb-4">
                         Billing Settings
                       </h1>
-                      <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                      <p className="mt-4 mb-4 text-sm text-gray-600 dark:text-gray-400">
                         Manage your subscription and payment methods
                       </p>
 

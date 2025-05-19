@@ -45,7 +45,7 @@ export function NavMain({
               <SidebarMenuButton asChild tooltip={item.title}>
                 <Link 
                   to={item.url} 
-                  activeProps={{ className: "text-black bg-gradient-to-r from-[#99BC85] to-[#E4EFE7] font-semibold rounded" }}
+                  activeProps={{ className: "sidebar-link-active font-semibold rounded" }}
                   activeOptions={{ exact: item.url === '/' || item.url === '/journal' }}
                 >
                   <item.icon />
@@ -67,7 +67,7 @@ export function NavMain({
                           <SidebarMenuSubButton asChild>
                             <Link 
                               to={subItem.url}
-                              activeProps={{ className: "text-black bg-gradient-to-r from-[#99BC85] to-[#E4EFE7] font-semibold rounded" }}
+                              activeProps={{ className: "sidebar-link-active font-semibold rounded" }}
                             >
                               <span>{subItem.title}</span>
                             </Link>

@@ -3,8 +3,11 @@ import ReactDOM from "react-dom/client";
 import { RouterProvider, createRouter, useNavigate } from "@tanstack/react-router";
 import { ClerkProvider } from '@clerk/clerk-react'
 
-//theme provider
-import { ThemeProvider } from "@/components/shared/ThemeProvider";
+//theme provider from shared components (e.g. for light/dark mode)
+import { ThemeProvider as ShadThemeProvider } from "@/components/shared/ThemeProvider";
+
+// Import your custom ThemeProvider for application themes
+import { ThemeProvider as CustomThemeProvider } from './contexts/ThemeContext';
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
@@ -57,9 +60,9 @@ export function ClerkAndThemeProvider({ children }: { children: React.ReactNode 
 			// afterSignInUrl="/journal" // Deprecated, use fallback/force instead
 			// afterSignUpUrl="/sign-up/continue" // Deprecated, use fallback/force instead
 		>
-			<ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+			<ShadThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
 				{children}
-			</ThemeProvider>
+			</ShadThemeProvider>
 		</ClerkProvider>
 	);
 }
@@ -70,8 +73,9 @@ if (!rootElement.innerHTML) {
 	const root = ReactDOM.createRoot(rootElement);
 	root.render(
 		<StrictMode>
-			{/* RouterProvider remains the top-level router component */}
-			<RouterProvider router={router} />
+			<CustomThemeProvider>
+				<RouterProvider router={router} />
+			</CustomThemeProvider>
 		</StrictMode>,
 	);
 }

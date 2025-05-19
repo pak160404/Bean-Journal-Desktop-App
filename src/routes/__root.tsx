@@ -25,10 +25,8 @@ function LandingRoot() {
     <ClerkAndThemeProvider>
       <AuthProtector />
       <div className={`min-h-screen`}>
-        {/* Simple floating header - Conditionally rendered */}
-
-        
-        <main>
+        {/* Main content area that will receive themes */}
+        <main id="app-theme-wrapper">
           <Outlet />
         </main>
         

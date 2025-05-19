@@ -1,2 +1,210 @@
 /* This file can be removed or kept for truly global, theme-agnostic styles */
 /* Content moved to src/landing-page-app.css */ 
+
+/* --- Global Application Theme Styles --- */
+
+/* Default/Fallback (if no theme class is present or for base styling) */
+/* Body is now primarily styled by the theme wrapper or default ShadCN styles */
+#app-theme-wrapper body {
+  /* You might already have base background/text colors from ShadCN/Tailwind. */
+  /* These theme styles will override them when a theme class is active on <html>. */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Green Meadow Theme */
+#app-theme-wrapper.theme-green-meadow {
+  --journal-gradient-from: #E4EFE7; /* Lighter green */
+  --journal-gradient-to: #99BC85;   /* Mid green */
+  --gradient-from: #E4EFE7;
+  --gradient-to: #99BC85;
+
+  /* Override for sidebar text elements */
+  --sidebar-accent: #a7f3d0; /* Lighter green for active item background */
+  --sidebar-accent-foreground: #065f46; /* Darker green for active item text */
+
+  background-image: linear-gradient(to bottom, #E4EFE7, #99BC85);
+
+}
+/* Specific overrides within Green Meadow */
+#app-theme-wrapper.theme-green-meadow .text-\[\#1e1742\] {
+  color: #15803d !important; /* Dark green for main sidebar text, was text-[#1e1742] */
+}
+#app-theme-wrapper.theme-green-meadow .text-\[\#1e1742\]\/70 {
+  color: #16a34a !important; /* Slightly lighter dark green for section headers, was text-[#1e1742]/70 */
+}
+#app-theme-wrapper.theme-green-meadow aside a,
+#app-theme-wrapper.theme-green-meadow aside button {
+  color: #15803d; /* Dark green for links/buttons by default */
+}
+#app-theme-wrapper.theme-green-meadow aside [data-active="true"] span,
+#app-theme-wrapper.theme-green-meadow aside [aria-current="page"] span,
+#app-theme-wrapper.theme-green-meadow .sidebar-link-active span { /* Target span within the active link */
+  color: var(--sidebar-accent-foreground) !important; /* Ensure text on active background is very dark green */
+}
+#app-theme-wrapper.theme-green-meadow .sidebar-link-active {
+  background-image: linear-gradient(to right, var(--gradient-from), var(--gradient-to));
+  color: var(--sidebar-accent-foreground) !important; /* Text color for the link itself */
+}
+#app-theme-wrapper.theme-green-meadow .bg-primary {
+  background-color: #22c55e !important; /* Green-500 */
+  color: white !important;
+}
+#app-theme-wrapper.theme-green-meadow .text-primary {
+  color: #16a34a !important; /* Green-600 */
+}
+
+/* Abstract Art Theme */
+#app-theme-wrapper.theme-abstract-art {
+  --journal-gradient-from: #fffbeb; /* Creamy */
+  --journal-gradient-to: #fde68a;   /* Light yellow */
+  --gradient-from: #fffbeb;
+  --gradient-to: #fef3c7;
+  --sidebar-accent: #fef08a; /* Light yellow for active item background */
+  --sidebar-accent-foreground: #854d0e; /* Dark brown for active item text */
+
+  background-image: linear-gradient(to bottom, #fffbeb, #fef3c7);
+}
+#app-theme-wrapper.theme-abstract-art .text-\[\#1e1742\],
+#app-theme-wrapper.theme-abstract-art .text-\[\#1e1742\]\/70,
+#app-theme-wrapper.theme-abstract-art aside a,
+#app-theme-wrapper.theme-abstract-art aside button {
+  color: #854d0e !important; /* Dark brown for sidebar text */
+}
+#app-theme-wrapper.theme-abstract-art aside [data-active="true"] span,
+#app-theme-wrapper.theme-abstract-art aside [aria-current="page"] span,
+#app-theme-wrapper.theme-abstract-art .sidebar-link-active span {
+  color: var(--sidebar-accent-foreground) !important; /* Dark brown for sidebar text */
+}
+#app-theme-wrapper.theme-abstract-art .sidebar-link-active {
+  background-image: linear-gradient(to right, var(--gradient-from), var(--gradient-to));
+  color: var(--sidebar-accent-foreground) !important;
+}
+#app-theme-wrapper.theme-abstract-art .bg-primary {
+  background-color: #f97316 !important; /* Orange-500 */
+}
+
+/* Sunset Horizon Theme */
+#app-theme-wrapper.theme-sunset-horizon {
+  --journal-gradient-from: #ffedd5; /* Light orange */
+  --journal-gradient-to: #fdba74;   /* Orange */
+  --gradient-from: #ffedd5;
+  --gradient-to: #fed7aa;
+  --sidebar-accent: #fed7aa; /* Light orange for active item background */
+  --sidebar-accent-foreground: #7c2d12; /* Dark orange/brown for active item text */
+
+  background-image: linear-gradient(to bottom, #ffedd5, #fed7aa);
+}
+#app-theme-wrapper.theme-sunset-horizon .text-\[\#1e1742\],
+#app-theme-wrapper.theme-sunset-horizon .text-\[\#1e1742\]\/70,
+#app-theme-wrapper.theme-sunset-horizon aside a,
+#app-theme-wrapper.theme-sunset-horizon aside button {
+  color: #7c2d12 !important; /* Dark orange/brown for sidebar text */
+}
+#app-theme-wrapper.theme-sunset-horizon aside [data-active="true"] span,
+#app-theme-wrapper.theme-sunset-horizon aside [aria-current="page"] span,
+#app-theme-wrapper.theme-sunset-horizon .sidebar-link-active span {
+  color: var(--sidebar-accent-foreground) !important; /* Dark orange/brown for sidebar text */
+}
+#app-theme-wrapper.theme-sunset-horizon .sidebar-link-active {
+  background-image: linear-gradient(to right, var(--gradient-from), var(--gradient-to));
+  color: var(--sidebar-accent-foreground) !important;
+}
+#app-theme-wrapper.theme-sunset-horizon .bg-primary {
+  background-color: #ea580c !important; /* Orange-600 */
+}
+
+/* Midnight Blue Theme */
+#app-theme-wrapper.theme-midnight-blue {
+  /* Define gradient stops for Midnight Blue */
+  --journal-gradient-from: #0f172a; /* Even darker slate for top of gradient */
+  --journal-gradient-to: #1e293b;   /* Slate-800 for bottom of gradient */
+  --gradient-from: #0f172a;         /* Slate-800 for sidebar top */
+  --gradient-to: #1e293b;         
+  --sidebar-accent: #334155; /* Dark slate for active item background */
+  --sidebar-accent-foreground: #cbd5e1; /* Light slate for active item text */
+
+  background-image: linear-gradient(to bottom, #0f172a, #1e293b);
+}
+#app-theme-wrapper.theme-midnight-blue .text-\[\#1e1742\],
+#app-theme-wrapper.theme-midnight-blue .text-\[\#1e1742\]\/70,
+#app-theme-wrapper.theme-midnight-blue aside a,
+#app-theme-wrapper.theme-midnight-blue aside button,
+#app-theme-wrapper.theme-midnight-blue aside span { /* Catch-all for spans if not specifically an active link */
+  color: #94a3b8 !important; /* Default muted text for this theme */
+}
+#app-theme-wrapper.theme-midnight-blue aside [data-active="true"] span,
+#app-theme-wrapper.theme-midnight-blue aside [aria-current="page"] span,
+#app-theme-wrapper.theme-midnight-blue .sidebar-link-active span {
+  color: var(--sidebar-accent-foreground) !important; /* Brighter text on active background */
+}
+#app-theme-wrapper.theme-midnight-blue .sidebar-link-active {
+  background-image: linear-gradient(to right, var(--gradient-from), var(--gradient-to));
+  color: var(--sidebar-accent-foreground) !important;
+}
+#app-theme-wrapper.theme-midnight-blue .bg-primary {
+  background-color: #3b82f6 !important; /* Blue-500 */
+}
+#app-theme-wrapper.theme-midnight-blue .text-primary {
+  color: #60a5fa !important; /* Blue-400 */
+}
+#app-theme-wrapper.theme-midnight-blue a {
+  color: #93c5fd; /* Lighter blue for links */
+}
+#app-theme-wrapper.theme-midnight-blue .text-muted-foreground {
+    color: #94a3b8 !important; /* slate-400 for muted text */
+}
+#app-theme-wrapper.theme-midnight-blue .bg-card {
+  background-color: #334155 !important; /* Slate-700 */
+  color: #e2e8f0 !important;
+  border-color: #475569 !important; /* Slate-600 for borders */
+}
+#app-theme-wrapper.theme-midnight-blue .border {
+   border-color: #475569 !important; /* Slate-600 for general borders */
+}
+
+/* Cosmic Dream Theme */
+#app-theme-wrapper.theme-cosmic-dream {
+  /* Define gradient stops for Cosmic Dream */
+  --journal-gradient-from: #1e1b4b; /* Darker Indigo */
+  --journal-gradient-to: #312e81;   /* Indigo-900 */
+  --gradient-from: #312e81;         /* Indigo-900 for sidebar top */
+  --gradient-to: #4f46e5;         /* Indigo-600 for sidebar bottom */
+  --sidebar-accent: #4338ca; /* Darker indigo for active item background */
+  --sidebar-accent-foreground: #c7d2fe; /* Lighter indigo for active item text */
+
+  background-image: linear-gradient(to bottom, #312e81, #4f46e5);
+}
+#app-theme-wrapper.theme-cosmic-dream .text-\[\#1e1742\],
+#app-theme-wrapper.theme-cosmic-dream .text-\[\#1e1742\]\/70,
+#app-theme-wrapper.theme-cosmic-dream aside a,
+#app-theme-wrapper.theme-cosmic-dream aside button,
+#app-theme-wrapper.theme-cosmic-dream aside span {
+  color: #a5b4fc !important; /* Muted indigo for sidebar text */
+}
+#app-theme-wrapper.theme-cosmic-dream aside [data-active="true"] span,
+#app-theme-wrapper.theme-cosmic-dream aside [aria-current="page"] span,
+#app-theme-wrapper.theme-cosmic-dream .sidebar-link-active span {
+  color: var(--sidebar-accent-foreground) !important; /* Brighter text on active background */
+}
+#app-theme-wrapper.theme-cosmic-dream .sidebar-link-active {
+  background-image: linear-gradient(to right, var(--gradient-from), var(--gradient-to));
+  color: var(--sidebar-accent-foreground) !important;
+}
+#app-theme-wrapper.theme-cosmic-dream .bg-primary {
+  background-color: #8b5cf6 !important; /* Violet-500 */
+}
+
+/* Add more specific overrides for ShadCN components as needed for each theme. */
+/* For example, to ensure cards, inputs, etc., look good with the new body background: */
+
+/* Example for Midnight Blue - making cards slightly lighter than body */
+#app-theme-wrapper.theme-midnight-blue .bg-card {
+  background-color: #334155 !important; /* Slate-700 */
+  color: #e2e8f0 !important;
+  border-color: #475569 !important; /* Slate-600 for borders */
+}
+#app-theme-wrapper.theme-midnight-blue .border {
+   border-color: #475569 !important; /* Slate-600 for general borders */
+}
+
+/* You'll need to inspect ShadCN components and see which CSS variables or utility classes they use for backgrounds, text, borders, etc., and override them within each theme block if the default contrast is poor. */ 

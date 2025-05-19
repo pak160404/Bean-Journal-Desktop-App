@@ -11,6 +11,7 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as ThemeShopImport } from './routes/theme-shop'
 import { Route as SignUpImport } from './routes/sign-up'
 import { Route as SignInImport } from './routes/sign-in'
 import { Route as PricingImport } from './routes/pricing'
@@ -26,6 +27,12 @@ import { Route as JournalDashboardImport } from './routes/journal/dashboard'
 import { Route as JournalBeanJourneyImport } from './routes/journal/bean-journey'
 
 // Create/Update Routes
+
+const ThemeShopRoute = ThemeShopImport.update({
+  id: '/theme-shop',
+  path: '/theme-shop',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const SignUpRoute = SignUpImport.update({
   id: '/sign-up',
@@ -150,6 +157,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignUpImport
       parentRoute: typeof rootRoute
     }
+    '/theme-shop': {
+      id: '/theme-shop'
+      path: '/theme-shop'
+      fullPath: '/theme-shop'
+      preLoaderRoute: typeof ThemeShopImport
+      parentRoute: typeof rootRoute
+    }
     '/journal/bean-journey': {
       id: '/journal/bean-journey'
       path: '/bean-journey'
@@ -252,6 +266,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/sign-in': typeof SignInRouteWithChildren
   '/sign-up': typeof SignUpRouteWithChildren
+  '/theme-shop': typeof ThemeShopRoute
   '/journal/bean-journey': typeof JournalBeanJourneyRoute
   '/journal/dashboard': typeof JournalDashboardRoute
   '/journal/diary': typeof JournalDiaryRoute
@@ -267,6 +282,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/sign-in': typeof SignInRouteWithChildren
   '/sign-up': typeof SignUpRouteWithChildren
+  '/theme-shop': typeof ThemeShopRoute
   '/journal/bean-journey': typeof JournalBeanJourneyRoute
   '/journal/dashboard': typeof JournalDashboardRoute
   '/journal/diary': typeof JournalDiaryRoute
@@ -284,6 +300,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/sign-in': typeof SignInRouteWithChildren
   '/sign-up': typeof SignUpRouteWithChildren
+  '/theme-shop': typeof ThemeShopRoute
   '/journal/bean-journey': typeof JournalBeanJourneyRoute
   '/journal/dashboard': typeof JournalDashboardRoute
   '/journal/diary': typeof JournalDiaryRoute
@@ -302,6 +319,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/sign-in'
     | '/sign-up'
+    | '/theme-shop'
     | '/journal/bean-journey'
     | '/journal/dashboard'
     | '/journal/diary'
@@ -316,6 +334,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/sign-in'
     | '/sign-up'
+    | '/theme-shop'
     | '/journal/bean-journey'
     | '/journal/dashboard'
     | '/journal/diary'
@@ -331,6 +350,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/sign-in'
     | '/sign-up'
+    | '/theme-shop'
     | '/journal/bean-journey'
     | '/journal/dashboard'
     | '/journal/diary'
@@ -348,6 +368,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   SignInRoute: typeof SignInRouteWithChildren
   SignUpRoute: typeof SignUpRouteWithChildren
+  ThemeShopRoute: typeof ThemeShopRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -357,6 +378,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   SignInRoute: SignInRouteWithChildren,
   SignUpRoute: SignUpRouteWithChildren,
+  ThemeShopRoute: ThemeShopRoute,
 }
 
 export const routeTree = rootRoute
@@ -374,7 +396,8 @@ export const routeTree = rootRoute
         "/journal",
         "/pricing",
         "/sign-in",
-        "/sign-up"
+        "/sign-up",
+        "/theme-shop"
       ]
     },
     "/": {
@@ -407,6 +430,9 @@ export const routeTree = rootRoute
       "children": [
         "/sign-up/continue"
       ]
+    },
+    "/theme-shop": {
+      "filePath": "theme-shop.tsx"
     },
     "/journal/bean-journey": {
       "filePath": "journal/bean-journey.tsx",
