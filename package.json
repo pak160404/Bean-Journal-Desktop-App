@@ -25,6 +25,7 @@
 		"@radix-ui/react-slot": "^1.2.0",
 		"@radix-ui/react-toast": "^1.2.7",
 		"@radix-ui/react-tooltip": "^1.2.0",
+		"@supabase/supabase-js": "^2.49.8",
 		"@tabler/icons-react": "^3.31.0",
 		"@tanstack/react-router": "^1.115.2",
 		"animejs": "^4.0.0",
