@@ -1,270 +1,234 @@
-export interface AIAnalysisResult {
-  EntryId: number;
-  Type: string;
-  ResultJson: string;
-  UserId: string;
+export interface Profile {
+  id: string; // TEXT PRIMARY KEY
+  supabase_auth_user_id?: string; // UUID UNIQUE
+  username?: string; // TEXT
+  email?: string; // TEXT
+  subscription_tier: string; // TEXT DEFAULT 'free' NOT NULL
+  subscription_status?: string; // TEXT
+  clerk_subscription_id?: string; // TEXT UNIQUE
+  storage_quota_bytes?: number; // BIGINT DEFAULT 536870912
+  current_theme_id?: string; // UUID
+  interface_layout?: string; // TEXT DEFAULT 'default'
+  xp_points?: number; // INT DEFAULT 0
+  user_level?: number; // INT DEFAULT 1
+  current_journal_streak?: number; // INT DEFAULT 0
+  longest_journal_streak?: number; // INT DEFAULT 0
+  preferences?: Record<string, unknown>; // JSONB
+  created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+  updated_at?: string; // TIMESTAMPTZ DEFAULT NOW()
 }
 
-export interface Achievement {
-  Id: number;
-  Name: string;
-  Description: string;
-  CriteriaKey: string;
-  BadgeIconUrl?: string;
-  CreateAt?: string;
-  CreatedBy?: string;
-  LastModified?: string;
-  LastModifiedBy?: string;
-  IsActive: boolean;
+export interface JournalEntry {
+  id?: string; // UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id: string; // TEXT NOT NULL
+  entry_timestamp: string; // TIMESTAMPTZ NOT NULL
+  title?: string; // TEXT
+  content?: string; // TEXT
+  is_draft?: boolean; // BOOLEAN DEFAULT FALSE
+  sentiment_score?: number; // FLOAT
+  sentiment_label?: string; // TEXT
+  manual_mood_label?: string; // TEXT
+  color_code?: string; // TEXT
+  ocr_processed_text?: string; // TEXT
+  created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+  updated_at?: string; // TIMESTAMPTZ DEFAULT NOW()
 }
 
-export interface Entry {
-  Id: number;
-  UserId: string;
-  Title?: string;
-  Content: Uint8Array; // Assuming bytea maps to Uint8Array or a similar type for binary data
-  EntryDate: string;
-  IsPasswordProtected: boolean;
-  EntryPasswordHash?: string;
-  SentimentScore?: number;
-  DominantMoodLabel?: string;
-  CreateAt?: string;
-  CreatedBy?: string;
-  LastModified?: string;
-  LastModifiedBy?: string;
-  IsActive: boolean;
-}
-
-export interface EntryTag {
-  EntryId: number;
-  TagId: number;
-  AssignedAt: string;
-}
-
-export interface GoalUpdate {
-  Id: number;
-  GoalId: number;
-  UserId: string;
-  EntryId?: number;
-  UpdateText?: string;
-  ProgressMetric?: string;
-  CreateAt?: string;
-  CreatedBy?: string;
-  LastModified?: string;
-  LastModifiedBy?: string;
-  IsActive: boolean;
-}
-
-export interface Goal {
-  Id: number;
-  UserId: string;
-  Title: string;
-  Description?: string;
-  Status: string;
-  TargetDate?: string;
-  CreateAt?: string;
-  CreatedBy?: string;
-  LastModified?: string;
-  LastModifiedBy?: string;
-  IsActive: boolean;
-}
-
-export interface HabitLog {
-  Id: number;
-  HabitId: number;
-  UserId: string;
-  Status: string;
-  Notes?: string;
-  CreateAt?: string;
-  CreatedBy?: string;
-  LastModified?: string;
-  LastModifiedBy?: string;
-  IsActive: boolean;
-}
-
-export interface Habit {
-  Id: number;
-  UserId: string;
-  Name: string;
-  Description?: string;
-  Frequency?: string;
-  ColorCode?: string;
-  Icon?: string;
-  CreateAt?: string;
-  CreatedBy?: string;
-  LastModified?: string;
-  LastModifiedBy?: string;
-  IsActive: boolean;
-}
-
-export interface Integration {
-  Id: number;
-  UserId: string;
-  ServiceName: string;
-  AccessTokenEncrypted: Uint8Array; // Assuming bytea maps to Uint8Array
-  RefreshTokenEncrypted?: Uint8Array; // Assuming bytea maps to Uint8Array
-  ExternalUserId?: string;
-  Scopes?: string;
-  Status: string;
-  CreateAt?: string;
-  CreatedBy?: string;
-  LastModified?: string;
-  LastModifiedBy?: string;
-  IsActive: boolean;
-}
-
-export interface Mood {
-  EntryId: number;
-  UserId: string;
-  Label: string;
-  Score?: number;
-  Source: string;
-  Notes?: string;
-}
-
-export interface Multimedia {
-  Id: number;
-  EntryId: number;
-  UserId: string;
-  StorageUrl: string;
-  FileType: string;
-  MimeType?: string;
-  FileName?: string;
-  SizeBytes?: number;
-  CreateAt?: string;
-  CreatedBy?: string;
-  LastModified?: string;
-  LastModifiedBy?: string;
-  IsActive: boolean;
-}
-
-export interface Streak {
-  Id: number;
-  UserId: string;
-  Type: string;
-  RelatedHabitId?: number;
-  CurrentLength: number;
-  LongestLength: number;
-  CreateAt?: string;
-  CreatedBy?: string;
-  LastModified?: string;
-  LastModifiedBy?: string;
-  IsActive: boolean;
-}
-
-export interface SubscriptionPlan {
-  Id: number;
-  PlanCode: string;
-  Name: string;
-  Description?: string;
-  PriceMonthly?: number;
-  PriceYearly?: number;
-  BillingCycle?: string;
-  FeatureFlags?: string;
-  StripePriceId?: string;
-  StripeProductId?: string;
-  CreateAt?: string;
-  CreatedBy?: string;
-  LastModified?: string;
-  LastModifiedBy?: string;
-  IsActive: boolean;
+export interface MediaAttachment {
+  id?: string; // UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  entry_id: string; // UUID NOT NULL
+  user_id: string; // TEXT NOT NULL
+  file_path: string; // TEXT NOT NULL UNIQUE
+  file_name_original?: string; // TEXT
+  file_type: string; // TEXT NOT NULL
+  mime_type: string; // TEXT NOT NULL
+  file_size_bytes: number; // BIGINT NOT NULL
+  created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
 }
 
 export interface Tag {
-  Id: number;
-  UserId: string;
-  Name: string;
-  CreateAt?: string;
-  CreatedBy?: string;
-  LastModified?: string;
-  LastModifiedBy?: string;
-  IsActive: boolean;
+  id?: string; // UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id: string; // TEXT NOT NULL
+  name: string; // TEXT NOT NULL
+  color_hex?: string; // TEXT
+  is_ai_suggested?: boolean; // BOOLEAN DEFAULT FALSE
+  created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+  // UNIQUE (user_id, name)
 }
 
-export interface Template {
-  Id: number;
-  UserId?: string;
-  Name: string;
-  Content: string;
-  IsPredefined: boolean;
-  CreateAt?: string;
-  CreatedBy?: string;
-  LastModified?: string;
-  LastModifiedBy?: string;
-  IsActive: boolean;
+export interface EntryTag {
+  entry_id: string; // UUID NOT NULL
+  tag_id: string; // UUID NOT NULL
+  user_id: string; // TEXT NOT NULL
+  // PRIMARY KEY (entry_id, tag_id)
+}
+
+export interface AiGeneratedMedia {
+  id?: string; // UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id: string; // TEXT NOT NULL
+  entry_id?: string; // UUID
+  media_type: string; // TEXT NOT NULL
+  file_path: string; // TEXT NOT NULL UNIQUE
+  generation_params?: Record<string, unknown>; // JSONB
+  created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+}
+
+export interface Habit {
+  id?: string; // UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id: string; // TEXT NOT NULL
+  name: string; // TEXT NOT NULL
+  description?: string; // TEXT
+  target_frequency?: string; // TEXT
+  icon?: string; // TEXT
+  created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+  updated_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+}
+
+export interface HabitLog {
+  id?: string; // UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  habit_id: string; // UUID NOT NULL
+  user_id: string; // TEXT NOT NULL
+  log_date: string; // DATE NOT NULL
+  status?: string; // TEXT DEFAULT 'pending'
+  notes?: string; // TEXT
+  created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+  // UNIQUE (habit_id, log_date)
+}
+
+export interface MindfulnessExercise {
+  id?: string; // UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  title: string; // TEXT NOT NULL UNIQUE
+  description?: string; // TEXT
+  category?: string; // TEXT
+  audio_url?: string; // TEXT
+  duration_minutes?: number; // INT
+  content_guidance?: string; // TEXT
+}
+
+export interface JournalPrompt {
+  id?: string; // UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id?: string; // TEXT
+  prompt_text: string; // TEXT NOT NULL
+  category?: string; // TEXT
+  is_predefined?: boolean; // BOOLEAN DEFAULT TRUE
+  created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
 }
 
 export interface Theme {
-  Id: number;
-  Name: string;
-  Description?: string;
-  StylePropertiesJson: string;
-  IsPremium: boolean;
-  IsPredefined: boolean;
-  CreateAt?: string;
-  CreatedBy?: string;
-  LastModified?: string;
-  LastModifiedBy?: string;
-  IsActive: boolean;
+  id?: string; // UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  name: string; // TEXT NOT NULL UNIQUE
+  description?: string; // TEXT
+  css_properties?: Record<string, unknown>; // JSONB
+  is_premium?: boolean; // BOOLEAN DEFAULT FALSE
+  preview_image_url?: string; // TEXT
 }
 
-export interface Todo {
-  Id: number;
-  UserId: string;
-  EntryId?: number;
-  Description: string;
-  IsCompleted: boolean;
-  DueDate?: string;
-  CompletedAt?: string;
-  CreateAt?: string;
-  CreatedBy?: string;
-  LastModified?: string;
-  LastModifiedBy?: string;
-  IsActive: boolean;
+export interface JournalTemplate {
+  id?: string; // UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id?: string; // TEXT
+  name: string; // TEXT NOT NULL
+  content_structure?: Record<string, unknown>; // JSONB
+  is_predefined?: boolean; // BOOLEAN DEFAULT TRUE
+  category?: string; // TEXT
+  created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+}
+
+export interface Achievement {
+  id?: string; // UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  name: string; // TEXT NOT NULL UNIQUE
+  description: string; // TEXT NOT NULL
+  icon_url?: string; // TEXT
+  criteria?: Record<string, unknown>; // JSONB
 }
 
 export interface UserAchievement {
-  UserId: string;
-  AchievementId: number;
-  EarnedAt: string;
+  user_id: string; // TEXT NOT NULL
+  achievement_id: string; // UUID NOT NULL
+  unlocked_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+  // PRIMARY KEY (user_id, achievement_id)
 }
 
-export interface UserSetting {
-  UserId: string;
-  ThemeId?: number;
-  FontPreference?: string;
-  LayoutPreference?: string;
-  ReminderEnabled: boolean;
-  ReminderTime?: string;
-  OtherSettingsJson?: string;
-  UpdatedAt: string;
+export interface Reminder {
+  id?: string; // UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id: string; // TEXT NOT NULL
+  reminder_type?: string; // TEXT DEFAULT 'journaling'
+  related_item_id?: string; // UUID
+  reminder_time?: string; // TIME
+  frequency?: string; // TEXT
+  custom_days_of_week?: number[]; // SMALLINT[]
+  message?: string; // TEXT
+  is_active?: boolean; // BOOLEAN DEFAULT TRUE
+  created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+  updated_at?: string; // TIMESTAMPTZ DEFAULT NOW()
 }
 
-export interface UserSubscription {
-  Id: number;
-  UserId: string;
-  PlanId: number;
-  Status: string;
-  StartDate: string;
-  EndDate?: string;
-  PaymentGatewayRef?: string;
-  StripeCustomerId?: string;
-  StripeSubscriptionId?: string;
-  CreateAt?: string;
-  CreatedBy?: string;
-  LastModified?: string;
-  LastModifiedBy?: string;
-  IsActive: boolean;
+export interface SharedEntry {
+  id?: string; // UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  entry_id: string; // UUID NOT NULL
+  sharer_user_id: string; // TEXT NOT NULL
+  shared_with_user_id: string; // TEXT NOT NULL
+  permissions?: string; // TEXT DEFAULT 'read_only'
+  shared_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+  expires_at?: string; // TIMESTAMPTZ
+  message?: string; // TEXT
+  // UNIQUE (entry_id, shared_with_user_id)
 }
 
-export interface User {
-  Id: string;
-  ClerkUserId: string;
-  Username?: string;
-  FirstName?: string;
-  LastName?: string;
-  ProfileImageUrl?: string;
-  StripeCustomerId?: string;
-  EncryptionMasterKey?: Uint8Array; // Assuming bytea maps to Uint8Array
-  IsActive: boolean;
+export interface Goal {
+  id?: string; // UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id: string; // TEXT NOT NULL
+  title: string; // TEXT NOT NULL
+  description?: string; // TEXT
+  due_date?: string; // DATE
+  status?: string; // TEXT DEFAULT 'active'
+  priority?: number; // INT DEFAULT 0
+  created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+  updated_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+}
+
+export interface JournalGoalLink {
+  entry_id: string; // UUID NOT NULL
+  goal_id: string; // UUID NOT NULL
+  user_id: string; // TEXT NOT NULL
+  // PRIMARY KEY (entry_id, goal_id)
+}
+
+export interface TodoItem {
+  id?: string; // UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id: string; // TEXT NOT NULL
+  entry_id?: string; // UUID
+  task_description: string; // TEXT NOT NULL
+  is_completed?: boolean; // BOOLEAN DEFAULT FALSE
+  due_date?: string; // DATE
+  priority?: number; // INT DEFAULT 0
+  created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+  updated_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+  completed_at?: string; // TIMESTAMPTZ
+}
+
+export interface UserIntegration {
+  id?: string; // UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id: string; // TEXT NOT NULL
+  service_name: string; // TEXT NOT NULL
+  access_token_encrypted?: string; // TEXT
+  refresh_token_encrypted?: string; // TEXT
+  external_user_id?: string; // TEXT
+  config_details?: Record<string, unknown>; // JSONB
+  last_synced_at?: string; // TIMESTAMPTZ
+  is_active?: boolean; // BOOLEAN DEFAULT TRUE
+  created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+  updated_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+  // UNIQUE(user_id, service_name)
+}
+
+export interface MoodLog {
+  id?: string; // UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id: string; // TEXT NOT NULL
+  entry_id?: string; // UUID
+  log_date: string; // DATE NOT NULL
+  mood_label: string; // TEXT NOT NULL
+  intensity?: number; // SMALLINT
+  notes?: string; // TEXT
+  created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+  // UNIQUE(user_id, log_date)
 } 
