@@ -1,84 +1,84 @@
-import { supabase } from '../utils/supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Tag, EntryTag } from '../types/supabase';
 
 // --- Tag Functions ---
 
-export const getTagsByUserId = async (userId: string) => {
-  const { data, error } = await supabase
+export const getTagsByUserId = async (supabase: SupabaseClient, userId: string) => {
+  const { data } = await supabase
     .from('tags')
     .select('*')
-    .eq('user_id', userId);
-  if (error) throw error;
+    .eq('user_id', userId)
+    .throwOnError();
   return data as Tag[];
 };
 
-export const getTagById = async (tagId: string) => {
-  const { data, error } = await supabase
+export const getTagById = async (supabase: SupabaseClient, tagId: string) => {
+  const { data } = await supabase
     .from('tags')
     .select('*')
     .eq('id', tagId)
-    .single();
-  if (error) throw error;
+    .single()
+    .throwOnError();
   return data as Tag | null;
 };
 
-export const createTag = async (tagData: Partial<Tag>) => {
-  const { data, error } = await supabase
+export const createTag = async (supabase: SupabaseClient, tagData: Partial<Tag>) => {
+  const { data } = await supabase
     .from('tags')
     .insert([tagData])
     .select()
-    .single();
-  if (error) throw error;
+    .single()
+    .throwOnError();
   return data as Tag | null;
 };
 
-export const updateTag = async (tagId: string, updates: Partial<Tag>) => {
-  const { data, error } = await supabase
+export const updateTag = async (supabase: SupabaseClient, tagId: string, updates: Partial<Tag>) => {
+  const { data } = await supabase
     .from('tags')
     .update(updates)
     .eq('id', tagId)
     .select()
-    .single();
-  if (error) throw error;
+    .single()
+    .throwOnError();
   return data as Tag | null;
 };
 
-export const deleteTag = async (tagId: string) => {
-  const { error } = await supabase
+export const deleteTag = async (supabase: SupabaseClient, tagId: string) => {
+  await supabase
     .from('tags')
     .delete()
-    .eq('id', tagId);
-  if (error) throw error;
+    .eq('id', tagId)
+    .throwOnError();
   return true;
 };
 
 // --- EntryTag Functions ---
 
-export const getEntryTagsByEntryId = async (entryId: string) => {
-  const { data, error } = await supabase
+export const getEntryTagsByEntryId = async (supabase: SupabaseClient, entryId: string) => {
+  const { data } = await supabase
     .from('entry_tags')
     .select('*')
-    .eq('entry_id', entryId);
-  if (error) throw error;
+    .eq('entry_id', entryId)
+    .throwOnError();
   return data as EntryTag[];
 };
 
-export const addTagToEntry = async (entryTagData: EntryTag) => {
-  const { data, error } = await supabase
+export const addTagToEntry = async (supabase: SupabaseClient, entryTagData: EntryTag) => {
+  const { data } = await supabase
     .from('entry_tags')
     .insert([entryTagData])
     .select()
-    .single();
-  if (error) throw error;
+    .single()
+    .throwOnError();
   return data as EntryTag | null;
 };
 
-export const removeTagFromEntry = async (entryId: string, tagId: string) => {
-  const { error } = await supabase
+export const removeTagFromEntry = async (supabase: SupabaseClient, entryId: string, tagId: string) => {
+  await supabase
     .from('entry_tags')
     .delete()
     .eq('entry_id', entryId)
-    .eq('tag_id', tagId);
-  if (error) throw error;
+    .eq('tag_id', tagId)
+    .throwOnError();
   return true;
 }; 

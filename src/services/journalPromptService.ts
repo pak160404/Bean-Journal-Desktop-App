@@ -1,9 +1,9 @@
-import { supabase } from '../utils/supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { JournalPrompt } from '../types/supabase';
 
 // --- JournalPrompt Functions ---
 
-export const getPredefinedJournalPrompts = async () => {
+export const getPredefinedJournalPrompts = async (supabase: SupabaseClient) => {
   const { data, error } = await supabase
     .from('journal_prompts')
     .select('*')
@@ -12,7 +12,7 @@ export const getPredefinedJournalPrompts = async () => {
   return data as JournalPrompt[];
 };
 
-export const getUserCreatedJournalPrompts = async (userId: string) => {
+export const getUserCreatedJournalPrompts = async (supabase: SupabaseClient, userId: string) => {
   const { data, error } = await supabase
     .from('journal_prompts')
     .select('*')
@@ -22,7 +22,7 @@ export const getUserCreatedJournalPrompts = async (userId: string) => {
   return data as JournalPrompt[];
 };
 
-export const createJournalPrompt = async (promptData: Partial<JournalPrompt>) => {
+export const createJournalPrompt = async (supabase: SupabaseClient, promptData: Partial<JournalPrompt>) => {
   const { data, error } = await supabase
     .from('journal_prompts')
     .insert([{ ...promptData, is_predefined: false }]) // User created are not predefined
@@ -32,7 +32,7 @@ export const createJournalPrompt = async (promptData: Partial<JournalPrompt>) =>
   return data as JournalPrompt | null;
 };
 
-export const updateJournalPrompt = async (promptId: string, updates: Partial<JournalPrompt>) => {
+export const updateJournalPrompt = async (supabase: SupabaseClient, promptId: string, updates: Partial<JournalPrompt>) => {
   const { data, error } = await supabase
     .from('journal_prompts')
     .update(updates)
@@ -44,7 +44,7 @@ export const updateJournalPrompt = async (promptId: string, updates: Partial<Jou
   return data as JournalPrompt | null;
 };
 
-export const deleteJournalPrompt = async (promptId: string) => {
+export const deleteJournalPrompt = async (supabase: SupabaseClient, promptId: string) => {
   const { error } = await supabase
     .from('journal_prompts')
     .delete()

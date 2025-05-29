@@ -1,9 +1,9 @@
-import { supabase } from '../utils/supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Reminder } from '../types/supabase';
 
 // --- Reminder Functions ---
 
-export const getRemindersByUserId = async (userId: string) => {
+export const getRemindersByUserId = async (supabase: SupabaseClient, userId: string) => {
   const { data, error } = await supabase
     .from('reminders')
     .select('*')
@@ -12,7 +12,7 @@ export const getRemindersByUserId = async (userId: string) => {
   return data as Reminder[];
 };
 
-export const getReminderById = async (reminderId: string) => {
+export const getReminderById = async (supabase: SupabaseClient, reminderId: string) => {
   const { data, error } = await supabase
     .from('reminders')
     .select('*')
@@ -22,7 +22,7 @@ export const getReminderById = async (reminderId: string) => {
   return data as Reminder | null;
 };
 
-export const createReminder = async (reminderData: Partial<Reminder>) => {
+export const createReminder = async (supabase: SupabaseClient, reminderData: Partial<Reminder>) => {
   const { data, error } = await supabase
     .from('reminders')
     .insert([reminderData])
@@ -32,7 +32,7 @@ export const createReminder = async (reminderData: Partial<Reminder>) => {
   return data as Reminder | null;
 };
 
-export const updateReminder = async (reminderId: string, updates: Partial<Reminder>) => {
+export const updateReminder = async (supabase: SupabaseClient, reminderId: string, updates: Partial<Reminder>) => {
   const { data, error } = await supabase
     .from('reminders')
     .update(updates)
@@ -43,7 +43,7 @@ export const updateReminder = async (reminderId: string, updates: Partial<Remind
   return data as Reminder | null;
 };
 
-export const deleteReminder = async (reminderId: string) => {
+export const deleteReminder = async (supabase: SupabaseClient, reminderId: string) => {
   const { error } = await supabase
     .from('reminders')
     .delete()

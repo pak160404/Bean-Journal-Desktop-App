@@ -1,9 +1,9 @@
-import { supabase } from '../utils/supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Theme } from '../types/supabase';
 
 // --- Theme Functions ---
 
-export const getAllThemes = async () => {
+export const getAllThemes = async (supabase: SupabaseClient) => {
   const { data, error } = await supabase
     .from('themes')
     .select('*');
@@ -11,7 +11,7 @@ export const getAllThemes = async () => {
   return data as Theme[];
 };
 
-export const getThemeById = async (themeId: string) => {
+export const getThemeById = async (supabase: SupabaseClient, themeId: string) => {
   const { data, error } = await supabase
     .from('themes')
     .select('*')

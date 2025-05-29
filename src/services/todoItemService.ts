@@ -1,9 +1,9 @@
-import { supabase } from '../utils/supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { TodoItem } from '../types/supabase';
 
 // --- TodoItem Functions ---
 
-export const getTodoItemsByUserId = async (userId: string) => {
+export const getTodoItemsByUserId = async (supabase: SupabaseClient, userId: string) => {
   const { data, error } = await supabase
     .from('todo_items')
     .select('*')
@@ -12,7 +12,7 @@ export const getTodoItemsByUserId = async (userId: string) => {
   return data as TodoItem[];
 };
 
-export const getTodoItemsByEntryId = async (entryId: string) => {
+export const getTodoItemsByEntryId = async (supabase: SupabaseClient, entryId: string) => {
   const { data, error } = await supabase
     .from('todo_items')
     .select('*')
@@ -21,7 +21,7 @@ export const getTodoItemsByEntryId = async (entryId: string) => {
   return data as TodoItem[];
 };
 
-export const createTodoItem = async (todoData: Partial<TodoItem>) => {
+export const createTodoItem = async (supabase: SupabaseClient, todoData: Partial<TodoItem>) => {
   const { data, error } = await supabase
     .from('todo_items')
     .insert([todoData])
@@ -31,7 +31,7 @@ export const createTodoItem = async (todoData: Partial<TodoItem>) => {
   return data as TodoItem | null;
 };
 
-export const updateTodoItem = async (todoId: string, updates: Partial<TodoItem>) => {
+export const updateTodoItem = async (supabase: SupabaseClient, todoId: string, updates: Partial<TodoItem>) => {
   const { data, error } = await supabase
     .from('todo_items')
     .update(updates)
@@ -42,7 +42,7 @@ export const updateTodoItem = async (todoId: string, updates: Partial<TodoItem>)
   return data as TodoItem | null;
 };
 
-export const deleteTodoItem = async (todoId: string) => {
+export const deleteTodoItem = async (supabase: SupabaseClient, todoId: string) => {
   const { error } = await supabase
     .from('todo_items')
     .delete()

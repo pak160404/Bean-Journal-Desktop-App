@@ -1,105 +1,105 @@
-import { supabase } from '../utils/supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Habit, HabitLog } from '../types/supabase';
 
 // --- Habit Functions ---
 
-export const getHabitsByUserId = async (userId: string) => {
-  const { data, error } = await supabase
+export const getHabitsByUserId = async (supabase: SupabaseClient, userId: string) => {
+  const { data } = await supabase
     .from('habits')
     .select('*')
-    .eq('user_id', userId);
-  if (error) throw error;
+    .eq('user_id', userId)
+    .throwOnError();
   return data as Habit[];
 };
 
-export const getHabitById = async (habitId: string) => {
-  const { data, error } = await supabase
+export const getHabitById = async (supabase: SupabaseClient, habitId: string) => {
+  const { data } = await supabase
     .from('habits')
     .select('*')
     .eq('id', habitId)
-    .single();
-  if (error) throw error;
+    .single()
+    .throwOnError();
   return data as Habit | null;
 };
 
-export const createHabit = async (habitData: Partial<Habit>) => {
-  const { data, error } = await supabase
+export const createHabit = async (supabase: SupabaseClient, habitData: Partial<Habit>) => {
+  const { data } = await supabase
     .from('habits')
     .insert([habitData])
     .select()
-    .single();
-  if (error) throw error;
+    .single()
+    .throwOnError();
   return data as Habit | null;
 };
 
-export const updateHabit = async (habitId: string, updates: Partial<Habit>) => {
-  const { data, error } = await supabase
+export const updateHabit = async (supabase: SupabaseClient, habitId: string, updates: Partial<Habit>) => {
+  const { data } = await supabase
     .from('habits')
     .update(updates)
     .eq('id', habitId)
     .select()
-    .single();
-  if (error) throw error;
+    .single()
+    .throwOnError();
   return data as Habit | null;
 };
 
-export const deleteHabit = async (habitId: string) => {
-  const { error } = await supabase
+export const deleteHabit = async (supabase: SupabaseClient, habitId: string) => {
+  await supabase
     .from('habits')
     .delete()
-    .eq('id', habitId);
-  if (error) throw error;
+    .eq('id', habitId)
+    .throwOnError();
   return true;
 };
 
 // --- HabitLog Functions ---
 
-export const getHabitLogsByHabitId = async (habitId: string) => {
-  const { data, error } = await supabase
+export const getHabitLogsByHabitId = async (supabase: SupabaseClient, habitId: string) => {
+  const { data } = await supabase
     .from('habit_logs')
     .select('*')
-    .eq('habit_id', habitId);
-  if (error) throw error;
+    .eq('habit_id', habitId)
+    .throwOnError();
   return data as HabitLog[];
 };
 
-export const getHabitLogsByUserIdAndDate = async (userId: string, logDate: string) => {
-  const { data, error } = await supabase
+export const getHabitLogsByUserIdAndDate = async (supabase: SupabaseClient, userId: string, logDate: string) => {
+  const { data } = await supabase
     .from('habit_logs')
     .select('*')
     .eq('user_id', userId)
-    .eq('log_date', logDate);
-  if (error) throw error;
+    .eq('log_date', logDate)
+    .throwOnError();
   return data as HabitLog[];
 };
 
 
-export const createHabitLog = async (logData: Partial<HabitLog>) => {
-  const { data, error } = await supabase
+export const createHabitLog = async (supabase: SupabaseClient, logData: Partial<HabitLog>) => {
+  const { data } = await supabase
     .from('habit_logs')
     .insert([logData])
     .select()
-    .single();
-  if (error) throw error;
+    .single()
+    .throwOnError();
   return data as HabitLog | null;
 };
 
-export const updateHabitLog = async (logId: string, updates: Partial<HabitLog>) => {
-  const { data, error } = await supabase
+export const updateHabitLog = async (supabase: SupabaseClient, logId: string, updates: Partial<HabitLog>) => {
+  const { data } = await supabase
     .from('habit_logs')
     .update(updates)
     .eq('id', logId)
     .select()
-    .single();
-  if (error) throw error;
+    .single()
+    .throwOnError();
   return data as HabitLog | null;
 };
 
-export const deleteHabitLog = async (logId: string) => {
-  const { error } = await supabase
+export const deleteHabitLog = async (supabase: SupabaseClient, logId: string) => {
+  await supabase
     .from('habit_logs')
     .delete()
-    .eq('id', logId);
-  if (error) throw error;
+    .eq('id', logId)
+    .throwOnError();
   return true;
-}; 
+};

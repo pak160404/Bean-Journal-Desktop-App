@@ -1,9 +1,9 @@
-import { supabase } from '../utils/supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { JournalTemplate } from '../types/supabase';
 
 // --- JournalTemplate Functions ---
 
-export const getPredefinedJournalTemplates = async () => {
+export const getPredefinedJournalTemplates = async (supabase: SupabaseClient) => {
   const { data, error } = await supabase
     .from('journal_templates')
     .select('*')
@@ -12,7 +12,7 @@ export const getPredefinedJournalTemplates = async () => {
   return data as JournalTemplate[];
 };
 
-export const getUserCreatedJournalTemplates = async (userId: string) => {
+export const getUserCreatedJournalTemplates = async (supabase: SupabaseClient, userId: string) => {
   const { data, error } = await supabase
     .from('journal_templates')
     .select('*')
@@ -22,7 +22,7 @@ export const getUserCreatedJournalTemplates = async (userId: string) => {
   return data as JournalTemplate[];
 };
 
-export const createJournalTemplate = async (templateData: Partial<JournalTemplate>) => {
+export const createJournalTemplate = async (supabase: SupabaseClient, templateData: Partial<JournalTemplate>) => {
   const { data, error } = await supabase
     .from('journal_templates')
     .insert([{ ...templateData, is_predefined: false }])
@@ -32,7 +32,7 @@ export const createJournalTemplate = async (templateData: Partial<JournalTemplat
   return data as JournalTemplate | null;
 };
 
-export const updateJournalTemplate = async (templateId: string, updates: Partial<JournalTemplate>) => {
+export const updateJournalTemplate = async (supabase: SupabaseClient, templateId: string, updates: Partial<JournalTemplate>) => {
   const { data, error } = await supabase
     .from('journal_templates')
     .update(updates)
@@ -44,7 +44,7 @@ export const updateJournalTemplate = async (templateId: string, updates: Partial
   return data as JournalTemplate | null;
 };
 
-export const deleteJournalTemplate = async (templateId: string) => {
+export const deleteJournalTemplate = async (supabase: SupabaseClient, templateId: string) => {
   const { error } = await supabase
     .from('journal_templates')
     .delete()

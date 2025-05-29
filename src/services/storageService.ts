@@ -1,8 +1,9 @@
-import { supabase } from '../utils/supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 // --- Storage Functions ---
 /**
  * Uploads a file to Supabase Storage.
+ * @param supabase The SupabaseClient instance.
  * @param bucketName The name of the storage bucket.
  * @param filePath The path within the bucket where the file will be stored.
  * @param file The file object to upload.
@@ -10,6 +11,7 @@ import { supabase } from '../utils/supabaseClient';
  * @returns The path of the uploaded file or null if an error occurred.
  */
 export const uploadFile = async (
+  supabase: SupabaseClient,
   bucketName: string,
   filePath: string,
   file: File,
@@ -31,11 +33,16 @@ export const uploadFile = async (
 
 /**
  * Downloads a file from Supabase Storage.
+ * @param supabase The SupabaseClient instance.
  * @param bucketName The name of the storage bucket.
  * @param filePath The path of the file to download.
  * @returns A Blob containing the file data or null if an error occurred.
  */
-export const downloadFile = async (bucketName: string, filePath: string) => {
+export const downloadFile = async (
+  supabase: SupabaseClient,
+  bucketName: string,
+  filePath: string
+) => {
   const { data, error } = await supabase.storage
     .from(bucketName)
     .download(filePath);
@@ -48,11 +55,16 @@ export const downloadFile = async (bucketName: string, filePath: string) => {
 
 /**
  * Deletes a file from Supabase Storage.
+ * @param supabase The SupabaseClient instance.
  * @param bucketName The name of the storage bucket.
  * @param filePaths An array of file paths to delete.
  * @returns True if successful, false otherwise.
  */
-export const deleteFiles = async (bucketName: string, filePaths: string[]) => {
+export const deleteFiles = async (
+  supabase: SupabaseClient,
+  bucketName: string,
+  filePaths: string[]
+) => {
   const { data, error } = await supabase.storage
     .from(bucketName)
     .remove(filePaths);
@@ -65,11 +77,16 @@ export const deleteFiles = async (bucketName: string, filePaths: string[]) => {
 
 /**
  * Gets the public URL for a file in Supabase Storage.
+ * @param supabase The SupabaseClient instance.
  * @param bucketName The name of the storage bucket.
  * @param filePath The path of the file.
  * @returns The public URL string.
  */
-export const getPublicUrl = (bucketName: string, filePath: string) => {
+export const getPublicUrl = (
+  supabase: SupabaseClient,
+  bucketName: string,
+  filePath: string
+) => {
   const { data } = supabase.storage
     .from(bucketName)
     .getPublicUrl(filePath);
@@ -78,12 +95,14 @@ export const getPublicUrl = (bucketName: string, filePath: string) => {
 
 /**
  * Lists files in a Supabase Storage bucket path.
+ * @param supabase The SupabaseClient instance.
  * @param bucketName The name of the storage bucket.
  * @param path The path within the bucket to list files from.
  * @param options Optional listing options.
  * @returns An array of file objects or null if an error occurred.
  */
 export const listFiles = async (
+  supabase: SupabaseClient,
   bucketName: string,
   path?: string,
   options?: { limit?: number; offset?: number; search?: string }

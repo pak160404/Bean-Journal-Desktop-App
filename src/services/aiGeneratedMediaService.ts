@@ -1,45 +1,45 @@
-import { supabase } from '../utils/supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AiGeneratedMedia } from '../types/supabase';
 
 // --- AiGeneratedMedia Functions ---
 
-export const getAiGeneratedMediaByUserId = async (userId: string) => {
-  const { data, error } = await supabase
+export const getAiGeneratedMediaByUserId = async (supabase: SupabaseClient, userId: string) => {
+  const { data } = await supabase
     .from('ai_generated_media')
     .select('*')
-    .eq('user_id', userId);
-  if (error) throw error;
+    .eq('user_id', userId)
+    .throwOnError();
   return data as AiGeneratedMedia[];
 };
 
-export const getAiGeneratedMediaById = async (mediaId: string) => {
-  const { data, error } = await supabase
+export const getAiGeneratedMediaById = async (supabase: SupabaseClient, mediaId: string) => {
+  const { data } = await supabase
     .from('ai_generated_media')
     .select('*')
     .eq('id', mediaId)
-    .single();
-  if (error) throw error;
+    .single()
+    .throwOnError();
   return data as AiGeneratedMedia | null;
 };
 
-export const createAiGeneratedMedia = async (mediaData: Partial<AiGeneratedMedia>) => {
-  const { data, error } = await supabase
+export const createAiGeneratedMedia = async (supabase: SupabaseClient, mediaData: Partial<AiGeneratedMedia>) => {
+  const { data } = await supabase
     .from('ai_generated_media')
     .insert([mediaData])
     .select()
-    .single();
-  if (error) throw error;
+    .single()
+    .throwOnError();
   return data as AiGeneratedMedia | null;
 };
 
 // Note: Supabase Storage handles uploads directly, this is for metadata.
 
-export const deleteAiGeneratedMedia = async (mediaId: string) => {
+export const deleteAiGeneratedMedia = async (supabase: SupabaseClient, mediaId: string) => {
     // Remember to also delete the file from Supabase Storage
-  const { error } = await supabase
+  await supabase
     .from('ai_generated_media')
     .delete()
-    .eq('id', mediaId);
-  if (error) throw error;
+    .eq('id', mediaId)
+    .throwOnError();
   return true;
 }; 

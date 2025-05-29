@@ -1,9 +1,9 @@
-import { supabase } from '../utils/supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Achievement, UserAchievement } from '../types/supabase';
 
 // --- Achievement Functions ---
 
-export const getAllAchievements = async () => {
+export const getAllAchievements = async (supabase: SupabaseClient) => {
   const { data, error } = await supabase
     .from('achievements')
     .select('*');
@@ -11,7 +11,7 @@ export const getAllAchievements = async () => {
   return data as Achievement[];
 };
 
-export const getAchievementById = async (achievementId: string) => {
+export const getAchievementById = async (supabase: SupabaseClient, achievementId: string) => {
   const { data, error } = await supabase
     .from('achievements')
     .select('*')
@@ -25,7 +25,7 @@ export const getAchievementById = async (achievementId: string) => {
 
 // --- UserAchievement Functions ---
 
-export const getUserAchievements = async (userId: string) => {
+export const getUserAchievements = async (supabase: SupabaseClient, userId: string) => {
   const { data, error } = await supabase
     .from('user_achievements')
     .select('*, achievements(*)') // Optionally join achievement details
@@ -34,7 +34,7 @@ export const getUserAchievements = async (userId: string) => {
   return data as (UserAchievement & { achievements: Achievement })[];
 };
 
-export const addUserAchievement = async (userAchievementData: UserAchievement) => {
+export const addUserAchievement = async (supabase: SupabaseClient, userAchievementData: UserAchievement) => {
   const { data, error } = await supabase
     .from('user_achievements')
     .insert([userAchievementData])

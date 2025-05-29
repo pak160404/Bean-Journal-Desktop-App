@@ -1,9 +1,9 @@
-import { supabase } from '../utils/supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { MoodLog } from '../types/supabase';
 
 // --- MoodLog Functions ---
 
-export const getMoodLogsByUserId = async (userId: string) => {
+export const getMoodLogsByUserId = async (supabase: SupabaseClient, userId: string) => {
   const { data, error } = await supabase
     .from('mood_logs')
     .select('*')
@@ -12,7 +12,7 @@ export const getMoodLogsByUserId = async (userId: string) => {
   return data as MoodLog[];
 };
 
-export const getMoodLogByUserIdAndDate = async (userId: string, logDate: string) => {
+export const getMoodLogByUserIdAndDate = async (supabase: SupabaseClient, userId: string, logDate: string) => {
   const { data, error } = await supabase
     .from('mood_logs')
     .select('*')
@@ -23,7 +23,7 @@ export const getMoodLogByUserIdAndDate = async (userId: string, logDate: string)
   return data as MoodLog | null;
 };
 
-export const createMoodLog = async (moodLogData: Partial<MoodLog>) => {
+export const createMoodLog = async (supabase: SupabaseClient, moodLogData: Partial<MoodLog>) => {
   const { data, error } = await supabase
     .from('mood_logs')
     .insert([moodLogData])
@@ -33,7 +33,7 @@ export const createMoodLog = async (moodLogData: Partial<MoodLog>) => {
   return data as MoodLog | null;
 };
 
-export const updateMoodLog = async (moodLogId: string, updates: Partial<MoodLog>) => {
+export const updateMoodLog = async (supabase: SupabaseClient, moodLogId: string, updates: Partial<MoodLog>) => {
   const { data, error } = await supabase
     .from('mood_logs')
     .update(updates)
@@ -44,7 +44,7 @@ export const updateMoodLog = async (moodLogId: string, updates: Partial<MoodLog>
   return data as MoodLog | null;
 };
 
-export const deleteMoodLog = async (moodLogId: string) => {
+export const deleteMoodLog = async (supabase: SupabaseClient, moodLogId: string) => {
   const { error } = await supabase
     .from('mood_logs')
     .delete()

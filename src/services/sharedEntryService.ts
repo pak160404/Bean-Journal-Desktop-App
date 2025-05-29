@@ -1,9 +1,9 @@
-import { supabase } from '../utils/supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SharedEntry, JournalEntry, Profile } from '../types/supabase';
 
 // --- SharedEntry Functions ---
 
-export const getSharedEntriesForUser = async (userId: string) => { // Entries shared *with* this user
+export const getSharedEntriesForUser = async (supabase: SupabaseClient, userId: string) => { // Entries shared *with* this user
   const { data, error } = await supabase
     .from('shared_entries')
     .select('*, journal_entries(*, profiles!sharer_user_id(*))') // Join entry and sharer profile
@@ -13,7 +13,7 @@ export const getSharedEntriesForUser = async (userId: string) => { // Entries sh
   return data as (SharedEntry & { journal_entries: JournalEntry & { profiles: Profile } })[];
 };
 
-export const getSharesBySharer = async (sharerUserId: string) => { // Entries shared *by* this user
+export const getSharesBySharer = async (supabase: SupabaseClient, sharerUserId: string) => { // Entries shared *by* this user
   const { data, error } = await supabase
     .from('shared_entries')
     .select('*, journal_entries(*), profiles!shared_with_user_id(*)') // Join entry and recipient profile
@@ -24,7 +24,7 @@ export const getSharesBySharer = async (sharerUserId: string) => { // Entries sh
 };
 
 
-export const createSharedEntry = async (shareData: Partial<SharedEntry>) => {
+export const createSharedEntry = async (supabase: SupabaseClient, shareData: Partial<SharedEntry>) => {
   const { data, error } = await supabase
     .from('shared_entries')
     .insert([shareData])
@@ -34,7 +34,7 @@ export const createSharedEntry = async (shareData: Partial<SharedEntry>) => {
   return data as SharedEntry | null;
 };
 
-export const deleteSharedEntry = async (shareId: string) => {
+export const deleteSharedEntry = async (supabase: SupabaseClient, shareId: string) => {
   const { error } = await supabase
     .from('shared_entries')
     .delete()

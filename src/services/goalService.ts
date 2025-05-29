@@ -1,9 +1,9 @@
-import { supabase } from '../utils/supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Goal, JournalGoalLink, JournalEntry } from '../types/supabase';
 
 // --- Goal Functions ---
 
-export const getGoalsByUserId = async (userId: string) => {
+export const getGoalsByUserId = async (supabase: SupabaseClient, userId: string) => {
   const { data, error } = await supabase
     .from('goals')
     .select('*')
@@ -12,7 +12,7 @@ export const getGoalsByUserId = async (userId: string) => {
   return data as Goal[];
 };
 
-export const getGoalById = async (goalId: string) => {
+export const getGoalById = async (supabase: SupabaseClient, goalId: string) => {
   const { data, error } = await supabase
     .from('goals')
     .select('*')
@@ -22,7 +22,7 @@ export const getGoalById = async (goalId: string) => {
   return data as Goal | null;
 };
 
-export const createGoal = async (goalData: Partial<Goal>) => {
+export const createGoal = async (supabase: SupabaseClient, goalData: Partial<Goal>) => {
   const { data, error } = await supabase
     .from('goals')
     .insert([goalData])
@@ -32,7 +32,7 @@ export const createGoal = async (goalData: Partial<Goal>) => {
   return data as Goal | null;
 };
 
-export const updateGoal = async (goalId: string, updates: Partial<Goal>) => {
+export const updateGoal = async (supabase: SupabaseClient, goalId: string, updates: Partial<Goal>) => {
   const { data, error } = await supabase
     .from('goals')
     .update(updates)
@@ -43,7 +43,7 @@ export const updateGoal = async (goalId: string, updates: Partial<Goal>) => {
   return data as Goal | null;
 };
 
-export const deleteGoal = async (goalId: string) => {
+export const deleteGoal = async (supabase: SupabaseClient, goalId: string) => {
   const { error } = await supabase
     .from('goals')
     .delete()
@@ -54,7 +54,7 @@ export const deleteGoal = async (goalId: string) => {
 
 // --- JournalGoalLink Functions ---
 
-export const getGoalLinksByEntryId = async (entryId: string) => {
+export const getGoalLinksByEntryId = async (supabase: SupabaseClient, entryId: string) => {
   const { data, error } = await supabase
     .from('journal_goal_links')
     .select('*, goals(*)')
@@ -63,7 +63,7 @@ export const getGoalLinksByEntryId = async (entryId: string) => {
   return data as (JournalGoalLink & { goals: Goal })[];
 };
 
-export const getGoalLinksByGoalId = async (goalId: string) => {
+export const getGoalLinksByGoalId = async (supabase: SupabaseClient, goalId: string) => {
   const { data, error } = await supabase
     .from('journal_goal_links')
     .select('*, journal_entries(*)')
@@ -72,7 +72,7 @@ export const getGoalLinksByGoalId = async (goalId: string) => {
   return data as (JournalGoalLink & { journal_entries: JournalEntry })[];
 };
 
-export const linkEntryToGoal = async (linkData: JournalGoalLink) => {
+export const linkEntryToGoal = async (supabase: SupabaseClient, linkData: JournalGoalLink) => {
   const { data, error } = await supabase
     .from('journal_goal_links')
     .insert([linkData])
@@ -82,7 +82,7 @@ export const linkEntryToGoal = async (linkData: JournalGoalLink) => {
   return data as JournalGoalLink | null;
 };
 
-export const unlinkEntryFromGoal = async (entryId: string, goalId: string) => {
+export const unlinkEntryFromGoal = async (supabase: SupabaseClient, entryId: string, goalId: string) => {
   const { error } = await supabase
     .from('journal_goal_links')
     .delete()
