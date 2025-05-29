@@ -3,163 +3,284 @@ import "@fontsource/readex-pro/400.css"; // Regular weight
 import "@fontsource/readex-pro/500.css"; // Medium weight
 import "@fontsource/readex-pro/600.css"; // Medium weight
 // import { CalendarIcon, ClockIcon } from "lucide-react"; // Assuming lucide-react for icons - Removed unused import
-import 'react-day-picker/dist/style.css'; // Import default styles (we'll override)
-import { useState, useEffect } from "react";
+import "react-day-picker/dist/style.css"; // Import default styles (we'll override)
+import { useState, useEffect, useMemo } from "react";
 import beanLogo from "@/images/logo_bean_journal.png";
 import HeaderCard from "@/components/journal/HeaderCard";
 import RecentCards from "@/components/journal/RecentCards";
-import CalendarSection, { CalendarEvent } from "@/components/journal/CalendarSection";
+import CalendarSection, {
+  CalendarEvent,
+} from "@/components/journal/CalendarSection";
 import FloatingActionButton from "@/components/journal/FloatingActionButton";
 import DebugControls from "@/components/journal/DebugControls";
 import { Tag } from "../../types/supabase"; // Import Tag interface
 import TagCreateModal from "@/components/journal/TagCreateModal"; // Import the modal
 import { getTagsByUserId, createTag } from "../../services/tagService"; // Import tag services
+import { createClerkSupabaseClient } from "../../utils/supabaseClient"; // Import Supabase client creator
+import { useAuth } from "@clerk/clerk-react"; // Import useAuth for token
 
 // Update the route path to make it a child of the journal root
 export const Route = createFileRoute("/journal/")({
-	component: Homepage,
+  component: Homepage,
 });
 
 // Streak Modal Component
 interface StreakModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    streakDays: number;
-    activeDaysOfWeek: ('M' | 'Tu' | 'W' | 'Th' | 'F' | 'Sa' | 'Su')[];
+  isOpen: boolean;
+  onClose: () => void;
+  streakDays: number;
+  activeDaysOfWeek: ("M" | "Tu" | "W" | "Th" | "F" | "Sa" | "Su")[];
 }
 
-function StreakModal({ isOpen, onClose, streakDays, activeDaysOfWeek }: StreakModalProps) {
-    if (!isOpen) return null;
+function StreakModal({
+  isOpen,
+  onClose,
+  streakDays,
+  activeDaysOfWeek,
+}: StreakModalProps) {
+  if (!isOpen) return null;
 
-    const daysMap: Record<string, boolean> = {
-        'M': activeDaysOfWeek.includes('M'),
-        'Tu': activeDaysOfWeek.includes('Tu'),
-        'W': activeDaysOfWeek.includes('W'),
-        'Th': activeDaysOfWeek.includes('Th'),
-        'F': activeDaysOfWeek.includes('F'),
-        'Sa': activeDaysOfWeek.includes('Sa'),
-        'Su': activeDaysOfWeek.includes('Su')
-    };
+  const daysMap: Record<string, boolean> = {
+    M: activeDaysOfWeek.includes("M"),
+    Tu: activeDaysOfWeek.includes("Tu"),
+    W: activeDaysOfWeek.includes("W"),
+    Th: activeDaysOfWeek.includes("Th"),
+    F: activeDaysOfWeek.includes("F"),
+    Sa: activeDaysOfWeek.includes("Sa"),
+    Su: activeDaysOfWeek.includes("Su"),
+  };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-2xl shadow-xl w-[600px] overflow-hidden transform transition-all">
-                <div className="p-8 flex flex-col items-center">
-                    <div className="relative mb-8">
-                        <img 
-                            src={beanLogo} 
-                            alt="Bean Logo" 
-                            className="w-48 h-48 scale-150 ml-[-1rem] mr-[1rem]" 
-                        />
-                        <div className="absolute inset-0 mt-[5.75rem] flex items-center justify-center">
-                            <span className="text-white text-6xl font-bold">
-                                {streakDays}
-                            </span>
-                        </div>
-                    </div>
-                    <div className="flex justify-between w-full mb-8 px-8 font-montserrat font-bold">
-                        <div className="flex flex-col items-center">
-                            <span className={`text-3xl mb-2 ${daysMap['M'] ? 'text-[#A192F8]' : 'text-[#ADA0F9]'}`}>
-                                M
-                            </span>
-                            <div className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap['M'] ? 'border-[#B6D78A]' : 'border-[#DBDBDB]'}`}>
-                                {daysMap['M'] && (
-                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M1 6L6 11L15 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                    </svg>
-                                )}
-                            </div>
-                        </div>
-                        <div className="flex flex-col items-center">
-                            <span className={`text-3xl mb-2 ${daysMap['Tu'] ? 'text-[#A192F8]' : 'text-[#ADA0F9]'}`}>
-                                Tu
-                            </span>
-                            <div className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap['Tu'] ? 'border-[#B6D78A]' : 'border-[#DBDBDB]'}`}>
-                                {daysMap['Tu'] && (
-                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M1 6L6 11L15 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                    </svg>
-                                )}
-                            </div>
-                        </div>
-                        <div className="flex flex-col items-center">
-                            <span className={`text-3xl mb-2 ${daysMap['W'] ? 'text-[#A192F8]' : 'text-[#ADA0F9]'}`}>
-                                W
-                            </span>
-                            <div className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap['W'] ? 'border-[#B6D78A]' : 'border-[#DBDBDB]'}`}>
-                                {daysMap['W'] && (
-                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M1 6L6 11L15 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                    </svg>
-                                )}
-                            </div>
-                        </div>
-                        <div className="flex flex-col items-center">
-                            <span className={`text-3xl mb-2 ${daysMap['Th'] ? 'text-[#A192F8]' : 'text-[#ADA0F9]'}`}>
-                                Th
-                            </span>
-                            <div className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap['Th'] ? 'border-[#B6D78A]' : 'border-[#DBDBDB]'}`}>
-                                {daysMap['Th'] && (
-                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M1 6L6 11L15 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                    </svg>
-                                )}
-                            </div>
-                        </div>
-                        <div className="flex flex-col items-center">
-                            <span className={`text-3xl mb-2 ${daysMap['F'] ? 'text-[#2F2569]' : 'text-[#ADA0F9]'}`}>
-                                F
-                            </span>
-                            <div className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap['F'] ? 'border-[#B6D78A] bg-[#B6D78A]' : 'border-[#DBDBDB]'}`}>
-                                {daysMap['F'] && (
-                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M1 6L6 11L15 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                    </svg>
-                                )}
-                            </div>
-                        </div>
-                        <div className="flex flex-col items-center">
-                            <span className={`text-3xl mb-2 ${daysMap['Sa'] ? 'text-[#A192F8]' : 'text-[#ADA0F9]'}`}>
-                                Sa
-                            </span>
-                            <div className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap['Sa'] ? 'border-[#B6D78A]' : 'border-[#DBDBDB]'}`}>
-                                {daysMap['Sa'] && (
-                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M1 6L6 11L15 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                    </svg>
-                                )}
-                            </div>
-                        </div>
-                        <div className="flex flex-col items-center">
-                            <span className={`text-3xl mb-2 ${daysMap['Su'] ? 'text-[#A192F8]' : 'text-[#ADA0F9]'}`}>
-                                Su
-                            </span>
-                            <div className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap['Su'] ? 'border-[#B6D78A]' : 'border-[#DBDBDB]'}`}>
-                                {daysMap['Su'] && (
-                                    <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M1 6L6 11L15 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                    </svg>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                    <p className="text-[#2F2569] text-2xl mb-8 font-semibold">
-                        Write down your Bean Journey everyday
-                    </p>
-                    <button 
-                        onClick={onClose}
-                        className="w-full py-5 bg-[#E5D1FE] rounded-xl text-[#9645FF] text-2xl font-medium hover:bg-[#d9bbff] transition-colors"
-                    >
-                        Continue
-                    </button>
-                </div>
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-2xl shadow-xl w-[600px] overflow-hidden transform transition-all">
+        <div className="p-8 flex flex-col items-center">
+          <div className="relative mb-8">
+            <img
+              src={beanLogo}
+              alt="Bean Logo"
+              className="w-48 h-48 scale-150 ml-[-1rem] mr-[1rem]"
+            />
+            <div className="absolute inset-0 mt-[5.75rem] flex items-center justify-center">
+              <span className="text-white text-6xl font-bold">
+                {streakDays}
+              </span>
             </div>
+          </div>
+          <div className="flex justify-between w-full mb-8 px-8 font-montserrat font-bold">
+            <div className="flex flex-col items-center">
+              <span
+                className={`text-3xl mb-2 ${daysMap["M"] ? "text-[#A192F8]" : "text-[#ADA0F9]"}`}
+              >
+                M
+              </span>
+              <div
+                className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap["M"] ? "border-[#B6D78A]" : "border-[#DBDBDB]"}`}
+              >
+                {daysMap["M"] && (
+                  <svg
+                    width="16"
+                    height="12"
+                    viewBox="0 0 16 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1 6L6 11L15 1"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col items-center">
+              <span
+                className={`text-3xl mb-2 ${daysMap["Tu"] ? "text-[#A192F8]" : "text-[#ADA0F9]"}`}
+              >
+                Tu
+              </span>
+              <div
+                className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap["Tu"] ? "border-[#B6D78A]" : "border-[#DBDBDB]"}`}
+              >
+                {daysMap["Tu"] && (
+                  <svg
+                    width="16"
+                    height="12"
+                    viewBox="0 0 16 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1 6L6 11L15 1"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col items-center">
+              <span
+                className={`text-3xl mb-2 ${daysMap["W"] ? "text-[#A192F8]" : "text-[#ADA0F9]"}`}
+              >
+                W
+              </span>
+              <div
+                className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap["W"] ? "border-[#B6D78A]" : "border-[#DBDBDB]"}`}
+              >
+                {daysMap["W"] && (
+                  <svg
+                    width="16"
+                    height="12"
+                    viewBox="0 0 16 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1 6L6 11L15 1"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col items-center">
+              <span
+                className={`text-3xl mb-2 ${daysMap["Th"] ? "text-[#A192F8]" : "text-[#ADA0F9]"}`}
+              >
+                Th
+              </span>
+              <div
+                className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap["Th"] ? "border-[#B6D78A]" : "border-[#DBDBDB]"}`}
+              >
+                {daysMap["Th"] && (
+                  <svg
+                    width="16"
+                    height="12"
+                    viewBox="0 0 16 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1 6L6 11L15 1"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col items-center">
+              <span
+                className={`text-3xl mb-2 ${daysMap["F"] ? "text-[#2F2569]" : "text-[#ADA0F9]"}`}
+              >
+                F
+              </span>
+              <div
+                className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap["F"] ? "border-[#B6D78A] bg-[#B6D78A]" : "border-[#DBDBDB]"}`}
+              >
+                {daysMap["F"] && (
+                  <svg
+                    width="16"
+                    height="12"
+                    viewBox="0 0 16 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1 6L6 11L15 1"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col items-center">
+              <span
+                className={`text-3xl mb-2 ${daysMap["Sa"] ? "text-[#A192F8]" : "text-[#ADA0F9]"}`}
+              >
+                Sa
+              </span>
+              <div
+                className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap["Sa"] ? "border-[#B6D78A]" : "border-[#DBDBDB]"}`}
+              >
+                {daysMap["Sa"] && (
+                  <svg
+                    width="16"
+                    height="12"
+                    viewBox="0 0 16 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1 6L6 11L15 1"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col items-center">
+              <span
+                className={`text-3xl mb-2 ${daysMap["Su"] ? "text-[#A192F8]" : "text-[#ADA0F9]"}`}
+              >
+                Su
+              </span>
+              <div
+                className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap["Su"] ? "border-[#B6D78A]" : "border-[#DBDBDB]"}`}
+              >
+                {daysMap["Su"] && (
+                  <svg
+                    width="16"
+                    height="12"
+                    viewBox="0 0 16 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1 6L6 11L15 1"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </div>
+            </div>
+          </div>
+          <p className="text-[#2F2569] text-2xl mb-8 font-semibold">
+            Write down your Bean Journey everyday
+          </p>
+          <button
+            onClick={onClose}
+            className="w-full py-5 bg-[#E5D1FE] rounded-xl text-[#9645FF] text-2xl font-medium hover:bg-[#d9bbff] transition-colors"
+          >
+            Continue
+          </button>
         </div>
-    );
+      </div>
+    </div>
+  );
 }
 
 function Homepage() {
-    const animationStyles = `
+  const animationStyles = `
     /* Sunny Day Animation */
     @keyframes sun-rays {
         0% { transform: rotate(0deg); }
@@ -283,6 +404,10 @@ function Homepage() {
         width: 9px;
         animation-delay: 0.8s;
     }
+    .confetti-piece:nth-child(10n) {
+        left: 10%;
+        animation-delay: 2.7s;
+    }
     .sunshine {
         position: absolute;
         top: 20px;
@@ -395,172 +520,216 @@ function Homepage() {
     }
     `;
 
-	const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
-	const [streakDays, setStreakDays] = useState(3); 
-	const [activeDaysOfWeek, setActiveDaysOfWeek] = useState<('M' | 'Tu' | 'W' | 'Th' | 'F' | 'Sa' | 'Su')[]>(['M', 'Tu', 'W']);
-	const [showDebugButton, setShowDebugButton] = useState(true);
-	
-    // Tag related state
-    const [tags, setTags] = useState<Tag[]>([]);
-    const [isTagCreateModalOpen, setIsTagCreateModalOpen] = useState(false);
-    const [loadingTags, setLoadingTags] = useState(false);
-    const [tagError, setTagError] = useState<string | null>(null);
+  const { getToken } = useAuth(); // Get getToken from Clerk
+  // Memoize the Supabase client instance
+  const supabase = useMemo(
+    () => createClerkSupabaseClient(getToken),
+    [getToken]
+  );
 
-    // Placeholder for current user ID - replace with actual user management logic
-    const currentUserId = "user123"; 
+  const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
+  const [streakDays, setStreakDays] = useState(3);
+  const [activeDaysOfWeek, setActiveDaysOfWeek] = useState<
+    ("M" | "Tu" | "W" | "Th" | "F" | "Sa" | "Su")[]
+  >(["M", "Tu", "W"]);
+  const [showDebugButton, setShowDebugButton] = useState(true);
 
-    // Fetch tags on component mount
-    useEffect(() => {
-        const fetchTags = async () => {
-            if (!currentUserId) return;
-            setLoadingTags(true);
-            setTagError(null);
-            try {
-                const fetchedTags = await getTagsByUserId(currentUserId);
-                setTags(fetchedTags || []);
-            } catch (error) {
-                console.error("Failed to fetch tags:", error);
-                setTagError("Failed to load tags.");
-            }
-            setLoadingTags(false);
-        };
-        fetchTags();
-    }, [currentUserId]);
-	
-	const handleCloseStreakModal = () => {
-		const now = new Date();
-		const currentDayIndex = now.getDay();
-		const dayMapping = ['Su', 'M', 'Tu', 'W', 'Th', 'F', 'Sa'] as const;
-		const today = dayMapping[currentDayIndex];
-		
-		if (!activeDaysOfWeek.includes(today)) {
-			setActiveDaysOfWeek([...activeDaysOfWeek, today]);
-		}
-		setIsStreakModalOpen(false);
-	};
-	
-	useEffect(() => {
-		const checkFirstVisitOfDay = () => {
-			const lastVisit = localStorage.getItem('beanJourney_lastVisit');
-			const now = new Date();
-			const today = now.toISOString().split('T')[0];
-			
-			if (!lastVisit || lastVisit !== today) {
-				let streak = Number(localStorage.getItem('beanJourney_streak') || '0');
-				
-				if (lastVisit) {
-					const yesterday = new Date(now);
-					yesterday.setDate(yesterday.getDate() - 1);
-					const yesterdayStr = yesterday.toISOString().split('T')[0];
-					
-					if (lastVisit !== yesterdayStr) {
-						streak = 1;
-					} else {
-						streak += 1;
-					}
-				} else {
-					streak = 1;
-				}
-				
-				localStorage.setItem('beanJourney_streak', streak.toString());
-				localStorage.setItem('beanJourney_lastVisit', today);
-				setStreakDays(streak);
-				
-				const currentDayIndex = now.getDay();
-				const mondayFirstIndex = currentDayIndex === 0 ? 6 : currentDayIndex - 1;
-				const dayMapping = ['M', 'Tu', 'W', 'Th', 'F', 'Sa', 'Su'] as const;
-				const activeDays: typeof activeDaysOfWeek = [];
-				
-				for (let i = 0; i < Math.min(streak, 7); i++) {
-					const dayIndex = (mondayFirstIndex - i + 7) % 7;
-					activeDays.unshift(dayMapping[dayIndex]);
-				}
-				setActiveDaysOfWeek(activeDays);
-				setIsStreakModalOpen(true);
-			}
-		};
-		checkFirstVisitOfDay();
-	}, []);
+  // Tag related state
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [isTagCreateModalOpen, setIsTagCreateModalOpen] = useState(false);
+  const [loadingTags, setLoadingTags] = useState(false);
+  const [tagError, setTagError] = useState<string | null>(null);
 
-	const handleAddNewTag = () => {
-		setIsTagCreateModalOpen(true);
-	};
+  // Placeholder for current user ID - replace with actual user management logic
+  const currentUserId = "user123";
 
-    const handleTagSubmit = async (tagData: { name: string; color_hex: string }) => {
-        if (!currentUserId) {
-            setTagError("User not identified. Cannot create tag.");
-            return;
+  // Fetch tags on component mount
+  useEffect(() => {
+    const fetchTags = async () => {
+      if (!currentUserId) return;
+      setLoadingTags(true);
+      setTagError(null);
+      try {
+        const fetchedTags = await getTagsByUserId(supabase, currentUserId);
+        setTags(fetchedTags || []);
+      } catch (error) {
+        console.error("Failed to fetch tags:", error);
+        setTagError("Failed to load tags.");
+      }
+      setLoadingTags(false);
+    };
+    fetchTags();
+  }, [currentUserId, supabase]);
+
+  const handleCloseStreakModal = () => {
+    const now = new Date();
+    const currentDayIndex = now.getDay();
+    const dayMapping = ["Su", "M", "Tu", "W", "Th", "F", "Sa"] as const;
+    const today = dayMapping[currentDayIndex];
+
+    if (!activeDaysOfWeek.includes(today)) {
+      setActiveDaysOfWeek([...activeDaysOfWeek, today]);
+    }
+    setIsStreakModalOpen(false);
+  };
+
+  useEffect(() => {
+    const checkFirstVisitOfDay = () => {
+      const lastVisit = localStorage.getItem("beanJourney_lastVisit");
+      const now = new Date();
+      const today = now.toISOString().split("T")[0];
+
+      if (!lastVisit || lastVisit !== today) {
+        let streak = Number(localStorage.getItem("beanJourney_streak") || "0");
+
+        if (lastVisit) {
+          const yesterday = new Date(now);
+          yesterday.setDate(yesterday.getDate() - 1);
+          const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+          if (lastVisit !== yesterdayStr) {
+            streak = 1;
+          } else {
+            streak += 1;
+          }
+        } else {
+          streak = 1;
         }
-        setLoadingTags(true); // Reuse loading state for simplicity
-        setTagError(null);
-        try {
-            const newTag = await createTag({ 
-                ...tagData, 
-                user_id: currentUserId,
-                // id is generated by Supabase, is_ai_suggested defaults in DB
-            });
-            if (newTag) {
-                setTags(prevTags => [...prevTags, newTag]);
-            }
-            setIsTagCreateModalOpen(false);
-        } catch (error) {
-            console.error("Failed to create tag:", error);
-            setTagError("Failed to create tag.");
+
+        localStorage.setItem("beanJourney_streak", streak.toString());
+        localStorage.setItem("beanJourney_lastVisit", today);
+        setStreakDays(streak);
+
+        const currentDayIndex = now.getDay();
+        const mondayFirstIndex =
+          currentDayIndex === 0 ? 6 : currentDayIndex - 1;
+        const dayMapping = ["M", "Tu", "W", "Th", "F", "Sa", "Su"] as const;
+        const activeDays: typeof activeDaysOfWeek = [];
+
+        for (let i = 0; i < Math.min(streak, 7); i++) {
+          const dayIndex = (mondayFirstIndex - i + 7) % 7;
+          activeDays.unshift(dayMapping[dayIndex]);
         }
-        setLoadingTags(false);
+        setActiveDaysOfWeek(activeDays);
+        setIsStreakModalOpen(true);
+      }
     };
+    checkFirstVisitOfDay();
+  }, []);
 
-    const [currentMonth, setCurrentMonth] = useState(new Date(2024, 0));
-    const calendarEventsData: CalendarEvent[] = [
-        { date: new Date(2024, 0, 1), emoji: "/images/bean-journey/figma/emoji_face_01.png", text: "Eat somethin...", emojiBg: 'bg-[#FFEBF2]', textBg: 'bg-[#FCA7C4]', mood: 'amazing' },
-        { date: new Date(2024, 0, 9), emoji: "/images/bean-journey/figma/emoji_face_02.png", text: "Eat somethin...", emojiBg: 'bg-[#E6F9F1]', textBg: 'bg-[#12A7F1]', mood: 'happy' },
-        { date: new Date(2024, 0, 19), emoji: "/images/bean-journey/figma/emoji_face_03.png", text: "Eat somethin...", emojiBg: 'bg-[#222222]', textBg: 'bg-[#B981F3]', mood: 'neutral' },
-        { date: new Date(2024, 0, 31), emoji: "/images/bean-journey/figma/emoji_face_04.png", text: "Eat somethin...", emojiBg: 'bg-[#E6F9F1]', textBg: 'bg-[#FF4BEF]', mood: 'sad' },
-    ];
+  const handleAddNewTag = () => {
+    setIsTagCreateModalOpen(true);
+  };
 
-    const handleDebugClick = () => {
-        localStorage.removeItem('beanJourney_lastVisit');
-        window.location.reload();
-    };
+  const handleTagSubmit = async (tagData: {
+    name: string;
+    color_hex: string;
+  }) => {
+    if (!currentUserId) {
+      setTagError("User not identified. Cannot create tag.");
+      return;
+    }
+    setLoadingTags(true); // Reuse loading state for simplicity
+    setTagError(null);
+    try {
+      const newTag = await createTag(supabase, {
+        ...tagData,
+        user_id: currentUserId,
+        // id is generated by Supabase, is_ai_suggested defaults in DB
+      });
+      if (newTag) {
+        setTags((prevTags) => [...prevTags, newTag]);
+      }
+    } catch (error) {
+      console.error("Failed to create tag:", error);
+    }
+    setIsTagCreateModalOpen(false);
+    setLoadingTags(false);
+  };
 
-    const toggleDebugButton = () => {
-        setShowDebugButton(prev => !prev);
-    };
+  const [currentMonth, setCurrentMonth] = useState(new Date(2024, 0));
+  const calendarEventsData: CalendarEvent[] = [
+    {
+      date: new Date(2024, 0, 1),
+      emoji: "/images/bean-journey/figma/emoji_face_01.png",
+      text: "Eat somethin...",
+      emojiBg: "bg-[#FFEBF2]",
+      textBg: "bg-[#FCA7C4]",
+      mood: "amazing",
+    },
+    {
+      date: new Date(2024, 0, 9),
+      emoji: "/images/bean-journey/figma/emoji_face_02.png",
+      text: "Eat somethin...",
+      emojiBg: "bg-[#E6F9F1]",
+      textBg: "bg-[#12A7F1]",
+      mood: "happy",
+    },
+    {
+      date: new Date(2024, 0, 19),
+      emoji: "/images/bean-journey/figma/emoji_face_03.png",
+      text: "Eat somethin...",
+      emojiBg: "bg-[#222222]",
+      textBg: "bg-[#B981F3]",
+      mood: "neutral",
+    },
+    {
+      date: new Date(2024, 0, 31),
+      emoji: "/images/bean-journey/figma/emoji_face_04.png",
+      text: "Eat somethin...",
+      emojiBg: "bg-[#E6F9F1]",
+      textBg: "bg-[#FF4BEF]",
+      mood: "sad",
+    },
+  ];
 
-	return (
-		<>
-			<style>{animationStyles}</style>
-			<div className="h-full max-h-[calc(100vh-100px)] overflow-auto px-4 bg-white dark:bg-[#1E1726] border-x-1 dark:border-x-2">
-				<HeaderCard />
-                {/* Display loading or error for tags */}
-                {loadingTags && <p className="text-center text-gray-500 py-4">Loading tags...</p>}
-                {tagError && <p className="text-center text-red-500 py-4">{tagError}</p>}
-                {!loadingTags && !tagError && (
-                    <RecentCards tags={tags} onAddNewTag={handleAddNewTag} />
-                )}
-				<CalendarSection 
-                    events={calendarEventsData} 
-                    currentMonth={currentMonth} 
-                    setCurrentMonth={setCurrentMonth} 
-                />
-				<DebugControls 
-                    showDebugButton={showDebugButton} 
-                    handleDebugClick={handleDebugClick} 
-                    toggleDebugButton={toggleDebugButton} 
-                />
-				<StreakModal 
-					isOpen={isStreakModalOpen}
-					onClose={handleCloseStreakModal}
-					streakDays={streakDays}
-					activeDaysOfWeek={activeDaysOfWeek}
-				/>
-                <TagCreateModal 
-                    isOpen={isTagCreateModalOpen}
-                    onClose={() => setIsTagCreateModalOpen(false)}
-                    onSubmit={handleTagSubmit}
-                />
-				<FloatingActionButton />
-			</div>
-		</>
-	);
+  const handleDebugClick = () => {
+    localStorage.removeItem("beanJourney_lastVisit");
+    window.location.reload();
+  };
+
+  const toggleDebugButton = () => {
+    setShowDebugButton((prev) => !prev);
+  };
+
+  return (
+    <>
+      <style>{animationStyles}</style>
+      <div className="h-full max-h-[calc(100vh-100px)] overflow-auto px-4 bg-white dark:bg-[#1E1726] border-x-1 dark:border-x-2">
+        <HeaderCard />
+        {/* Display loading or error for tags */}
+        {loadingTags && (
+          <p className="text-center text-gray-500 py-4">Loading tags...</p>
+        )}
+        {tagError && (
+          <p className="text-center text-red-500 py-4">{tagError}</p>
+        )}
+        {!loadingTags && !tagError && (
+          <RecentCards tags={tags} onAddNewTag={handleAddNewTag} />
+        )}
+        <CalendarSection
+          events={calendarEventsData}
+          currentMonth={currentMonth}
+          setCurrentMonth={setCurrentMonth}
+        />
+        <DebugControls
+          showDebugButton={showDebugButton}
+          handleDebugClick={handleDebugClick}
+          toggleDebugButton={toggleDebugButton}
+        />
+        <StreakModal
+          isOpen={isStreakModalOpen}
+          onClose={handleCloseStreakModal}
+          streakDays={streakDays}
+          activeDaysOfWeek={activeDaysOfWeek}
+        />
+        <TagCreateModal
+          isOpen={isTagCreateModalOpen}
+          onClose={() => setIsTagCreateModalOpen(false)}
+          onSubmit={handleTagSubmit}
+        />
+        <FloatingActionButton />
+      </div>
+    </>
+  );
 }
