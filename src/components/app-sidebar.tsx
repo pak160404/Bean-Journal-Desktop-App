@@ -1,3 +1,4 @@
+"use client";
 import * as React from "react";
 import {
   BookOpen,
@@ -9,6 +10,8 @@ import {
   Palette,
   ShoppingBag,
   UserCircle,
+  Settings,
+  Shield,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -150,8 +153,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       label="My Profile"
                       labelIcon={<UserCircle size={16} />}
                     />
-                    <UserButton.UserProfilePage label="account" />
-                    <UserButton.UserProfilePage label="security" />
+                    <UserButton.Link 
+                      href="/user/account"
+                      label="Account"
+                      labelIcon={<Settings size={16} />}
+                    />
+                    <UserButton.Link 
+                      href="/user/security"
+                      label="Security"
+                      labelIcon={<Shield size={16} />}
+                    />
                   </UserButton.MenuItems>
                   <UserButton.UserProfilePage
                     label="Theme"
