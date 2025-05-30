@@ -15,7 +15,9 @@ import FloatingActionButton from "@/components/journal/FloatingActionButton";
 import DebugControls from "@/components/journal/DebugControls";
 import { Tag } from "../../types/supabase"; // Import Tag interface
 import TagCreateModal from "@/components/journal/TagCreateModal"; // Import the modal
-import { getTagsByUserId, createTag } from "../../services/tagService"; // Import tag services
+import TagEditModal from "@/components/journal/TagEditModal"; // Import the edit modal
+import ConfirmDeleteModal from "@/components/journal/ConfirmDeleteModal"; // Import the delete confirmation modal
+import { getTagsByUserId, createTag, updateTag, deleteTag } from "../../services/tagService"; // Import tag services
 import { createClerkSupabaseClient } from "../../utils/supabaseClient"; // Import Supabase client creator
 import { useAuth } from "@clerk/clerk-react";
 
@@ -538,6 +540,14 @@ function Homepage() {
   const [loadingTags, setLoadingTags] = useState(false);
   const [tagError, setTagError] = useState<string | null>(null);
   
+  // State for editing tags
+  const [editingTag, setEditingTag] = useState<Tag | null>(null);
+  const [isTagEditModalOpen, setIsTagEditModalOpen] = useState(false);
+
+  // State for deleting tags
+  const [tagToDelete, setTagToDelete] = useState<Tag | null>(null);
+  const [isConfirmDeleteModalOpen, setIsConfirmDeleteModalOpen] = useState(false);
+  
   // Placeholder for current user ID - replace with actual user management logic
   const currentUserId = userId; // Use userId from Clerk
 
@@ -645,6 +655,60 @@ function Homepage() {
     setLoadingTags(false);
   };
 
+  // Placeholder functions for editing and deleting tags
+  const handleEditTag = (tag: Tag) => {
+    setEditingTag(tag);
+    setIsTagEditModalOpen(true);
+  };
+
+  const handleDeleteTag = (tagId: string) => {
+    const ttd = tags.find(t => t.id === tagId);
+    if (ttd) {
+        setTagToDelete(ttd);
+        setIsConfirmDeleteModalOpen(true);
+    }
+  };
+
+  const handleTagUpdate = async (tagData: Partial<Tag>) => {
+    if (!editingTag || !editingTag.id) {
+      setTagError("Tag to update not identified.");
+      return;
+    }
+    setLoadingTags(true);
+    setTagError(null);
+    try {
+      const updated = await updateTag(supabase, editingTag.id, tagData);
+      if (updated) {
+        setTags(prevTags => prevTags.map(t => t.id === updated.id ? updated : t));
+      }
+    } catch (error) {
+      console.error("Failed to update tag:", error);
+      setTagError("Failed to update tag.");
+    }
+    setIsTagEditModalOpen(false);
+    setEditingTag(null);
+    setLoadingTags(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!tagToDelete || !tagToDelete.id) {
+      setTagError("Tag to delete not identified.");
+      return;
+    }
+    setLoadingTags(true);
+    setTagError(null);
+    try {
+      await deleteTag(supabase, tagToDelete.id);
+      setTags(prevTags => prevTags.filter(t => t.id !== tagToDelete.id));
+    } catch (error) {
+      console.error("Failed to delete tag:", error);
+      setTagError("Failed to delete tag.");
+    }
+    setIsConfirmDeleteModalOpen(false);
+    setTagToDelete(null);
+    setLoadingTags(false);
+  };
+
   const [currentMonth, setCurrentMonth] = useState(new Date(2024, 0));
   const calendarEventsData: CalendarEvent[] = [
     {
@@ -703,7 +767,12 @@ function Homepage() {
           <p className="text-center text-red-500 py-4">{tagError}</p>
         )}
         {!loadingTags && !tagError && (
-          <RecentCards tags={tags} onAddNewTag={handleAddNewTag} />
+          <RecentCards 
+            tags={tags} 
+            onAddNewTag={handleAddNewTag} 
+            onEditTag={handleEditTag}
+            onDeleteTag={handleDeleteTag}
+          />
         )}
         <CalendarSection
           events={calendarEventsData}
@@ -725,6 +794,18 @@ function Homepage() {
           isOpen={isTagCreateModalOpen}
           onClose={() => setIsTagCreateModalOpen(false)}
           onSubmit={handleTagSubmit}
+        />
+        <TagEditModal 
+          isOpen={isTagEditModalOpen}
+          onClose={() => { setIsTagEditModalOpen(false); setEditingTag(null); }}
+          onSubmit={handleTagUpdate}
+          initialData={editingTag}
+        />
+        <ConfirmDeleteModal 
+          isOpen={isConfirmDeleteModalOpen}
+          onClose={() => { setIsConfirmDeleteModalOpen(false); setTagToDelete(null); }}
+          onConfirm={handleConfirmDelete}
+          itemName={tagToDelete?.name}
         />
         <FloatingActionButton />
       </div>
