@@ -17,7 +17,7 @@ import { Tag } from "../../types/supabase"; // Import Tag interface
 import TagCreateModal from "@/components/journal/TagCreateModal"; // Import the modal
 import { getTagsByUserId, createTag } from "../../services/tagService"; // Import tag services
 import { createClerkSupabaseClient } from "../../utils/supabaseClient"; // Import Supabase client creator
-import { useAuth } from "@clerk/clerk-react"; // Import useAuth for token
+import { useAuth } from "@clerk/clerk-react";
 
 // Update the route path to make it a child of the journal root
 export const Route = createFileRoute("/journal/")({
@@ -520,12 +520,10 @@ function Homepage() {
     }
     `;
 
-  const { getToken } = useAuth(); // Get getToken from Clerk
+  const { getToken, userId } = useAuth(); // Call useAuth at the top level
+
   // Memoize the Supabase client instance
-  const supabase = useMemo(
-    () => createClerkSupabaseClient(getToken),
-    [getToken]
-  );
+  const supabase = useMemo(() => createClerkSupabaseClient(getToken), [getToken]);
 
   const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
   const [streakDays, setStreakDays] = useState(3);
@@ -539,9 +537,9 @@ function Homepage() {
   const [isTagCreateModalOpen, setIsTagCreateModalOpen] = useState(false);
   const [loadingTags, setLoadingTags] = useState(false);
   const [tagError, setTagError] = useState<string | null>(null);
-
+  
   // Placeholder for current user ID - replace with actual user management logic
-  const currentUserId = "user123";
+  const currentUserId = userId; // Use userId from Clerk
 
   // Fetch tags on component mount
   useEffect(() => {
