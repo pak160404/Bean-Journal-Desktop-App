@@ -123,7 +123,7 @@ const DiaryPage = () => {
   }
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-slate-50 text-foreground"> 
+    <div className="flex flex-col md:flex-row h-[calc(100vh-100px)] bg-slate-50 text-foreground"> 
       <aside className="w-full md:w-1/3 lg:w-1/4 p-4 md:p-6 border-r border-slate-200 overflow-y-auto bg-white">
         <header className="mb-6">
           <h1 className="text-xl font-normal text-slate-500 mb-1" style={{ fontFamily: 'Readex Pro, sans-serif' }}>My diaries</h1>
@@ -167,7 +167,7 @@ const DiaryPage = () => {
         )}
       </aside>
 
-      <main className="w-full md:w-2/3 lg:w-3/4 p-4 md:p-8 overflow-y-auto bg-pink-50 rounded-tl-2xl md:rounded-tl-none">
+      <main className="flex-1 w-full md:w-2/3 lg:w-3/4 p-4 md:p-8 overflow-y-auto bg-pink-50 rounded-tl-2xl md:rounded-tl-none">
         {/* Use currentSelectedDiary for the detail view to ensure it shows even if filtered out from the list */}
         {currentSelectedDiary ? (
           <DiaryDetailView diary={currentSelectedDiary} onUpdateDiary={handleUpdateDiary} />
