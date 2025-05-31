@@ -82,7 +82,7 @@ const starterKit = StarterKit.configure({
   orderedList: {
     HTMLAttributes: {
       class: cx(
-        "list-decimal list-inside my-2 leading-normal block"
+        "list-decimal list-outside my-2 leading-normal pl-6 block"
       ),
     },
   },
@@ -123,11 +123,6 @@ const starterKit = StarterKit.configure({
   dropcursor: {
     color: "#DBEAFE",
     width: 4,
-  },
-  paragraph: {
-    HTMLAttributes: {
-      class: cx("inline m-0 p-0 align-middle"),
-    },
   },
   gapcursor: false,
 });
