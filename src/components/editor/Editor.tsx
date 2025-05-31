@@ -28,10 +28,17 @@ import { LinkSelector } from '@/components/editor/selectors/link-selector'
 import { NodeSelector } from '@/components/editor/selectors/node-selector'
 import { MathSelector } from '@/components/editor/selectors/math-selector'
 import { ColorSelector } from '@/components/editor/selectors/color-selector'
+import { Placeholder } from '@tiptap/extension-placeholder'
 
 import { Separator } from '@/components/ui/separator'
 
-const extensions = [...defaultExtensions, slashCommand]
+const extensions = [
+  ...defaultExtensions,
+  slashCommand,
+  Placeholder.configure({
+    placeholder: '/ for commands'
+  })
+]
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const defaultEditorContent = {
