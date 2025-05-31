@@ -1,16 +1,20 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { JournalEntry } from '@/types/supabase';
-import { Modal as AntModal } from 'antd';
+import { JournalEntry, Tag } from '@/types/supabase';
+import { Modal as AntModal, Select } from 'antd';
 import Editor, { defaultEditorContent } from '@/components/editor/Editor';
 import debounce from 'lodash/debounce';
+import { getTagsByUserId, getTagsForEntry, updateEntryTags } from '@/services/tagService';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 interface DiaryDetailViewProps {
   diary: JournalEntry;
   onUpdateDiary: (updatedEntry: Partial<JournalEntry>) => Promise<void>;
   onDeleteDiary: (diaryIdToDelete: string) => Promise<void>;
+  userId: string;
+  supabase: SupabaseClient;
 }
 
-const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary, onDeleteDiary }) => {
+const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary, onDeleteDiary, userId, supabase }) => {
   const [editableTitle, setEditableTitle] = useState(diary.title || '');
   const [contentForSave, setContentForSave] = useState<string | undefined>(
     diary.content ? diary.content : JSON.stringify(defaultEditorContent)
@@ -24,6 +28,43 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary,
 
   const [isVideoModalVisible, setIsVideoModalVisible] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
+
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [initialLoadedTagIds, setInitialLoadedTagIds] = useState<string[]>([]);
+  const [isLoadingTags, setIsLoadingTags] = useState(false);
+
+  // Helper function to determine text color based on background brightness (copied from DiaryCard for now)
+  const getContrastColor = (hexcolor?: string): string => {
+    if (!hexcolor) return '#000000';
+    hexcolor = hexcolor.replace("#", "");
+    const r = parseInt(hexcolor.substring(0, 2), 16);
+    const g = parseInt(hexcolor.substring(2, 4), 16);
+    const b = parseInt(hexcolor.substring(4, 6), 16);
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 128) ? '#000000' : '#FFFFFF';
+  };
+
+  useEffect(() => {
+    const fetchTags = async () => {
+      if (!userId || !supabase || !diary.id) return;
+      setIsLoadingTags(true);
+      try {
+        const userTags = await getTagsByUserId(supabase, userId);
+        setAvailableTags(userTags || []);
+
+        const entryTags = await getTagsForEntry(supabase, diary.id);
+        const currentEntryTagIds = entryTags.map(tag => tag.id as string);
+        setSelectedTagIds(currentEntryTagIds);
+        setInitialLoadedTagIds(currentEntryTagIds);
+      } catch (error) {
+        console.error("Error fetching tags:", error);
+      } finally {
+        setIsLoadingTags(false);
+      }
+    };
+    fetchTags();
+  }, [userId, supabase, diary.id]);
 
   const handleVideoModalCancel = () => {
     setIsVideoModalVisible(false);
@@ -43,56 +84,87 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary,
     }
   };
 
-  const handleSave = useCallback(async (currentTitle: string, currentContent?: string) => {
-    if (!diary.id) {
-      console.error("Cannot save, diary ID is missing.");
+  const handleSave = useCallback(async (currentTitle: string, currentContent?: string, tagIdsForSave?: string[]) => {
+    if (!diary.id || !userId) {
+      console.error("Cannot save, diary ID or user ID is missing.");
       return;
     }
 
     setIsSaving(true);
     setHasUnsavedChanges(false);
     try {
-      const updates: Partial<JournalEntry> = {
+      const tagsToUpdate = tagIdsForSave || selectedTagIds;
+
+      let tagsActuallyChanged = false;
+      if (tagsToUpdate.length !== initialLoadedTagIds.length) {
+          tagsActuallyChanged = true;
+      } else {
+          const sortedSelected = [...tagsToUpdate].sort();
+          const sortedInitial = [...initialLoadedTagIds].sort();
+          tagsActuallyChanged = !sortedSelected.every((val, index) => val === sortedInitial[index]);
+      }
+
+      if (tagsActuallyChanged) {
+        await updateEntryTags(supabase, userId, diary.id, tagsToUpdate);
+      }
+
+      const coreUpdates: Partial<JournalEntry> = {
         title: currentTitle,
         content: currentContent || JSON.stringify({ type: 'doc', content: [{ type: 'paragraph' }] }),
         is_draft: false,
         updated_at: new Date().toISOString(),
       };
-      await onUpdateDiary(updates);
+      await onUpdateDiary(coreUpdates);
+
       setLastSaved(new Date());
+      setInitialLoadedTagIds([...tagsToUpdate]);
+      setHasUnsavedChanges(false);
+
     } catch (error) {
-      console.error("Error auto-saving diary:", error);
+      console.error("Error saving diary:", error);
       setHasUnsavedChanges(true);
     } finally {
       setIsSaving(false);
     }
-  }, [diary.id, onUpdateDiary]);
+  }, [diary.id, userId, supabase, onUpdateDiary, initialLoadedTagIds, selectedTagIds]);
 
   const debouncedSave = useMemo(
-    () => debounce((newTitle: string, newContent?: string) => handleSave(newTitle, newContent), 2000),
+    () => debounce((newTitle: string, newContent?: string, newTagIds?: string[]) => {
+      handleSave(newTitle, newContent, newTagIds);
+    }, 2000),
     [handleSave]
   );
 
   useEffect(() => {
+    setEditableTitle(diary.title || '');
+    setContentForSave(diary.content ? diary.content : JSON.stringify(defaultEditorContent));
+  }, [diary.title, diary.content, diary.id]);
+
+  useEffect(() => {
     const titleChanged = editableTitle !== (diary.title || '');
     const contentChanged = contentForSave !== (diary.content || JSON.stringify(defaultEditorContent));
+    
+    let tagsHaveChangedVsSavedState = false;
+    if (selectedTagIds.length !== initialLoadedTagIds.length) {
+      tagsHaveChangedVsSavedState = true;
+    } else {
+      const sortedSelected = [...selectedTagIds].sort();
+      const sortedInitial = [...initialLoadedTagIds].sort();
+      tagsHaveChangedVsSavedState = !sortedSelected.every((val, index) => val === sortedInitial[index]);
+    }
 
-    if (titleChanged || contentChanged) {
+    if (titleChanged || contentChanged || tagsHaveChangedVsSavedState) {
       setHasUnsavedChanges(true);
-      debouncedSave(editableTitle, contentForSave);
+      debouncedSave(editableTitle, contentForSave, selectedTagIds);
     } else {
       setHasUnsavedChanges(false);
       debouncedSave.cancel();
     }
+    
     return () => {
       debouncedSave.cancel();
     };
-  }, [editableTitle, contentForSave, debouncedSave, diary.title, diary.content, setHasUnsavedChanges]);
-
-  // Sync editableTitle with diary.title prop changes
-  useEffect(() => {
-    setEditableTitle(diary.title || '');
-  }, [diary.title]);
+  }, [editableTitle, contentForSave, selectedTagIds, initialLoadedTagIds, diary.title, diary.content, debouncedSave]);
 
   const showDeleteConfirm = () => {
     setIsDeleteConfirmVisible(true);
@@ -124,7 +196,6 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary,
         return JSON.parse(diary.content);
       } catch (e) {
         console.error("Error parsing diary content:", e);
-        // Fallback to default content if parsing fails
       }
     }
     return defaultEditorContent;
@@ -139,9 +210,62 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary,
             value={editableTitle}
             onChange={(e) => setEditableTitle(e.target.value)}
             placeholder="Diary Title"
-            className="text-2xl md:text-3xl font-semibold text-[#667760] leading-tight w-full border-0 focus:ring-0 p-0 bg-transparent"
+            className="text-2xl md:text-3xl font-semibold text-[#667760] leading-tight w-full border-0 focus:ring-0 p-0 bg-transparent focus:outline-none"
             style={{ fontFamily: 'Readex Pro, sans-serif' }}
           />
+          <div className="mt-2">
+            <Select
+              mode="multiple"
+              allowClear
+              style={{ width: '100%' }}
+              placeholder="Select tags"
+              value={selectedTagIds}
+              onChange={setSelectedTagIds}
+              loading={isLoadingTags}
+              options={availableTags.map(tag => ({
+                label: (
+                  <span style={{
+                    backgroundColor: tag.color_hex || '#E9E9E9',
+                    color: getContrastColor(tag.color_hex || '#E9E9E9'),
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    border: `1px solid ${tag.color_hex ? getContrastColor(tag.color_hex) + '20' : '#00000020'}`
+                  }}>
+                    {tag.name}
+                  </span>
+                ),
+                value: tag.id as string,
+              }))}
+              optionFilterProp="label"
+              tagRender={(props) => {
+                const { value, closable, onClose } = props;
+                const tag = availableTags.find(t => t.id === value);
+                return (
+                  <span
+                    style={{
+                      backgroundColor: tag?.color_hex || '#E9E9E9',
+                      color: getContrastColor(tag?.color_hex || '#E9E9E9'),
+                      margin: '2px',
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      fontSize: '12px',
+                      border: `1px solid ${tag?.color_hex ? getContrastColor(tag.color_hex) + '20' : '#00000020'}`
+                    }}
+                  >
+                    {tag?.name || value}
+                    {closable && (
+                      <span onClick={onClose} style={{ cursor: 'pointer', marginLeft: '5px' }}>
+                        ×
+                      </span>
+                    )}
+                  </span>
+                );
+              }}
+            />
+          </div>
           {diary.entry_timestamp && (
             <p className="text-xs text-slate-400 mt-1" style={{ fontFamily: 'Readex Pro, sans-serif' }}>
               Created: {formatDate(diary.entry_timestamp)}

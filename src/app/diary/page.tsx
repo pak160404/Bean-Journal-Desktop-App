@@ -190,7 +190,14 @@ const DiaryPage = () => {
         ) : filteredDiaries.length > 0 ? (
           <div className="space-y-3">
             {filteredDiaries.map((diaryEntry) => (
-              <DiaryCard key={diaryEntry.id} diary={diaryEntry} onSelectDiary={handleSelectDiary} isSelected={diaryEntry.id === selectedDiaryId} />
+              <DiaryCard 
+                key={diaryEntry.id} 
+                diary={diaryEntry} 
+                onSelectDiary={handleSelectDiary} 
+                isSelected={diaryEntry.id === selectedDiaryId} 
+                supabase={supabase} 
+                updated_at={diaryEntry.updated_at}
+              />
             ))}
           </div>
         ) : searchQuery && diaries.length > 0 ? (
@@ -208,6 +215,8 @@ const DiaryPage = () => {
             diary={currentSelectedDiary} 
             onUpdateDiary={handleUpdateDiary}
             onDeleteDiary={handleDeleteDiary} 
+            userId={userId}
+            supabase={supabase}
           />
         ) : isLoadingDiaries ? (
           <div className="text-center py-10 flex flex-col items-center justify-center h-full">
