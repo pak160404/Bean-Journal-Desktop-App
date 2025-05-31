@@ -2,6 +2,13 @@ import React from 'react';
 import { JournalEntry } from '@/types/supabase'; // Import the JournalEntry type
 import { cn } from "@/utils/css"; // For conditional class names
 
+// Define a simple type for Tiptap/ProseMirror node structure for text extraction
+interface Node {
+  type?: string;
+  content?: Node[];
+  text?: string;
+}
+
 interface DiaryCardProps {
   diary: JournalEntry; // Changed to JournalEntry
   onSelectDiary: (id: string) => void;
@@ -23,6 +30,38 @@ const DiaryCard: React.FC<DiaryCardProps> = ({ diary, onSelectDiary, isSelected 
     } catch (error) {
       console.error("Error formatting date:", error);
       return isoString; // fallback to original string if formatting fails
+    }
+  };
+
+  // Helper function to extract text from JSON content
+  const extractTextFromJSONContent = (jsonString?: string): string => {
+    if (!jsonString) return 'No content available.';
+
+    // Recursive function to extract text from nodes - moved to the root of this function
+    function extractTextNodes(node: Node, accumulatedText: string[]): void {
+      if (node.type === 'text' && node.text) {
+        accumulatedText.push(node.text);
+      }
+      if (node.content && Array.isArray(node.content)) {
+        for (const childNode of node.content) {
+          extractTextNodes(childNode, accumulatedText);
+        }
+      }
+    }
+
+    try {
+      const parsedContent: Node = JSON.parse(jsonString);
+      const texts: string[] = [];
+      if (parsedContent.content) {
+        for (const topLevelNode of parsedContent.content) {
+          extractTextNodes(topLevelNode, texts);
+        }
+      }
+      const result = texts.join(' ').trim();
+      return result || '';
+    } catch (error) {
+      console.error("Error parsing diary content for card:", error);
+      return 'Unable to display content.'; // Fallback for parsing errors
     }
   };
 
@@ -52,7 +91,7 @@ const DiaryCard: React.FC<DiaryCardProps> = ({ diary, onSelectDiary, isSelected 
         className="text-xs text-slate-500 mb-1.5 line-clamp-2"
         style={{ fontFamily: 'Readex Pro, sans-serif' }}
       >
-        {diary.content}
+        {extractTextFromJSONContent(diary.content)}
       </p>
       <div className="flex justify-between items-center">
         {/* Category is not directly on JournalEntry, would be via EntryTag. For now, removing it. */}
