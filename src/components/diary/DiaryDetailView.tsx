@@ -40,14 +40,16 @@ lowlight.register({ python: python });
 interface DiaryDetailViewProps {
   diary: JournalEntry;
   onUpdateDiary: (updatedEntry: Partial<JournalEntry>) => Promise<void>;
+  onDeleteDiary: (diaryIdToDelete: string) => Promise<void>;
 }
 
-const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary }) => {
+const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary, onDeleteDiary }) => {
   const [editableTitle, setEditableTitle] = useState(diary.title || '');
   const [contentForSave, setContentForSave] = useState<JSONContent | undefined>(undefined);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
 
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
 
@@ -259,6 +261,30 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary 
     }
   };
 
+  const showDeleteConfirm = () => {
+    setIsDeleteConfirmVisible(true);
+  };
+
+  const handleDeleteConfirmOk = async () => {
+    if (!diary.id) {
+      setSaveError("Cannot delete, diary ID is missing.");
+      setIsDeleteConfirmVisible(false);
+      return;
+    }
+    try {
+      await onDeleteDiary(diary.id);
+      setIsDeleteConfirmVisible(false);
+    } catch (error) {
+      console.error("Error deleting diary:", error);
+      setSaveError("Failed to delete diary. Please try again.");
+      setIsDeleteConfirmVisible(false);
+    }
+  };
+
+  const handleDeleteConfirmCancel = () => {
+    setIsDeleteConfirmVisible(false);
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-lg h-full flex flex-col">
       <header className="p-4 md:p-6 flex justify-between items-start border-b border-slate-200">
@@ -311,7 +337,11 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary 
       </div>
 
       <footer className="p-4 border-t border-slate-200 flex justify-end">
-        <button title="Delete Diary" className="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition-colors">
+        <button 
+          title="Delete Diary" 
+          onClick={showDeleteConfirm}
+          className="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition-colors"
+        >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
         </button>
       </footer>
@@ -330,6 +360,18 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary 
           <video src={currentVideoUrl} controls autoPlay className="w-full h-auto max-h-[80vh] object-contain" />
         </AntModal>
       )}
+
+      <AntModal
+        title="Confirm Deletion"
+        open={isDeleteConfirmVisible}
+        onOk={handleDeleteConfirmOk}
+        onCancel={handleDeleteConfirmCancel}
+        okText="Delete"
+        okButtonProps={{ danger: true }}
+        cancelText="Cancel"
+      >
+        <p>Are you sure you want to delete this diary entry titled "{diary.title}"? This action cannot be undone.</p>
+      </AntModal>
     </div>
   );
 };

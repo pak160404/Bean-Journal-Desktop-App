@@ -7,7 +7,7 @@ import DiaryDetailView from '@/components/diary/DiaryDetailView';
 import { JournalEntry } from '@/types/supabase';
 import { createClerkSupabaseClient } from "@/utils/supabaseClient"; // Added Supabase client creator
 import { useAuth } from "@clerk/clerk-react"; // Added Clerk useAuth
-import { createJournalEntry, getJournalEntriesByUserId, updateJournalEntry } from '@/services/journalEntryService'; // Added journal entry services and updateJournalEntry
+import { createJournalEntry, getJournalEntriesByUserId, updateJournalEntry, deleteJournalEntry } from '@/services/journalEntryService'; // Added journal entry services and updateJournalEntry
 
 const DiaryPage = () => {
   const { getToken, userId } = useAuth();
@@ -104,6 +104,39 @@ const DiaryPage = () => {
     }
   };
 
+  const handleDeleteDiary = async (diaryIdToDelete: string) => {
+    if (!supabase) {
+      setError("Supabase client not available for delete.");
+      throw new Error("Delete preconditions not met.");
+    }
+    if (!diaryIdToDelete) {
+        setError("No diary ID provided for deletion.");
+        throw new Error("No diary ID provided for deletion.");
+    }
+
+    try {
+      await deleteJournalEntry(supabase, diaryIdToDelete);
+      setDiaries(prevDiaries => {
+        const remainingDiaries = prevDiaries.filter(d => d.id !== diaryIdToDelete);
+        if (remainingDiaries.length > 0) {
+          // If the deleted diary was selected, select the first of the remaining diaries
+          if (selectedDiaryId === diaryIdToDelete) {
+            setSelectedDiaryId(remainingDiaries[0].id!);
+          }
+        } else {
+          // No diaries left
+          setSelectedDiaryId(null);
+        }
+        return remainingDiaries;
+      });
+      // Optionally, display a success message
+    } catch (err) {
+      console.error("Error deleting diary in page:", err);
+      setError("An error occurred while deleting the diary.");
+      throw err; // Re-throw to be caught by UI if needed
+    }
+  };
+
   // Memoized filtered diaries for search
   const filteredDiaries = useMemo(() => {
     if (!searchQuery) {
@@ -170,7 +203,11 @@ const DiaryPage = () => {
       <main className="flex-1 w-full md:w-2/3 lg:w-3/4 p-4 md:p-8 overflow-y-auto bg-pink-50 rounded-tl-2xl md:rounded-tl-none">
         {/* Use currentSelectedDiary for the detail view to ensure it shows even if filtered out from the list */}
         {currentSelectedDiary ? (
-          <DiaryDetailView diary={currentSelectedDiary} onUpdateDiary={handleUpdateDiary} />
+          <DiaryDetailView 
+            diary={currentSelectedDiary} 
+            onUpdateDiary={handleUpdateDiary}
+            onDeleteDiary={handleDeleteDiary} // Pass the delete handler
+          />
         ) : isLoadingDiaries ? (
           <div className="text-center py-10 flex flex-col items-center justify-center h-full">
             <h2 className="text-2xl font-semibold text-slate-600">Loading...</h2>
