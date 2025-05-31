@@ -1,6 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { JournalEntry } from '@/types/supabase';
 import { Modal as AntModal } from 'antd';
+import {
+  EditorRoot,
+  EditorContent,
+  StarterKit,
+  Placeholder,
+  JSONContent,
+  EditorInstance as Editor, // Use EditorInstance from novel, which is Tiptap's core Editor
+  Command, // For slash commands
+  createSuggestionItems, // Helper for slash commands
+  renderItems, // Helper for rendering slash command menu
+  CodeBlockLowlight, // For code blocks with syntax highlighting
+  TiptapLink, // For links
+  UpdatedImage, // For images
+  HighlightExtension, // For text highlighting
+  TaskItem, // For task lists
+  TaskList, // For task lists
+} from 'novel';
+
+// For CodeBlockLowlight
+import { createLowlight } from 'lowlight'; // Import createLowlight for v3 compatibility
+import html from 'highlight.js/lib/languages/xml';
+import css from 'highlight.js/lib/languages/css';
+import javascript from 'highlight.js/lib/languages/javascript';
+import typescript from 'highlight.js/lib/languages/typescript';
+import python from 'highlight.js/lib/languages/python';
+
+// Create the lowlight instance
+const lowlight = createLowlight();
+
+// Register languages for lowlight
+lowlight.register({ html: html });
+lowlight.register({ css: css });
+lowlight.register({ javascript: javascript });
+lowlight.register({ typescript: typescript });
+lowlight.register({ python: python });
 
 interface DiaryDetailViewProps {
   diary: JournalEntry;
@@ -9,17 +44,175 @@ interface DiaryDetailViewProps {
 
 const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary }) => {
   const [editableTitle, setEditableTitle] = useState(diary.title || '');
-  const [editableContent, setEditableContent] = useState(diary.content || '');
+  const [contentForSave, setContentForSave] = useState<JSONContent | undefined>(undefined);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
+  const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
+
+  const initialEditorContent = useMemo<JSONContent | undefined>(() => {
+    if (diary.content) {
+      try {
+        return JSON.parse(diary.content) as JSONContent;
+      } catch (e) {
+        console.warn("Failed to parse diary.content as JSON, treating as plain text:", diary.content);
+        return {
+          type: 'doc',
+          content: [
+            {
+              type: 'paragraph',
+              content: [{ type: 'text', text: diary.content }],
+            },
+          ],
+        };
+      }
+    }
+    return undefined;
+  }, [diary.content]);
+
+  // Define Suggestion Items for Slash Commands
+  const suggestionItems = useMemo(() => createSuggestionItems([
+    {
+      title: 'Text',
+      description: 'Start with plain text.',
+      icon: "T ", // Placeholder icon
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleNode('paragraph', 'paragraph').run();
+      },
+    },
+    {
+      title: 'Heading 1',
+      description: 'Big section heading.',
+      icon: "H1",
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).setNode('heading', { level: 1 }).run();
+      },
+    },
+    {
+      title: 'Heading 2',
+      description: 'Medium section heading.',
+      icon: "H2",
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).setNode('heading', { level: 2 }).run();
+      },
+    },
+    {
+      title: 'Heading 3',
+      description: 'Small section heading.',
+      icon: "H3",
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run();
+      },
+    },
+    {
+      title: 'Bullet List',
+      description: 'Create a simple bullet list.',
+      icon: "• ",
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleBulletList().run();
+      },
+    },
+    {
+      title: 'Numbered List',
+      description: 'Create a list with numbering.',
+      icon: "1. ",
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleOrderedList().run();
+      },
+    },
+    {
+      title: 'Task List',
+      description: 'Track tasks with a checklist.',
+      icon: "[ ]",
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleTaskList().run();
+      },
+    },
+    {
+      title: 'Code Block',
+      description: 'Capture a code snippet.',
+      icon: "</>",
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
+      },
+    },
+    {
+      title: 'Highlight',
+      description: 'Highlight important text.',
+      icon: "H ", // Placeholder,
+      command: ({ editor, range }) => {
+        // For highlight, it's a mark, so it might be better applied to a selection or toggled
+        // This command will toggle highlight on the current selection or at the cursor
+        editor.chain().focus().deleteRange(range).setHighlight().run();
+      }
+    },
+    {
+      title: 'Image',
+      description: 'Add an image from a URL.',
+      icon: "🏞️",
+      command: ({ editor, range }) => {
+        const url = window.prompt('Enter image URL');
+        if (url) {
+          editor.chain().focus().deleteRange(range).setImage({ src: url }).run();
+        }
+      },
+    },
+  ]), []);
+
+  // Extensions for the editor
+  const editorExtensions = useMemo(() => [
+    StarterKit.configure({
+      // Disable StarterKit's codeBlock if using CodeBlockLowlight to avoid conflict
+      codeBlock: false,
+      // Ensure other StarterKit features (like heading, lists) are enabled as they form the basis for some slash commands
+    }),
+    Placeholder.configure({
+      placeholder: "What's on your mind? Type '/' for commands...",
+    }),
+    // Slash Command
+    Command.configure({
+      suggestion: {
+        items: () => suggestionItems, // Use the memoized suggestionItems
+        render: renderItems,
+      },
+    }),
+    // Specific Extensions
+    CodeBlockLowlight.configure({
+      lowlight,
+    }),
+    TiptapLink.configure({
+      openOnClick: true, // Open links on click
+      autolink: true, // Automatically detect links
+      linkOnPaste: true, // Convert pasted URLs to links
+    }),
+    UpdatedImage.configure({
+      // Allows inline images, drag and drop, etc.
+      // For actual uploads, you'd need to configure an upload handler
+      // We added a slash command to insert image by URL
+    }),
+    HighlightExtension.configure({
+      multicolor: true, // Enable multiple highlight colors if desired (default is one)
+    }),
+    TaskItem.configure({
+      nested: true, // Allow nested task items
+    }),
+    TaskList, // TaskList itself doesn't usually need much configuration if TaskItem is set up
+  ], [suggestionItems]);
+
   useEffect(() => {
     setEditableTitle(diary.title || '');
-    setEditableContent(diary.content || '');
+    setContentForSave(initialEditorContent);
+    if (editorInstance && initialEditorContent) {
+      if (JSON.stringify(editorInstance.getJSON()) !== JSON.stringify(initialEditorContent)) {
+        editorInstance.commands.setContent(initialEditorContent);
+      }
+    } else if (editorInstance && !initialEditorContent) {
+      editorInstance.commands.clearContent();
+    }
     setLastSaved(null);
     setSaveError(null);
-  }, [diary]);
+  }, [diary, initialEditorContent, editorInstance]);
 
   const [isVideoModalVisible, setIsVideoModalVisible] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
@@ -52,7 +245,7 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary 
     try {
       const updates: Partial<JournalEntry> = {
         title: editableTitle,
-        content: editableContent,
+        content: contentForSave ? JSON.stringify(contentForSave) : '',
         is_draft: false,
         updated_at: new Date().toISOString(),
       };
@@ -96,14 +289,24 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary 
         </div>
       </header>
       
-      <div className="flex-grow overflow-y-auto p-4 md:p-6 space-y-5">
-        <textarea
-          value={editableContent}
-          onChange={(e) => setEditableContent(e.target.value)}
-          placeholder="Start writing your diary entry here..."
-          className="w-full h-full min-h-[300px] p-0 text-slate-700 text-base leading-relaxed border-0 focus:ring-0 resize-none bg-transparent"
-          style={{ fontFamily: 'Readex Pro, sans-serif' }}
-        />
+      <div className="flex-grow overflow-y-auto p-4 md:p-6 focus:outline-none">
+        <EditorRoot>
+          <EditorContent
+            extensions={editorExtensions}
+            initialContent={initialEditorContent}
+            onUpdate={({ editor: currentEditor }) => {
+              setContentForSave(currentEditor.getJSON());
+              if (!editorInstance) {
+                setEditorInstance(currentEditor);
+              }
+            }}
+            editorProps={{
+              attributes: {
+                class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none relative min-h-[300px] w-full bg-white focus:outline-none editor-container',
+              },
+            }}
+          />
+        </EditorRoot>
         {saveError && <p className="text-sm text-red-500 mt-2">{saveError}</p>}
       </div>
 
