@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { DiaryEntry } from '@/app/diary/page'; // Import the type
+import { JournalEntry } from '@/types/supabase'; // Import JournalEntry
 import { Image as AntImage, Modal as AntModal } from 'antd'; // Import AntModal
 // Make sure Ant Design global styles and ConfigProvider are set up in your layout.tsx or equivalent
 // Also ensure Modal styles are available if not using global antd.css: import 'antd/es/modal/style/index.css';
 
 interface DiaryDetailViewProps {
-  diary: DiaryEntry;
+  diary: JournalEntry; // Changed to JournalEntry
   // Add onDelete, onEdit callbacks later
 }
 
@@ -20,29 +20,18 @@ const PinIcon = () => (
 interface DiaryBlock {
   type: 'text' | 'image' | 'video' | 'bullet' | 'highlight';
   content?: string;
-  imageUrl?: string;
-  videoUrl?: string;
+  imageUrl?: string; // Kept for block structure, but won't be populated from JournalEntry directly
+  videoUrl?: string; // Kept for block structure, but won't be populated from JournalEntry directly
   items?: string[]; // For bullet points
 }
 
 // This function would ideally come from a pre-processing step or be part of data fetching
-// For now, it crudely tries to make sense of the existing DiaryEntry structure
+// For now, it crudely tries to make sense of the existing JournalEntry structure
 // and the Figma-inspired layout.
-const parseDiaryContentToBlocks = (diary: DiaryEntry): DiaryBlock[] => {
+const parseDiaryContentToBlocks = (diary: JournalEntry): DiaryBlock[] => {
   const blocks: DiaryBlock[] = [];
 
-  // Main title of the diary itself becomes less prominent if we break content into blocks
-  // So we assume the diary.title is handled by the header of DiaryDetailView.
-  
-  // Split content by newlines, but also consider images/videos as separate blocks.
-  // This is a very basic parser and would need to be much more robust for real use.
-  
-  // For now, let's keep it simpler: one text block, then image, then video.
-  // The user's image suggests a more complex, interleaved structure.
-  // To achieve that, the `diary.content` would need to be structured data, not just a flat string.
-
   if (diary.content) {
-    // Split by double newlines for paragraphs
     const paragraphs = diary.content.split(/\n\s*\n/);
     paragraphs.forEach(para => {
       if (para.trim() !== '') {
@@ -51,19 +40,20 @@ const parseDiaryContentToBlocks = (diary: DiaryEntry): DiaryBlock[] => {
     });
   }
 
-  if (diary.imageUrl) {
-    blocks.push({ type: 'image', imageUrl: diary.imageUrl });
-  }
-  if (diary.videoUrl) {
-    blocks.push({ type: 'video', videoUrl: diary.videoUrl });
-  }
+  // Image and Video URLs are not direct properties of JournalEntry.
+  // This section is removed as MediaAttachment would be handled separately.
+  // if (diary.imageUrl) {
+  //   blocks.push({ type: 'image', imageUrl: diary.imageUrl });
+  // }
+  // if (diary.videoUrl) {
+  //   blocks.push({ type: 'video', videoUrl: diary.videoUrl });
+  // }
 
   // Add the highlight block as a fixed example, as per Figma 88:385
   blocks.push({ type: 'highlight', content: "Remember to eat some snack before go out side" });
 
   // Example of bullet points from Figma text element like 88:375
-  // This is hardcoded for now to show structure
-  if (diary.title.includes("Run for 30m")) { // A crude check for a specific diary entry
+  if (diary.title && diary.title.includes("Run for 30m")) { // Check if title exists before using .includes
       blocks.push({ type: 'bullet', items: ["Run for 30m, then have a walk at the park", "Play basketball with my friends"] });
   }
 
@@ -92,6 +82,23 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary }) => {
     setCurrentVideoUrl(null);
   };
 
+  // Helper to format the date, can be made more sophisticated
+  const formatDate = (isoString: string) => {
+    if (!isoString) return 'No date';
+    try {
+      return new Date(isoString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return isoString; // fallback to original string if formatting fails
+    }
+  };
+
   return (
     // Main container for the detail view, takes full height and provides flex context
     <div className="bg-white rounded-xl shadow-lg h-full flex flex-col">
@@ -104,11 +111,9 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary }) => {
           >
             {diary.title} {/* This is the main title like "Everyday Activity" */}
           </h2>
-          {(diary.category || diary.date) && (
+          {diary.entry_timestamp && (
             <p className="text-xs text-slate-400 mt-1" style={{ fontFamily: 'Readex Pro, sans-serif' }}>
-              {diary.category && <span className="mr-2">{diary.category}</span>}
-              {diary.date && <span className="mr-2">{diary.category ? '|' : ''}</span>}
-              {diary.date}
+              {formatDate(diary.entry_timestamp)}
             </p>
           )}
         </div>

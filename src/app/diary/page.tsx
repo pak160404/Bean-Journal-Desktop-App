@@ -4,56 +4,64 @@ import { useState, useEffect } from 'react';
 import DiaryCard from '@/components/diary/DiaryCard'; // Assuming this path
 import DiaryCreateForm from '@/components/diary/DiaryCreateForm'; // Assuming this path
 import DiaryDetailView from '@/components/diary/DiaryDetailView'; // Import the new component
+import { JournalEntry } from '@/types/supabase'; // Added import
 // import { getAuth } from '@clerk/nextjs/server'; // Placeholder for auth if needed
 // import { db } from '@/lib/db'; // Placeholder for db access
 
 // Mock data for now
-const mockDiaries: DiaryEntry[] = [
+// Note: imageUrl, videoUrl, and category are not direct fields of JournalEntry.
+// These would typically be handled via related tables (e.g., MediaAttachment, Tag).
+// entry_timestamp should be in ISO 8601 format.
+const mockDiaries: JournalEntry[] = [
   {
     id: '1',
+    user_id: 'mock-user-123',
     title: 'A Day at the Park with a Furry Friend',
     content: "Started the day with a brisk walk in the park. The weather was perfect, sunny with a slight breeze.\n\nLater, I met up with Sarah and her golden retriever, Max. He's such an energetic dog! We played fetch for almost an hour.",
-    category: 'Leisure',
-    date: 'Today, 14:20',
-    imageUrl: 'https://picsum.photos/seed/animal1/640/480', // Picsum photos with seed
+    // category: 'Leisure', // Removed, not in JournalEntry. Could be a Tag.
+    entry_timestamp: '2024-03-15T14:20:00Z', // Was: 'Today, 14:20'
+    // imageUrl: 'https://picsum.photos/seed/animal1/640/480', // Removed, handle via MediaAttachment
   },
   {
     id: '2',
+    user_id: 'mock-user-123',
     title: 'Morning Run & Scenic Views',
     content: "Felt great to start the day with some fresh air. The park was beautiful and quiet. The sunrise was absolutely breathtaking, casting a golden glow over everything.\n\nManaged to capture a short clip of the birds singing their morning chorus.",
-    category: 'Fitness',
-    date: 'Yesterday, 08:30',
-    imageUrl: 'https://picsum.photos/seed/nature1/640/480', // Picsum photos with seed
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', // Placeholder video
+    // category: 'Fitness', // Removed
+    entry_timestamp: '2024-03-14T08:30:00Z', // Was: 'Yesterday, 08:30'
+    // imageUrl: 'https://picsum.photos/seed/nature1/640/480', // Removed
+    // videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', // Removed, handle via MediaAttachment
   },
   {
     id: '3',
+    user_id: 'mock-user-123',
     title: 'Productive Team Project Meeting',
     content: "Productive meeting with the team. We finalized the sprint goals for the next two weeks and assigned tasks. Everyone seems aligned and motivated, which is great to see.\n\nLater, I spent some time refactoring the authentication module. It's much cleaner now.",
-    category: 'Work',
-    date: '2 days ago, 11:00',
-    // No image or video for this one
+    // category: 'Work', // Removed
+    entry_timestamp: '2024-03-13T11:00:00Z', // Was: '2 days ago, 11:00'
   },
   {
     id: '4',
+    user_id: 'mock-user-123',
     title: 'Culinary Adventure: New Recipe Trial',
     content: "Decided to try a new recipe for dinner tonight: a spicy Thai green curry. It took a while to prep all the ingredients, but the aroma filling the kitchen was incredible!\n\nThe final result was pretty good, though I might add a bit more coconut milk next time for extra creaminess. Took a quick snap before digging in!",
-    category: 'Food',
-    date: '3 days ago, 19:45',
-    imageUrl: 'https://picsum.photos/seed/food1/640/480', // Picsum photos with seed
+    // category: 'Food', // Removed
+    entry_timestamp: '2024-03-12T19:45:00Z', // Was: '3 days ago, 19:45'
+    // imageUrl: 'https://picsum.photos/seed/food1/640/480', // Removed
   },
 ];
 
-export type DiaryEntry = {
-  id: string;
-  title: string;
-  content: string;
-  category?: string;
-  date: string;
-  imageUrl?: string;
-  videoUrl?: string;
-  // Add other fields like userId, createdAt, updatedAt as needed
-};
+// Removed DiaryEntry type definition
+// export type DiaryEntry = {
+//   id: string;
+//   title: string;
+//   content: string;
+//   category?: string;
+//   date: string;
+//   imageUrl?: string;
+//   videoUrl?: string;
+//   // Add other fields like userId, createdAt, updatedAt as needed
+// };
 
 const DiaryPage = () => {
   // const { userId } = getAuth(req); // Example for getting user ID if using Clerk
@@ -63,14 +71,14 @@ const DiaryPage = () => {
 
   // const diaries = await db.diary.findMany({ where: { userId } }); // Example DB call
 
-  const diaries: DiaryEntry[] = mockDiaries; // Using mock data for now
+  const diaries: JournalEntry[] = mockDiaries; // Using mock data for now
 
   const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
   const [rightPanelView, setRightPanelView] = useState<'view' | 'create'>('view'); // 'view' or 'create'
 
   useEffect(() => {
     if (diaries.length > 0 && !selectedDiaryId) {
-      setSelectedDiaryId(diaries[0].id);
+      setSelectedDiaryId(diaries[0].id!); // Added non-null assertion as id is mandatory in JournalEntry and we check length
       setRightPanelView('view');
     } else if (diaries.length === 0) {
       setRightPanelView('create'); // Default to create if no diaries
