@@ -204,9 +204,10 @@ const DiaryPage = () => {
         {/* Use currentSelectedDiary for the detail view to ensure it shows even if filtered out from the list */}
         {currentSelectedDiary ? (
           <DiaryDetailView 
+            key={currentSelectedDiary.id}
             diary={currentSelectedDiary} 
             onUpdateDiary={handleUpdateDiary}
-            onDeleteDiary={handleDeleteDiary} // Pass the delete handler
+            onDeleteDiary={handleDeleteDiary} 
           />
         ) : isLoadingDiaries ? (
           <div className="text-center py-10 flex flex-col items-center justify-center h-full">

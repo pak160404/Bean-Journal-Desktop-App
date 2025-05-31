@@ -45,7 +45,7 @@ interface DiaryDetailViewProps {
 
 const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary, onDeleteDiary }) => {
   const [editableTitle, setEditableTitle] = useState(diary.title || '');
-  const [contentForSave, setContentForSave] = useState<JSONContent | undefined>(undefined);
+  const [contentForSave, setContentForSave] = useState<string | undefined>(undefined);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -56,21 +56,29 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary,
   const initialEditorContent = useMemo<JSONContent | undefined>(() => {
     if (diary.content) {
       try {
+        // Attempt to parse if it's JSON (for old entries)
         return JSON.parse(diary.content) as JSONContent;
       } catch (e) {
-        console.warn("Failed to parse diary.content as JSON, treating as plain text:", diary.content);
-        return {
-          type: 'doc',
-          content: [
-            {
-              type: 'paragraph',
-              content: [{ type: 'text', text: diary.content }],
-            },
-          ],
-        };
+        // If parsing fails, assume it's plain text.
+        // Wrap plain text in a valid ProseMirror/Tiptap structure.
+        if (typeof diary.content === 'string') {
+            return {
+                type: 'doc',
+                content: [
+                    {
+                        type: 'paragraph',
+                        content: [{ type: 'text', text: diary.content }],
+                    },
+                ],
+            };
+        }
+        console.warn("diary.content could not be parsed as JSON and is not a plain string:", diary.content);
+        // Return an empty document structure if content is unusable
+        return { type: 'doc', content: [{ type: 'paragraph' }] };
       }
     }
-    return undefined;
+    // Return an empty document structure if diary.content is initially empty
+    return { type: 'doc', content: [{ type: 'paragraph' }] };
   }, [diary.content]);
 
   // Define Suggestion Items for Slash Commands
@@ -165,56 +173,42 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary,
   // Extensions for the editor
   const editorExtensions = useMemo(() => [
     StarterKit.configure({
-      // Disable StarterKit's codeBlock if using CodeBlockLowlight to avoid conflict
       codeBlock: false,
-      // Ensure other StarterKit features (like heading, lists) are enabled as they form the basis for some slash commands
     }),
     Placeholder.configure({
       placeholder: "What's on your mind? Type '/' for commands...",
     }),
-    // Slash Command
     Command.configure({
       suggestion: {
-        items: () => suggestionItems, // Use the memoized suggestionItems
+        items: () => suggestionItems,
         render: renderItems,
       },
     }),
-    // Specific Extensions
-    CodeBlockLowlight.configure({
-      lowlight,
-    }),
-    TiptapLink.configure({
-      openOnClick: true, // Open links on click
-      autolink: true, // Automatically detect links
-      linkOnPaste: true, // Convert pasted URLs to links
-    }),
-    UpdatedImage.configure({
-      // Allows inline images, drag and drop, etc.
-      // For actual uploads, you'd need to configure an upload handler
-      // We added a slash command to insert image by URL
-    }),
-    HighlightExtension.configure({
-      multicolor: true, // Enable multiple highlight colors if desired (default is one)
-    }),
-    TaskItem.configure({
-      nested: true, // Allow nested task items
-    }),
-    TaskList, // TaskList itself doesn't usually need much configuration if TaskItem is set up
+    CodeBlockLowlight.configure({ lowlight }),
+    TiptapLink.configure({ openOnClick: true, autolink: true, linkOnPaste: true }),
+    UpdatedImage.configure({}),
+    HighlightExtension.configure({ multicolor: true }),
+    TaskItem.configure({ nested: true }),
+    TaskList,
   ], [suggestionItems]);
 
   useEffect(() => {
     setEditableTitle(diary.title || '');
-    setContentForSave(initialEditorContent);
-    if (editorInstance && initialEditorContent) {
-      if (JSON.stringify(editorInstance.getJSON()) !== JSON.stringify(initialEditorContent)) {
-        editorInstance.commands.setContent(initialEditorContent);
-      }
-    } else if (editorInstance && !initialEditorContent) {
-      editorInstance.commands.clearContent();
+    setContentForSave(diary.content || '');
+
+    if (editorInstance) {
+        const newContentForEditor = initialEditorContent; 
+        // Ensure newContentForEditor is not undefined before calling setContent
+        const contentToSet = newContentForEditor || { type: 'doc', content: [{ type: 'paragraph' }] };
+
+        if (JSON.stringify(editorInstance.getJSON()) !== JSON.stringify(contentToSet)) {
+            editorInstance.commands.setContent(contentToSet);
+        }
     }
     setLastSaved(null);
     setSaveError(null);
-  }, [diary, initialEditorContent, editorInstance]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [diary]); 
 
   const [isVideoModalVisible, setIsVideoModalVisible] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
@@ -247,7 +241,7 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary,
     try {
       const updates: Partial<JournalEntry> = {
         title: editableTitle,
-        content: contentForSave ? JSON.stringify(contentForSave) : '',
+        content: contentForSave || '',
         is_draft: false,
         updated_at: new Date().toISOString(),
       };
@@ -321,7 +315,7 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary,
             extensions={editorExtensions}
             initialContent={initialEditorContent}
             onUpdate={({ editor: currentEditor }) => {
-              setContentForSave(currentEditor.getJSON());
+              setContentForSave(currentEditor.getText());
               if (!editorInstance) {
                 setEditorInstance(currentEditor);
               }
