@@ -25,6 +25,7 @@ export default function EditorMenu({
     <EditorBubble
       tippyOptions={{
         placement: open ? 'bottom-start' : 'top',
+        appendTo: () => document.body,
         onHidden: () => {
           onOpenChange(false)
           editor?.chain().unsetHighlight().run()

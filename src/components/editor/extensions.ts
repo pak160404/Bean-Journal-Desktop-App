@@ -48,7 +48,7 @@ const tiptapImage = TiptapImage.extend({
 }).configure({
   allowBase64: true,
   HTMLAttributes: {
-    class: cx("rounded-lg border border-muted"),
+    class: cx("rounded-lg border border-muted editor-image-preview"),
   },
 });
 
@@ -93,7 +93,7 @@ const starterKit = StarterKit.configure({
   },
   blockquote: {
     HTMLAttributes: {
-      class: cx("border-l-4 p-1 border-primary"),
+      class: cx("border-l-4 p-1 border-primary bg-secondary/100"),
     },
   },
   bold: {
@@ -106,7 +106,6 @@ const starterKit = StarterKit.configure({
       class: cx("italic"),
     },
   },
-  codeBlock: false,
   code: {
     HTMLAttributes: {
       class: cx("rounded-md bg-muted px-1.5 py-1 font-mono font-medium"),
@@ -115,8 +114,13 @@ const starterKit = StarterKit.configure({
   },
   heading: {
     levels: [1, 2, 3],
-    HTMLAttributes: () => {
-      return { class: cx('font-bold') };
+    HTMLAttributes: ({ level }: { level: number }) => {
+      const classes: { [key: number]: string } = {
+        1: "text-3xl font-bold",
+        2: "text-2xl font-bold",
+        3: "text-xl font-bold",
+      };
+      return { class: cx(classes[level] || "font-bold") };
     },
   },
   horizontalRule: false,
@@ -125,6 +129,7 @@ const starterKit = StarterKit.configure({
     width: 4,
   },
   gapcursor: false,
+  codeBlock: false,
 });
 
 const codeBlockLowlight = CodeBlockLowlight.configure({
@@ -168,25 +173,31 @@ const MarkdownExtension = Markdown.configure({
   breaks: true,
 });
 
-export const defaultExtensions = [
-  starterKit,
-  placeholder,
-  tiptapLink,
-  tiptapImage,
-  taskList,
-  taskItem,
-  horizontalRule,
-  aiHighlight,
-  codeBlockLowlight,
-  youtube,
-  twitter,
-  mathematics,
-  characterCount,
-  TiptapUnderline,
-  MarkdownExtension, // Use the configured version from tiptap-markdown
-  HighlightExtension,
-  TextStyle,
-  Color,
-  CustomKeymap,
-  GlobalDragHandle,
-];
+// Modified to accept a configured slash command instance
+// Using `any` for slashCommandInstance type for now, as specific Command type from Novel isn't immediately clear
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const createDefaultExtensions = (slashCommandInstance: any) => {
+  return [
+    starterKit,
+    placeholder,
+    tiptapLink,
+    tiptapImage,
+    taskList,
+    taskItem,
+    horizontalRule,
+    aiHighlight,
+    slashCommandInstance,
+    codeBlockLowlight,
+    youtube,
+    twitter,
+    mathematics,
+    characterCount,
+    TiptapUnderline,
+    MarkdownExtension,
+    HighlightExtension,
+    TextStyle,
+    Color,
+    CustomKeymap,
+    GlobalDragHandle,
+  ];
+};

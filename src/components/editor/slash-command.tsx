@@ -12,11 +12,10 @@ import {
   Twitter,
   Youtube
 } from 'lucide-react'
-import { createSuggestionItems, Command, renderItems, EditorInstance as Editor } from 'novel'
+import { createSuggestionItems, Command, renderItems, EditorInstance as Editor, type UploadFn } from 'novel'
 import type { Range } from '@tiptap/core'
-import { uploadFn } from './image-upload'
 
-export const suggestionItems = createSuggestionItems([
+export const createSuggestionItemsWithUpload = (uploadFnInstance: UploadFn) => createSuggestionItems([
   {
     title: 'Text',
     description: 'Just start typing with plain text.',
@@ -146,7 +145,7 @@ export const suggestionItems = createSuggestionItems([
         if (input.files?.length) {
           const file = input.files[0]
           const pos = editor.view.state.selection.from
-          uploadFn(file, editor.view, pos)
+          uploadFnInstance(file, editor.view, pos)
         }
       }
       input.click()
@@ -209,9 +208,13 @@ export const suggestionItems = createSuggestionItems([
   }
 ])
 
-export const slashCommand = Command.configure({
-  suggestion: {
-    items: () => suggestionItems,
-    render: renderItems
-  }
-})
+export const createSlashCommand = (uploadFnInstance: UploadFn) => {
+  const items = createSuggestionItemsWithUpload(uploadFnInstance);
+  return Command.configure({
+    suggestion: {
+      items: () => items,
+      render: renderItems,
+      popperOptions: { appendTo: () => document.body },
+    }
+  });
+}

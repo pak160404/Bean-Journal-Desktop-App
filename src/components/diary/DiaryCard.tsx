@@ -1,6 +1,8 @@
-import React from 'react';
-import { JournalEntry } from '@/types/supabase'; // Import the JournalEntry type
+import React, { useState, useEffect } from 'react';
+import { JournalEntry, Tag } from '@/types/supabase'; // Import the JournalEntry type
 import { cn } from "@/utils/css"; // For conditional class names
+import { getTagsForEntry } from '@/services/tagService'; // Added
+import { SupabaseClient } from '@supabase/supabase-js'; // Added
 
 // Define a simple type for Tiptap/ProseMirror node structure for text extraction
 interface Node {
@@ -13,9 +15,32 @@ interface DiaryCardProps {
   diary: JournalEntry; // Changed to JournalEntry
   onSelectDiary: (id: string) => void;
   isSelected: boolean;
+  supabase: SupabaseClient; // Added supabase prop
+  updated_at?: string; // To help trigger re-fetch of tags
 }
 
-const DiaryCard: React.FC<DiaryCardProps> = ({ diary, onSelectDiary, isSelected }) => {
+const DiaryCard: React.FC<DiaryCardProps> = ({ diary, onSelectDiary, isSelected, supabase, updated_at }) => {
+  const [entryTags, setEntryTags] = useState<Tag[]>([]);
+  const [isLoadingTags, setIsLoadingTags] = useState(false);
+
+  useEffect(() => {
+    const fetchTags = async () => {
+      if (!diary.id || !supabase) return;
+      setIsLoadingTags(true);
+      try {
+        const tags = await getTagsForEntry(supabase, diary.id);
+        setEntryTags(tags || []);
+      } catch (error) {
+        console.error(`Error fetching tags for entry ${diary.id}:`, error);
+        setEntryTags([]); // Set to empty array on error
+      } finally {
+        setIsLoadingTags(false);
+      }
+    };
+
+    fetchTags();
+  }, [diary.id, supabase, updated_at]);
+
   // Helper to format the date, can be made more sophisticated
   const formatDate = (isoString: string) => {
     if (!isoString) return 'No date';
@@ -65,6 +90,17 @@ const DiaryCard: React.FC<DiaryCardProps> = ({ diary, onSelectDiary, isSelected 
     }
   };
 
+  // Helper function to determine text color based on background brightness
+  const getContrastColor = (hexcolor?: string): string => {
+    if (!hexcolor) return '#000000'; // Default to black if no color
+    hexcolor = hexcolor.replace("#", "");
+    const r = parseInt(hexcolor.substring(0, 2), 16);
+    const g = parseInt(hexcolor.substring(2, 4), 16);
+    const b = parseInt(hexcolor.substring(4, 6), 16);
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 128) ? '#000000' : '#FFFFFF'; // Return black for light backgrounds, white for dark
+  };
+
   return (
     <div 
       onClick={() => onSelectDiary(diary.id!)} // Added non-null assertion for id
@@ -93,6 +129,26 @@ const DiaryCard: React.FC<DiaryCardProps> = ({ diary, onSelectDiary, isSelected 
       >
         {extractTextFromJSONContent(diary.content)}
       </p>
+
+      {/* Display Tags */} 
+      {!isLoadingTags && entryTags.length > 0 && (
+        <div className="mt-1 mb-1.5 flex flex-wrap gap-1.5">
+          {entryTags.map(tag => (
+            <span 
+              key={tag.id}
+              className="text-xs px-2 py-1 rounded-md shadow-sm border border-black border-opacity-10"
+              style={{ 
+                fontFamily: 'Readex Pro, sans-serif',
+                backgroundColor: tag.color_hex || '#E9E9E9',
+                color: getContrastColor(tag.color_hex || '#E9E9E9')
+              }}
+            >
+              {tag.name}
+            </span>
+          ))}
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         {/* Category is not directly on JournalEntry, would be via EntryTag. For now, removing it. */}
         {/* {diary.category && (

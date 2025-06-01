@@ -4,10 +4,38 @@ import { useState, useEffect, useMemo } from 'react';
 import DiaryCard from '@/components/diary/DiaryCard';
 // import DiaryCreateForm from '@/components/diary/DiaryCreateForm'; // Commented out as DiaryDetailView will be editor
 import DiaryDetailView from '@/components/diary/DiaryDetailView';
-import { JournalEntry } from '@/types/supabase';
+import { JournalEntry, Tag } from '@/types/supabase';
 import { createClerkSupabaseClient } from "@/utils/supabaseClient"; // Added Supabase client creator
 import { useAuth } from "@clerk/clerk-react"; // Added Clerk useAuth
 import { createJournalEntry, getJournalEntriesByUserId, updateJournalEntry, deleteJournalEntry } from '@/services/journalEntryService'; // Added journal entry services and updateJournalEntry
+import { getTagsByUserId, getEntryTagsByEntryId } from '@/services/tagService'; // Added tag service and getEntryTagsByEntryId
+import Calendar from 'react-calendar'; // Added react-calendar import
+import 'react-calendar/dist/Calendar.css'; // Added react-calendar CSS
+
+// Helper function to determine text color based on background brightness
+const getContrastColor = (hexcolor?: string): string => {
+  if (!hexcolor) return '#000000';
+  hexcolor = hexcolor.replace("#", "");
+  if (hexcolor.length === 3) {
+    hexcolor = hexcolor.split('').map(char => char + char).join('');
+  }
+  if (hexcolor.length !== 6) {
+    // If not a valid hex after attempting to correct, default to black
+    return '#000000';
+  }
+  const r = parseInt(hexcolor.substring(0, 2), 16);
+  const g = parseInt(hexcolor.substring(2, 4), 16);
+  const b = parseInt(hexcolor.substring(4, 6), 16);
+  // Check for NaN in case of parsing errors with invalid hex chars
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return '#000000';
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+  return (yiq >= 128) ? '#000000' : '#FFFFFF';
+};
+
+// Local type extension for filtering purposes
+interface JournalEntryWithTags extends JournalEntry {
+  tag_ids?: string[];
+}
 
 const DiaryPage = () => {
   const { getToken, userId } = useAuth();
@@ -19,21 +47,49 @@ const DiaryPage = () => {
     return createClerkSupabaseClient(getToken);
   }, [getToken]);
 
-  const [diaries, setDiaries] = useState<JournalEntry[]>([]); // Initialize with empty array
+  const [diaries, setDiaries] = useState<JournalEntryWithTags[]>([]); // Initialize with empty array, ensure type is JournalEntryWithTags
   const [isLoadingDiaries, setIsLoadingDiaries] = useState(true);
   const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
   // const [rightPanelView, setRightPanelView] = useState<'view' | 'create_deprecated'>('view'); // Removed unused state
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState(""); // Added state for search query
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null); // Changed type to Date | null, initialized to null
 
-  // Fetch initial diaries
+  const [allUserTags, setAllUserTags] = useState<Tag[]>([]);
+  const [isLoadingUserTags, setIsLoadingUserTags] = useState(true);
+  const [activeFilterTagIds, setActiveFilterTagIds] = useState<string[]>([]);
+
+  // Fetch initial diaries and user tags
   useEffect(() => {
     if (userId && supabase) {
       setIsLoadingDiaries(true);
       getJournalEntriesByUserId(supabase, userId)
-        .then(fetchedDiaries => {
-          const sortedDiaries = (fetchedDiaries || []).sort((a, b) => new Date(b.entry_timestamp).getTime() - new Date(a.entry_timestamp).getTime());
+        .then(async fetchedDiaries => {
+          if (!fetchedDiaries) {
+            setDiaries([]);
+            setSelectedDiaryId(null);
+            setIsLoadingDiaries(false);
+            return;
+          }
+
+          // Fetch tags for each diary
+          const diariesWithTagsPromises = fetchedDiaries.map(async (diary) => {
+            if (!diary.id) return { ...diary, tag_ids: [] }; // Should not happen if ID is guaranteed
+            try {
+              const entryTags = await getEntryTagsByEntryId(supabase, diary.id);
+              const tagIds = entryTags.map(et => et.tag_id);
+              return { ...diary, tag_ids: tagIds };
+            } catch (tagError) {
+              console.error(`Error fetching tags for diary ${diary.id}:`, tagError);
+              return { ...diary, tag_ids: [] }; // Default to empty tags on error for this specific diary
+            }
+          });
+
+          const diariesWithTags = await Promise.all(diariesWithTagsPromises);
+
+          const sortedDiaries = diariesWithTags.sort((a, b) => new Date(b.entry_timestamp).getTime() - new Date(a.entry_timestamp).getTime());
           setDiaries(sortedDiaries);
+
           if (sortedDiaries.length > 0 && !selectedDiaryId) {
             setSelectedDiaryId(sortedDiaries[0].id!);
           } else if (sortedDiaries.length === 0) {
@@ -46,9 +102,21 @@ const DiaryPage = () => {
           setError("Failed to load diaries.");
           setIsLoadingDiaries(false);
         });
+
+      setIsLoadingUserTags(true);
+      getTagsByUserId(supabase, userId)
+        .then(tags => {
+          setAllUserTags(tags || []);
+          setIsLoadingUserTags(false);
+        })
+        .catch(err => {
+          console.error("Error fetching user tags:", err);
+          // Optionally set an error state for tags
+          setIsLoadingUserTags(false);
+        });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, supabase]); // Removed selectedDiaryId from dependency array, selection shouldn't re-fetch all diaries
+  }, [userId, supabase]);
 
   const handleSelectDiary = (id: string) => {
     setSelectedDiaryId(id);
@@ -60,17 +128,17 @@ const DiaryPage = () => {
       return;
     }
     try {
-      const newEntryBasics: Partial<JournalEntry> = {
+      const newEntryBasics: Partial<JournalEntryWithTags> = {
         user_id: userId,
         entry_timestamp: new Date().toISOString(),
         title: "New Draft Diary", // Default title for new draft
         content: "", // Start with empty content
         is_draft: true, // Mark as draft
       };
-      const newDiary = await createJournalEntry(supabase, newEntryBasics);
-      if (newDiary && newDiary.id) {
-        setDiaries(prevDiaries => [newDiary, ...prevDiaries].sort((a, b) => new Date(b.entry_timestamp).getTime() - new Date(a.entry_timestamp).getTime()));
-        setSelectedDiaryId(newDiary.id); // Select the new diary
+      const newDiaryEntry = await createJournalEntry(supabase, newEntryBasics as Partial<JournalEntry>);
+      if (newDiaryEntry && newDiaryEntry.id) {
+        setDiaries(prevDiaries => [{ ...newDiaryEntry, tag_ids: [] }, ...prevDiaries].sort((a, b) => new Date(b.entry_timestamp).getTime() - new Date(a.entry_timestamp).getTime()));
+        setSelectedDiaryId(newDiaryEntry.id); // Select the new diary
       } else {
         setError("Failed to create new diary entry in the database.");
       }
@@ -137,15 +205,50 @@ const DiaryPage = () => {
     }
   };
 
-  // Memoized filtered diaries for search
-  const filteredDiaries = useMemo(() => {
-    if (!searchQuery) {
-      return diaries;
-    }
-    return diaries.filter(diary => 
-      diary.title?.toLowerCase().includes(searchQuery.toLowerCase())
+  const handleTagFilterClick = (tagId: string) => {
+    setActiveFilterTagIds(prev =>
+      prev.includes(tagId) ? prev.filter(id => id !== tagId) : [...prev, tagId]
     );
-  }, [diaries, searchQuery]);
+  };
+
+  // Memoized filtered diaries for search, tag, and date filters
+  const filteredDiaries = useMemo(() => {
+    let tempDiaries = diaries;
+
+    // Filter by search query (title)
+    if (searchQuery) {
+      tempDiaries = tempDiaries.filter(diary =>
+        diary.title?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Filter by selected tags
+    // IMPORTANT: This assumes `diary.tag_ids` (an array of string IDs) exists on your JournalEntry objects.
+    // If not, this part of the filtering will not work correctly.
+    if (activeFilterTagIds.length > 0) {
+      tempDiaries = tempDiaries.filter(diary => {
+        const d = diary as JournalEntryWithTags; // Use local extended type
+        const diaryTagIds = d.tag_ids;
+        const matches = diaryTagIds && Array.isArray(diaryTagIds) && diaryTagIds.some((tagId: string) => activeFilterTagIds.includes(tagId));
+        
+        return matches;
+      });
+    }
+
+    // Filter by selected date
+    if (selectedDate && !(selectedDate instanceof Array)) { // Ensure selectedDate is a single date
+        const filterDate = new Date(selectedDate);
+        filterDate.setHours(0, 0, 0, 0); // Normalize to start of the day for comparison
+
+        tempDiaries = tempDiaries.filter(diary => {
+            const entryDate = new Date(diary.entry_timestamp);
+            entryDate.setHours(0, 0, 0, 0); // Normalize to start of the day
+            return entryDate.getTime() === filterDate.getTime();
+        });
+    }
+
+    return tempDiaries;
+  }, [diaries, searchQuery, activeFilterTagIds, selectedDate]);
 
   const selectedDiary = filteredDiaries.find(diary => diary.id === selectedDiaryId);
   // If selected diary is filtered out, try to find it in the original diaries list
@@ -181,6 +284,72 @@ const DiaryPage = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
+
+          {/* Tag Filters Section */}
+          <div className="mt-4">
+            <h2 className="text-sm font-medium text-slate-500 mb-2" style={{ fontFamily: 'Readex Pro, sans-serif' }}>Filter by Tags:</h2>
+            {isLoadingUserTags ? (
+              <p className="text-xs text-slate-400">Loading tags...</p>
+            ) : allUserTags.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {allUserTags.map(tag => (
+                  <button
+                    key={tag.id}
+                    onClick={() => handleTagFilterClick(tag.id!)}
+                    className={`px-2.5 py-1 text-xs rounded-md border transition-colors duration-150 ease-in-out shadow-sm`}
+                    style={
+                      activeFilterTagIds.includes(tag.id!)
+                        ? { backgroundColor: tag.color_hex || '#007AFF', color: getContrastColor(tag.color_hex || '#007AFF'), borderColor: tag.color_hex || '#007AFF' }
+                        : { backgroundColor: '#F3F4F6', color: '#374151', borderColor: '#D1D5DB', fontFamily: 'Readex Pro, sans-serif' } // Tailwind gray-100 bg, gray-700 text, gray-300 border
+                    }
+                  >
+                    {tag.name}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400" style={{ fontFamily: 'Readex Pro, sans-serif' }}>No tags created yet.</p>
+            )}
+          </div>
+
+          {/* Calendar Filter Section */}
+          <div className="mt-6">
+            <h2 className="text-sm font-medium text-slate-500 mb-2" style={{ fontFamily: 'Readex Pro, sans-serif' }}>Filter by Date:</h2>
+            <Calendar
+              onChange={(value) => {
+                if (Array.isArray(value)) {
+                  setSelectedDate(value[0]); // If it's a range, take the start date
+                } else {
+                  setSelectedDate(value); // Otherwise, it's a single date or null
+                }
+              }}
+              value={selectedDate}
+              className="border-slate-300 rounded-lg shadow-sm text-sm" // Basic styling
+              tileClassName={({ date, view }) => {
+                // Check if there's any diary entry for this date
+                if (view === 'month') {
+                  const diaryExistsOnDate = diaries.some(diary => {
+                    const entryDate = new Date(diary.entry_timestamp);
+                    return (
+                      entryDate.getFullYear() === date.getFullYear() &&
+                      entryDate.getMonth() === date.getMonth() &&
+                      entryDate.getDate() === date.getDate()
+                    );
+                  });
+                  if (diaryExistsOnDate) {
+                    return 'bg-primary/20 !text-primary-foreground rounded-full'; // Highlight dates with entries
+                  }
+                }
+                return null;
+              }}
+            />
+             <button
+                onClick={() => setSelectedDate(null)} // Reset date filter, type is now Date | null
+                className="w-full mt-2 px-4 py-1.5 text-xs font-medium text-slate-600 bg-slate-200 rounded-md hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-slate-400 transition-colors"
+              >
+                Show All Dates
+              </button>
+          </div>
         </header>
 
         {isLoadingDiaries ? (
@@ -189,14 +358,44 @@ const DiaryPage = () => {
           <p className="text-red-500 text-center py-10">{error}</p>
         ) : filteredDiaries.length > 0 ? (
           <div className="space-y-3">
-            {filteredDiaries.map((diaryEntry) => (
-              <DiaryCard key={diaryEntry.id} diary={diaryEntry} onSelectDiary={handleSelectDiary} isSelected={diaryEntry.id === selectedDiaryId} />
-            ))}
+            {filteredDiaries.map((diaryEntry) => {
+              return (
+                <DiaryCard 
+                  key={diaryEntry.id} 
+                  diary={diaryEntry} 
+                  onSelectDiary={handleSelectDiary} 
+                  isSelected={diaryEntry.id === selectedDiaryId} 
+                  supabase={supabase} 
+                  updated_at={diaryEntry.updated_at}
+                />
+              );
+            })}
           </div>
-        ) : searchQuery && diaries.length > 0 ? (
+        ) : searchQuery && diaries.length > 0 && filteredDiaries.length === 0 ? (
           <p className="text-slate-500 text-center py-10">No diaries match your search "{searchQuery}".</p>
-        ) : (
+        ) : activeFilterTagIds.length > 0 && filteredDiaries.length === 0 ? (
+          <p className="text-slate-500 text-center py-10">No diaries match your selected tags.</p>
+        ) : selectedDate && filteredDiaries.length === 0 ? ( 
+            <p className="text-slate-500 text-center py-10">No diaries found for {selectedDate.toLocaleDateString()}.</p>
+        ) : diaries.length === 0 ? (
           <p className="text-slate-500 text-center py-10">No diaries yet. Click "Create New Diary" to start!</p>
+        ) : filteredDiaries.length === 0 && (searchQuery || activeFilterTagIds.length > 0 || selectedDate) ? (
+            <p className="text-slate-500 text-center py-10">No diaries match your current filters.</p>
+        ) : (
+          <div className="space-y-3">
+            {filteredDiaries.map((diaryEntry) => {
+              return (
+                <DiaryCard 
+                  key={diaryEntry.id} 
+                  diary={diaryEntry} 
+                  onSelectDiary={handleSelectDiary} 
+                  isSelected={diaryEntry.id === selectedDiaryId} 
+                  supabase={supabase} 
+                  updated_at={diaryEntry.updated_at}
+                />
+              );
+            })}
+          </div>
         )}
       </aside>
 
@@ -208,24 +407,55 @@ const DiaryPage = () => {
             diary={currentSelectedDiary} 
             onUpdateDiary={handleUpdateDiary}
             onDeleteDiary={handleDeleteDiary} 
+            userId={userId}
+            supabase={supabase}
           />
         ) : isLoadingDiaries ? (
           <div className="text-center py-10 flex flex-col items-center justify-center h-full">
             <h2 className="text-2xl font-semibold text-slate-600">Loading...</h2>
           </div>
-        ) : (
+        ) : diaries.length === 0 ? (
           <div className="text-center py-10 flex flex-col items-center justify-center h-full">
             <h2 className="text-2xl font-semibold text-slate-600">
-              {diaries.length === 0 ? "Create your first diary!" : "Select a diary to view or create a new one."}
+              Create your first diary!
             </h2>
-            {diaries.length === 0 && (
-                 <button 
-                    onClick={handleCreateNew}
-                    className="mt-4 px-6 py-3 text-lg font-medium text-white bg-primary hover:bg-primary/90 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-focus transition-colors"
-                  >
-                    Create Your First Diary
-                </button>
-            )}
+            <button 
+              onClick={handleCreateNew}
+              className="mt-4 px-6 py-3 text-lg font-medium text-white bg-primary hover:bg-primary/90 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-focus transition-colors"
+            >
+              Create Your First Diary
+            </button>
+          </div>
+        ) : filteredDiaries.length === 0 && (selectedDate || searchQuery || activeFilterTagIds.length > 0) ? (
+          <div className="text-center py-10 flex flex-col items-center justify-center h-full">
+            <h2 className="text-2xl font-semibold text-slate-600">
+              No Matching Diaries
+            </h2>
+            <p className="text-slate-500 mt-2">
+              No diaries match your current filters. Try adjusting your search, tags, or selected date.
+            </p>
+          </div>
+        ) : !currentSelectedDiary && filteredDiaries.length > 0 ? (
+          <div className="text-center py-10 flex flex-col items-center justify-center h-full">
+            <h2 className="text-2xl font-semibold text-slate-600">
+              Select a diary to view
+            </h2>
+            <p className="text-slate-500 mt-2">
+              Choose a diary from the list on the left.
+            </p>
+          </div>
+        ) : (
+          // Fallback: This case should ideally not be reached if logic above is comprehensive
+          // Or it's the case where currentSelectedDiary is null and no filters are active leading to empty list
+          // but diaries list is not empty - meaning something is wrong or user deselected actively.
+          // For now, a generic message or null if currentSelectedDiary is what drives the view.
+          // Given currentSelectedDiary is used for DiaryDetailView, if it's null, it will show this block or one of the above.
+          // If currentSelectedDiary is null and there are no diaries at all, the 'Create your first diary!' block handles it.
+          // If currentSelectedDiary is null, but there are diaries and no filters leading to empty, it means user needs to select one.
+           <div className="text-center py-10 flex flex-col items-center justify-center h-full">
+            <h2 className="text-2xl font-semibold text-slate-600">
+                Select a diary to view or create a new one.
+            </h2>
           </div>
         )}
       </main>
