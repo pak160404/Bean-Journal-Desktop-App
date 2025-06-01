@@ -2,9 +2,11 @@ import React from 'react';
 import { DayPicker, useNavigation } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { format } from 'date-fns';
+import { useNavigate } from '@tanstack/react-router';
 
 // Define types for event data (can be moved to a types file if shared)
 export type CalendarEvent = {
+    id?: string;
     date: Date;
     emoji: string;
     text: string;
@@ -108,9 +110,9 @@ const renderMadAnimation = (emoji: string) => {
     );
 };
 
-// Helper function to find event data for a specific date
-const findEventForDate = (date: Date, events: CalendarEvent[]): CalendarEvent | undefined => {
-    return events.find(event =>
+// Helper function to find all event data for a specific date
+const findEventsForDate = (date: Date, events: CalendarEvent[]): CalendarEvent[] => {
+    return events.filter(event =>
         event.date.getDate() === date.getDate() &&
         event.date.getMonth() === date.getMonth() &&
         event.date.getFullYear() === date.getFullYear()
@@ -119,45 +121,76 @@ const findEventForDate = (date: Date, events: CalendarEvent[]): CalendarEvent | 
 
 // Custom Day component
 const DayContent = (props: { date: Date; displayMonth: Date; events: CalendarEvent[] }) => {
-    const event = findEventForDate(props.date, props.events);
+    const navigate = useNavigate();
+    const dailyEvents = findEventsForDate(props.date, props.events);
+    const event = dailyEvents.length > 0 ? dailyEvents[0] : undefined; // Use the first event for main display/mood animation
     const isOutside = props.date.getMonth() !== props.displayMonth.getMonth();
 
+    const handleCellClick = () => {
+        if (event && event.id) {
+            navigate({ to: `/journal/diary` });
+        }
+    };
+
     return (
-        <div className="flex flex-col justify-between w-full h-full relative overflow-hidden group hover:bg-gray-50 transition-colors duration-200">
+        <div 
+            className="flex flex-col justify-between w-full h-full relative overflow-hidden group hover:bg-gray-50 transition-colors duration-200 p-1 cursor-pointer"
+            onClick={handleCellClick}
+        >
             <div className="absolute top-0 left-0 p-2">
-                <span className={`text-sm font-medium ${isOutside ? 'text-gray-400' : 'text-[#2f2569]'}`}>
+                <span className={`text-xs font-medium ${isOutside ? 'text-gray-400' : 'text-[#2f2569]'}`}> {/* Adjusted text size for more space */}
                     {format(props.date, 'd')}
                 </span>
             </div>
-            {event && !isOutside && (
+            {dailyEvents.length > 0 && (
                 <>
-                    {event.mood === 'amazing' && renderConfetti()}
-                    {event.mood === 'happy' && renderSunnyDay()}
-                    {event.mood === 'sad' && renderRainThunder()}
-                    {event.mood === 'mad' && renderMadAnimation(event.emoji)}
-                    <div 
-                        className={`absolute transition-transform duration-300 ease-in-out ${event.mood === 'mad' ? 'group-hover:hidden' : 'group-hover:scale-110'}`}
-                        style={{ top: '35%', right: '5%', zIndex: 20 }}
-                    >
-                        <img 
-                            src={event.emoji} 
-                            alt="Emoji" 
-                            className="w-[4rem] h-[4rem] drop-shadow-md relative"
-                            style={{ position: 'relative', zIndex: 20 }}
-                        />
-                    </div>
-                    <div className={`w-full mt-auto flex items-stretch overflow-hidden shadow-sm`}>
-                        <div className={`w-1.5 ${event.textBg}`}></div>
-                        <div className={`flex-1 bg-opacity-30 text-xs backdrop-blur-sm ${event.emojiBg === 'bg-[#222222]' ? 'text-white' : 'text-[#666B88] font-medium'} ${event.textBg} py-1 px-3 transition-all duration-200 ease-in-out`}>
-                            {event.text.replace("...", "...")}
+                    {/* Animations based on the first event's mood */} 
+                    {event && event.mood === 'amazing' && renderConfetti()}
+                    {event && event.mood === 'happy' && renderSunnyDay()}
+                    {event && event.mood === 'sad' && renderRainThunder()}
+                    {event && event.mood === 'mad' && renderMadAnimation(event.emoji)}
+                    
+                    {/* Main event display (first event) */}
+                    {event && (
+                        <div 
+                            className={`absolute transition-transform duration-300 ease-in-out ${event.mood === 'mad' ? 'group-hover:hidden' : 'group-hover:scale-110'}`}
+                            style={{ top: '30%', right: '5%', zIndex: 20 }} // Adjusted top position
+                        >
+                            <img 
+                                src={event.emoji} 
+                                alt="Emoji" 
+                                className="w-12 h-12 drop-shadow-md relative" // Adjusted size
+                                style={{ position: 'relative', zIndex: 20 }}
+                            />
                         </div>
-                    </div>
+                    )}
+
+                    {/* Text label for the first event */} 
+                    {event && (
+                        <div className={`w-full mt-auto flex items-stretch overflow-hidden shadow-sm`}>
+                            <div className={`w-1 ${event.textBg}`}></div>
+                            <div className={`flex-1 bg-opacity-30 text-[10px] backdrop-blur-sm ${event.emojiBg === 'bg-[#222222]' ? 'text-white' : 'text-[#666B88] font-medium'} ${event.textBg} py-0.5 px-1.5 transition-all duration-200 ease-in-out`}> {/* Adjusted padding and text size */}
+                                {event.text.replace("...", "...")}
+                                {dailyEvents.length > 1 && <span className="font-bold ml-1">+{dailyEvents.length - 1}</span>}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Hover effect to show all event texts for the day */} 
+                    {dailyEvents.length > 0 && (
+                        <div className="absolute inset-0 bg-black bg-opacity-75 text-white p-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-auto z-30">
+                            <p className="font-bold mb-1">{format(props.date, 'MMM d')}:</p>
+                            {dailyEvents.map((e, index) => (
+                                <p key={index} className="truncate">- {e.text}</p>
+                            ))}
+                        </div>
+                    )}
                 </>
             )}
             {props.date.getDate() === new Date().getDate() && 
              props.date.getMonth() === new Date().getMonth() && 
-             props.date.getFullYear() === new Date().getFullYear() && (
-                <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-purple-400"></div>
+             props.date.getFullYear() === new Date().getFullYear() && !isOutside && ( // Only show for current month's today
+                <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-purple-500"></div>
             )}
         </div>
     );
