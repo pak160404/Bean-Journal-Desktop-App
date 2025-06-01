@@ -18,6 +18,8 @@ import TagCreateModal from "@/components/journal/TagCreateModal"; // Import the 
 import TagEditModal from "@/components/journal/TagEditModal"; // Import the edit modal
 import ConfirmDeleteModal from "@/components/journal/ConfirmDeleteModal"; // Import the delete confirmation modal
 import { getTagsByUserId, createTag, updateTag, deleteTag } from "../../services/tagService"; // Import tag services
+import { JournalEntry } from "../../types/supabase"; // Import JournalEntry interface
+import { getJournalEntriesByUserId } from "../../services/journalEntryService"; // Import journal entry services
 import { createClerkSupabaseClient } from "../../utils/supabaseClient"; // Import Supabase client creator
 import { useAuth } from "@clerk/clerk-react";
 
@@ -548,6 +550,11 @@ function Homepage() {
   const [tagToDelete, setTagToDelete] = useState<Tag | null>(null);
   const [isConfirmDeleteModalOpen, setIsConfirmDeleteModalOpen] = useState(false);
   
+  // Journal Entry related state
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
+  const [loadingJournalEntries, setLoadingJournalEntries] = useState(false);
+  const [journalEntryError, setJournalEntryError] = useState<string | null>(null);
+
   // Placeholder for current user ID - replace with actual user management logic
   const currentUserId = userId; // Use userId from Clerk
 
@@ -567,6 +574,24 @@ function Homepage() {
       setLoadingTags(false);
     };
     fetchTags();
+  }, [currentUserId, supabase]);
+
+  // Fetch journal entries on component mount
+  useEffect(() => {
+    const fetchJournalEntries = async () => {
+      if (!currentUserId) return;
+      setLoadingJournalEntries(true);
+      setJournalEntryError(null);
+      try {
+        const fetchedEntries = await getJournalEntriesByUserId(supabase, currentUserId);
+        setJournalEntries(fetchedEntries || []);
+      } catch (error) {
+        console.error("Failed to fetch journal entries:", error);
+        setJournalEntryError("Failed to load journal entries.");
+      }
+      setLoadingJournalEntries(false);
+    };
+    fetchJournalEntries();
   }, [currentUserId, supabase]);
 
   const handleCloseStreakModal = () => {
@@ -709,41 +734,55 @@ function Homepage() {
     setLoadingTags(false);
   };
 
-  const [currentMonth, setCurrentMonth] = useState(new Date(2024, 0));
-  const calendarEventsData: CalendarEvent[] = [
-    {
-      date: new Date(2024, 0, 1),
-      emoji: "/images/bean-journey/figma/emoji_face_01.png",
-      text: "Eat somethin...",
-      emojiBg: "bg-[#FFEBF2]",
-      textBg: "bg-[#FCA7C4]",
-      mood: "amazing",
-    },
-    {
-      date: new Date(2024, 0, 9),
-      emoji: "/images/bean-journey/figma/emoji_face_02.png",
-      text: "Eat somethin...",
-      emojiBg: "bg-[#E6F9F1]",
-      textBg: "bg-[#12A7F1]",
-      mood: "happy",
-    },
-    {
-      date: new Date(2024, 0, 19),
-      emoji: "/images/bean-journey/figma/emoji_face_03.png",
-      text: "Eat somethin...",
-      emojiBg: "bg-[#222222]",
-      textBg: "bg-[#B981F3]",
-      mood: "neutral",
-    },
-    {
-      date: new Date(2024, 0, 31),
-      emoji: "/images/bean-journey/figma/emoji_face_04.png",
-      text: "Eat somethin...",
-      emojiBg: "bg-[#E6F9F1]",
-      textBg: "bg-[#FF4BEF]",
-      mood: "sad",
-    },
-  ];
+  const [currentMonth, setCurrentMonth] = useState(new Date()); // Use current date for initial month
+
+  // Transform journal entries for the calendar
+  const transformedCalendarEvents: CalendarEvent[] = useMemo(() => {
+    return journalEntries.map((entry) => {
+      // Basic mood to emoji/style mapping (can be expanded)
+      let emoji = "/images/bean-journey/figma/emoji_face_03.png"; // Neutral default
+      let emojiBg = "bg-[#E0E0E0]"; // Neutral default
+      let textBg = "bg-[#BDBDBD]"; // Neutral default
+      let currentMood: CalendarEvent['mood'] = "neutral"; // Default to neutral typed mood
+
+      // Use manual_mood_label from JournalEntry
+      const entryMood = entry.manual_mood_label?.toLowerCase();
+
+      if (entryMood === "amazing") {
+        emoji = "/images/bean-journey/figma/emoji_face_01.png";
+        emojiBg = "bg-[#FFEBF2]";
+        textBg = "bg-[#FCA7C4]";
+        currentMood = "amazing";
+      } else if (entryMood === "happy") {
+        emoji = "/images/bean-journey/figma/emoji_face_02.png";
+        emojiBg = "bg-[#E6F9F1]";
+        textBg = "bg-[#12A7F1]";
+        currentMood = "happy";
+      } else if (entryMood === "sad") {
+        emoji = "/images/bean-journey/figma/emoji_face_04.png";
+        emojiBg = "bg-[#E6F9F1]"; // Placeholder, update with actual sad color
+        textBg = "bg-[#FF4BEF]"; // Placeholder, update with actual sad color
+        currentMood = "sad";
+      } else if (entryMood === "mad") {
+        // Add mad mood assets if available, otherwise use neutral or another fallback
+        emoji = "/images/bean-journey/figma/emoji_face_mad.png"; // Example path
+        emojiBg = "bg-[#FFDDDD]"; // Example color
+        textBg = "bg-[#FF8888]"; // Example color
+        currentMood = "mad";
+      }
+      // Add more mood conditions as needed
+
+      return {
+        id: entry.id, // Add entry id
+        date: new Date(entry.entry_timestamp), // Use entry_timestamp
+        emoji: emoji,
+        text: entry.title ? entry.title.substring(0, 15) + "..." : "No title...",
+        emojiBg: emojiBg,
+        textBg: textBg,
+        mood: currentMood, // Use the correctly typed mood
+      };
+    });
+  }, [journalEntries]);
 
   const handleDebugClick = () => {
     localStorage.removeItem("beanJourney_lastVisit");
@@ -757,8 +796,8 @@ function Homepage() {
   return (
     <>
       <style>{animationStyles}</style>
-      <div className="h-full max-h-[calc(100vh-100px)] overflow-auto px-4 bg-white dark:bg-[#1E1726] border-x-1 dark:border-x-2">
-        <HeaderCard />
+      <div className="h-[calc(100vh-100px)] overflow-auto px-4 bg-white dark:bg-[#1E1726] border-x-1 dark:border-x-2">
+        <HeaderCard journalEntries={journalEntries} />
         {/* Display loading or error for tags */}
         {loadingTags && (
           <p className="text-center text-gray-500 py-4">Loading tags...</p>
@@ -774,11 +813,20 @@ function Homepage() {
             onDeleteTag={handleDeleteTag}
           />
         )}
-        <CalendarSection
-          events={calendarEventsData}
-          currentMonth={currentMonth}
-          setCurrentMonth={setCurrentMonth}
-        />
+        {/* Display loading or error for journal entries */}
+        {loadingJournalEntries && (
+          <p className="text-center text-gray-500 py-4">Loading journal entries...</p>
+        )}
+        {journalEntryError && (
+          <p className="text-center text-red-500 py-4">{journalEntryError}</p>
+        )}
+        {!loadingJournalEntries && !journalEntryError && (
+          <CalendarSection
+            events={transformedCalendarEvents} // Use transformed events
+            currentMonth={currentMonth}
+            setCurrentMonth={setCurrentMonth}
+          />
+        )}
         <DebugControls
           showDebugButton={showDebugButton}
           handleDebugClick={handleDebugClick}

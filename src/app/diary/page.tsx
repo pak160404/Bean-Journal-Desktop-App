@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import DiaryCard from '@/components/diary/DiaryCard';
 // import DiaryCreateForm from '@/components/diary/DiaryCreateForm'; // Commented out as DiaryDetailView will be editor
 import DiaryDetailView from '@/components/diary/DiaryDetailView';
@@ -11,6 +11,15 @@ import { createJournalEntry, getJournalEntriesByUserId, updateJournalEntry, dele
 import { getTagsByUserId, getEntryTagsByEntryId } from '@/services/tagService'; // Added tag service and getEntryTagsByEntryId
 import Calendar from 'react-calendar'; // Added react-calendar import
 import 'react-calendar/dist/Calendar.css'; // Added react-calendar CSS
+// import { useRouter, useSearchParams } from 'next/navigation'; // REMOVE Next.js router hooks
+import { useNavigate, useSearch, useRouterState } from '@tanstack/react-router'; // Import TanStack Router hooks
+
+// Define a type for your search params. 
+// This should align with your TanStack Router configuration for this route.
+interface DiaryPageSearch {
+  createNew?: boolean;
+  // Add other expected search params here if any
+}
 
 // Helper function to determine text color based on background brightness
 const getContrastColor = (hexcolor?: string): string => {
@@ -58,6 +67,77 @@ const DiaryPage = () => {
   const [allUserTags, setAllUserTags] = useState<Tag[]>([]);
   const [isLoadingUserTags, setIsLoadingUserTags] = useState(true);
   const [activeFilterTagIds, setActiveFilterTagIds] = useState<string[]>([]);
+
+  // const router = useRouter(); // REMOVE Next.js useRouter
+  // const searchParams = useSearchParams(); // REMOVE Next.js useSearchParams
+  const navigate = useNavigate(); // Initialize TanStack useNavigate
+  const routerLocation = useRouterState({ select: (s) => s.location }); // Get current location
+  const search: DiaryPageSearch = useSearch({ from: '/journal/diary' }); // Provide from, cast to any if type is complex
+
+  const createNewHandledRef = useRef(false); // Ref to track if createNew has been handled
+
+  const handleCreateNew = useCallback(async () => {
+    if (!userId || !supabase) {
+      setError("User not authenticated or Supabase client not available.");
+      return;
+    }
+    try {
+      const newEntryBasics: Partial<JournalEntryWithTags> = {
+        user_id: userId,
+        entry_timestamp: new Date().toISOString(),
+        title: "New Draft Diary", // Default title for new draft
+        content: "", // Start with empty content
+        is_draft: true, // Mark as draft
+      };
+      const newDiaryEntry = await createJournalEntry(supabase, newEntryBasics as Partial<JournalEntry>);
+      if (newDiaryEntry && newDiaryEntry.id) {
+        setDiaries(prevDiaries => [{ ...newDiaryEntry, tag_ids: [] }, ...prevDiaries].sort((a, b) => new Date(b.entry_timestamp).getTime() - new Date(a.entry_timestamp).getTime()));
+        setSelectedDiaryId(newDiaryEntry.id); // Select the new diary
+      } else {
+        setError("Failed to create new diary entry in the database.");
+      }
+    } catch (err) {
+      console.error("Error creating new diary:", err);
+      setError("An error occurred while creating the new diary.");
+    }
+  }, [userId, supabase]);
+
+  // Effect to handle 'createNew' search parameter
+  useEffect(() => {
+    if (search.createNew === true) {
+      if (!createNewHandledRef.current) { // Check if already handled
+        if (userId && supabase) {
+          createNewHandledRef.current = true; // Mark as handled
+          handleCreateNew();
+          navigate({
+            to: routerLocation.pathname, // Use current pathname
+            search: (prev: DiaryPageSearch) => {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { createNew, ...rest } = prev; 
+              return rest; // Return search params without createNew
+            },
+            replace: true
+          });
+        } else {
+          // If user/supabase not ready, still remove the param to avoid loops, but don't mark as handled by creation logic
+          // This path implies an issue upstream or a race condition where createNew is true but auth isn't ready.
+          // console.warn("Attempted to create new diary without user/supabase, removing createNew param.");
+          navigate({
+            to: routerLocation.pathname,
+            search: (prev: DiaryPageSearch) => {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { createNew, ...rest } = prev;
+              return rest;
+            },
+            replace: true
+          });
+        }
+      }
+    } else {
+      // If createNew is not true in the search params, reset the flag
+      createNewHandledRef.current = false;
+    }
+  }, [search.createNew, userId, supabase, handleCreateNew, navigate, routerLocation.pathname]);
 
   // Fetch initial diaries and user tags
   useEffect(() => {
@@ -120,32 +200,6 @@ const DiaryPage = () => {
 
   const handleSelectDiary = (id: string) => {
     setSelectedDiaryId(id);
-  };
-
-  const handleCreateNew = async () => {
-    if (!userId || !supabase) {
-      setError("User not authenticated or Supabase client not available.");
-      return;
-    }
-    try {
-      const newEntryBasics: Partial<JournalEntryWithTags> = {
-        user_id: userId,
-        entry_timestamp: new Date().toISOString(),
-        title: "New Draft Diary", // Default title for new draft
-        content: "", // Start with empty content
-        is_draft: true, // Mark as draft
-      };
-      const newDiaryEntry = await createJournalEntry(supabase, newEntryBasics as Partial<JournalEntry>);
-      if (newDiaryEntry && newDiaryEntry.id) {
-        setDiaries(prevDiaries => [{ ...newDiaryEntry, tag_ids: [] }, ...prevDiaries].sort((a, b) => new Date(b.entry_timestamp).getTime() - new Date(a.entry_timestamp).getTime()));
-        setSelectedDiaryId(newDiaryEntry.id); // Select the new diary
-      } else {
-        setError("Failed to create new diary entry in the database.");
-      }
-    } catch (err) {
-      console.error("Error creating new diary:", err);
-      setError("An error occurred while creating the new diary.");
-    }
   };
 
   const handleUpdateDiary = async (updates: Partial<JournalEntry>) => {
