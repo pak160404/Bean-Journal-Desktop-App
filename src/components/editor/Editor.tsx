@@ -13,32 +13,24 @@ import {
   ImageResizer,
   handleCommandNavigation,
   handleImageDrop,
-  handleImagePaste
+  handleImagePaste,
+  type SuggestionItem
 } from 'novel'
 
 import {
-  slashCommand,
-  suggestionItems
+  createSlashCommand,
 } from '@/components/editor/slash-command'
 import EditorMenu from '@/components/editor/editor-menu'
-import { uploadFn } from '@/components/editor/image-upload'
-import { defaultExtensions } from '@/components/editor/extensions'
+import { createUploadFn } from '@/components/editor/image-upload'
+import { createDefaultExtensions } from '@/components/editor/extensions'
 import { TextButtons } from '@/components/editor/selectors/text-button'
 import { LinkSelector } from '@/components/editor/selectors/link-selector'
 import { NodeSelector } from '@/components/editor/selectors/node-selector'
 import { MathSelector } from '@/components/editor/selectors/math-selector'
 import { ColorSelector } from '@/components/editor/selectors/color-selector'
-import { Placeholder } from '@tiptap/extension-placeholder'
 
 import { Separator } from '@/components/ui/separator'
-
-const extensions = [
-  ...defaultExtensions,
-  slashCommand,
-  Placeholder.configure({
-    placeholder: '/ for commands'
-  })
-]
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const defaultEditorContent = {
@@ -54,13 +46,23 @@ export const defaultEditorContent = {
 interface EditorProps {
   initialValue?: JSONContent
   onChange: (content: string) => void
+  supabase: SupabaseClient
+  userId: string
+  bucketName: string
 }
 
-export default function Editor({ initialValue, onChange }: EditorProps) {
+export default function Editor({ initialValue, onChange, supabase, userId, bucketName }: EditorProps) {
   const [openNode, setOpenNode] = useState(false)
   const [openColor, setOpenColor] = useState(false)
   const [openLink, setOpenLink] = useState(false)
   const [openAI, setOpenAI] = useState(false)
+
+  const currentUploadFn = createUploadFn(supabase, userId, bucketName)
+  const configuredSlashCommand = createSlashCommand(currentUploadFn)
+  const extensions = createDefaultExtensions(configuredSlashCommand)
+
+  // Get suggestion items for the command list from the configured slash command options
+  const itemsForCommandList: SuggestionItem[] = configuredSlashCommand.options.suggestion.items()
 
   return (
     <div className='relative w-full max-w-screen-lg'>
@@ -75,9 +77,9 @@ export default function Editor({ initialValue, onChange }: EditorProps) {
               keydown: (_view, event) => handleCommandNavigation(event)
             },
             handlePaste: (view, event) =>
-              handleImagePaste(view, event, uploadFn),
+              handleImagePaste(view, event, currentUploadFn),
             handleDrop: (view, event, _slice, moved) =>
-              handleImageDrop(view, event, moved, uploadFn),
+              handleImageDrop(view, event, moved, currentUploadFn),
             attributes: {
               class:
                 'prose dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl'
@@ -94,7 +96,7 @@ export default function Editor({ initialValue, onChange }: EditorProps) {
               No results
             </EditorCommandEmpty>
             <EditorCommandList>
-              {suggestionItems.map(item => (
+              {itemsForCommandList.map((item: SuggestionItem) => (
                 <EditorCommandItem
                   value={item.title}
                   onCommand={val => item.command?.(val)}

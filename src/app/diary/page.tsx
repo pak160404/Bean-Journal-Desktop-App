@@ -134,7 +134,6 @@ const DiaryPage = () => {
         title: "New Draft Diary", // Default title for new draft
         content: "", // Start with empty content
         is_draft: true, // Mark as draft
-        tag_ids: [], // Initialize with empty tags
       };
       const newDiaryEntry = await createJournalEntry(supabase, newEntryBasics as Partial<JournalEntry>);
       if (newDiaryEntry && newDiaryEntry.id) {

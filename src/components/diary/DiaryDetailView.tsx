@@ -5,6 +5,15 @@ import Editor, { defaultEditorContent } from '@/components/editor/Editor';
 import debounce from 'lodash/debounce';
 import { getTagsByUserId, getTagsForEntry, updateEntryTags } from '@/services/tagService';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { createMediaAttachment, getMediaAttachmentsByEntryId, deleteMediaAttachment } from '@/services/mediaAttachmentService';
+import { getPublicUrl, deleteFiles } from '@/services/storageService';
+
+// Local Tiptap Node interface for image URL extraction
+interface TiptapNode {
+  type?: string;
+  attrs?: { src?: string; [key: string]: unknown };
+  content?: TiptapNode[];
+}
 
 interface DiaryDetailViewProps {
   diary: JournalEntry;
@@ -33,6 +42,8 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary,
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [initialLoadedTagIds, setInitialLoadedTagIds] = useState<string[]>([]);
   const [isLoadingTags, setIsLoadingTags] = useState(false);
+
+  const BUCKET_NAME = 'media-attachments';
 
   // Helper function to determine text color based on background brightness (copied from DiaryCard for now)
   const getContrastColor = (hexcolor?: string): string => {
@@ -106,6 +117,98 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary,
 
       if (tagsActuallyChanged) {
         await updateEntryTags(supabase, userId, diary.id, tagsToUpdate);
+      }
+
+      // Process media attachments (syncing: add new, remove old)
+      if (currentContent && diary.id) {
+        try {
+          const parsedContent: TiptapNode = JSON.parse(currentContent);
+          const currentEditorImageUrls: string[] = [];
+          const extractImageUrls = (node: TiptapNode) => {
+            if (node.type === 'image' && node.attrs?.src) {
+              currentEditorImageUrls.push(node.attrs.src);
+            }
+            if (node.content && Array.isArray(node.content)) {
+              node.content.forEach(extractImageUrls);
+            }
+          };
+          extractImageUrls(parsedContent);
+
+          const existingAttachments = await getMediaAttachmentsByEntryId(supabase, diary.id);
+          const bucketBasePublicUrl = getPublicUrl(supabase, BUCKET_NAME, '').replace(/\/$/, ''); // Base URL for our bucket
+
+          // 1. Delete attachments and files no longer in the editor content
+          for (const attachment of existingAttachments) {
+            const attachmentPublicUrl = getPublicUrl(supabase, BUCKET_NAME, attachment.file_path);
+            if (!currentEditorImageUrls.includes(attachmentPublicUrl)) {
+              try {
+                await deleteFiles(supabase, BUCKET_NAME, [attachment.file_path]);
+                await deleteMediaAttachment(supabase, attachment.id!); // id should exist for existing attachments
+                console.log(`Deleted attachment and file: ${attachment.file_path}`);
+              } catch (deleteError) {
+                console.error(`Error deleting attachment or file ${attachment.file_path}:`, deleteError);
+              }
+            }
+          }
+
+          // 2. Add new attachments for images newly added to the editor
+          const refreshedExistingAttachments = await getMediaAttachmentsByEntryId(supabase, diary.id);
+          const refreshedExistingAttachmentFilePaths = refreshedExistingAttachments.map(att => att.file_path);
+
+          for (const imageUrl of currentEditorImageUrls) {
+            if (imageUrl.startsWith(bucketBasePublicUrl + '/')) { // Process only images from our bucket
+              const relativeFilePath = imageUrl.substring(bucketBasePublicUrl.length + 1);
+
+              if (!refreshedExistingAttachmentFilePaths.includes(relativeFilePath)) {
+                let fileSize = -1;
+                let fileNameOriginal = relativeFilePath.substring(relativeFilePath.lastIndexOf('/') + 1);
+                const underscoreIndex = fileNameOriginal.indexOf('_');
+                if (underscoreIndex > -1 && /^[0-9]+$/.test(fileNameOriginal.substring(0, underscoreIndex))) {
+                  fileNameOriginal = fileNameOriginal.substring(underscoreIndex + 1);
+                }
+
+                try {
+                  const response = await fetch(imageUrl, { method: 'HEAD', cache: 'no-store' });
+                  if (response.ok) {
+                    const contentLength = response.headers.get('Content-Length');
+                    if (contentLength) fileSize = parseInt(contentLength, 10);
+                    else console.warn(`Content-Length header missing for ${imageUrl}`);
+                  } else {
+                    console.warn(`HEAD request failed for ${imageUrl}: ${response.status}`);
+                  }
+                } catch (headError) {
+                  console.warn(`Failed to fetch image size for ${imageUrl}:`, headError);
+                }
+
+                let mimeType = 'application/octet-stream';
+                const extension = fileNameOriginal.split('.').pop()?.toLowerCase();
+                if (extension) {
+                  if (extension === 'jpg' || extension === 'jpeg') mimeType = 'image/jpeg';
+                  else if (extension === 'png') mimeType = 'image/png';
+                  else if (extension === 'gif') mimeType = 'image/gif';
+                  else if (extension === 'webp') mimeType = 'image/webp';
+                }
+
+                if (fileSize === -1) {
+                    console.warn(`Could not determine file size for ${imageUrl}. Storing as -1.`);
+                }
+
+                await createMediaAttachment(supabase, {
+                  entry_id: diary.id,
+                  user_id: userId,
+                  file_path: relativeFilePath,
+                  file_name_original: fileNameOriginal,
+                  file_type: 'image',
+                  mime_type: mimeType,
+                  file_size_bytes: fileSize,
+                });
+                console.log(`Created attachment for: ${relativeFilePath}`);
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error processing media attachments during save:", error);
+        }
       }
 
       const coreUpdates: Partial<JournalEntry> = {
@@ -298,10 +401,14 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({ diary, onUpdateDiary,
       
       <div className="flex-grow p-4 md:p-6 overflow-y-scroll">
         <Editor
+          key={lastSaved ? lastSaved.toISOString() : diary.id}
           initialValue={initialContent}
           onChange={(value) => {
             setContentForSave(value);
           }}
+          supabase={supabase}
+          userId={userId}
+          bucketName={BUCKET_NAME}
         />
       </div>
 
