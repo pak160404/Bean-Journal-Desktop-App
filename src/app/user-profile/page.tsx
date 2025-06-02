@@ -1,16 +1,47 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
-import { Edit3, Image as ImageIcon, Trash2, Share2, BarChart2, Settings, PlusCircle } from 'lucide-react';
+import { Edit3, Image as ImageIcon, Trash2, Share2, BarChart2, Settings, PlusCircle, CalendarDays, Smile, Tags as TagsIcon } from 'lucide-react';
 import { useClerk, useSession } from '@clerk/clerk-react';
 import ActivityCalendar from '@/components/ui/ActivityCalendar';
 import { getProfileByUserId } from '@/services/profileService';
 import { getJournalEntriesByUserId } from '@/services/journalEntryService';
-import type { Profile, JournalEntry } from '@/types/supabase';
+import { getTagsForEntry } from '@/services/tagService';
+import type { Profile, JournalEntry, Tag } from '@/types/supabase';
 import { createClerkSupabaseClient } from '@/utils/supabaseClient';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { Link } from '@tanstack/react-router';
 
 const defaultCoverBg = 'rgba(209, 213, 219, 0.5)';
+
+// Helper function to parse BlockNote JSON content
+// This is a simplified parser. A more robust one would handle various block types and styles.
+const parseBlockNoteJsonContent = (jsonContent: string | undefined | null): string => {
+  if (!jsonContent) return '';
+  try {
+    const blocks = JSON.parse(jsonContent);
+    let readableContent = '';
+    if (Array.isArray(blocks)) {
+      for (const block of blocks) {
+        if (block.type === 'paragraph' && Array.isArray(block.content)) {
+          for (const item of block.content) {
+            if (item.type === 'text' && typeof item.text === 'string') {
+              readableContent += item.text + ' '; // Add space between text items
+            }
+          }
+          readableContent += '\n'; // Add newline after each paragraph
+        }
+        // Add more conditions here to handle other block types (headings, lists, etc.)
+      }
+    }
+    return readableContent.trim();
+  } catch (error) {
+    console.error("Error parsing BlockNote JSON content:", error);
+    // Fallback to returning the original string if it's not valid JSON or parsing fails
+    // This is a basic fallback. Consider if the original string should be displayed if it's not JSON.
+    return typeof jsonContent === 'string' ? jsonContent : '';
+  }
+};
 
 const UserProfilePage = () => {
   const { user } = useClerk();
@@ -18,6 +49,8 @@ const UserProfilePage = () => {
   const [averageColor, setAverageColor] = useState<string>(defaultCoverBg);
   const [profileData, setProfileData] = useState<Profile | null>(null);
   const [latestDiary, setLatestDiary] = useState<JournalEntry | null>(null);
+  const [readableDiaryContent, setReadableDiaryContent] = useState<string>('');
+  const [latestDiaryTags, setLatestDiaryTags] = useState<Tag[]>([]);
 
   const activeSupabaseClient: SupabaseClient | null = useMemo(() => {
     if (session) {
@@ -35,9 +68,21 @@ const UserProfilePage = () => {
         .catch((error: Error) => console.error("Error fetching profile:", error));
 
       getJournalEntriesByUserId(activeSupabaseClient, user.id)
-        .then((data: JournalEntry[] | null) => {
+        .then(async (data: JournalEntry[] | null) => {
           if (data && data.length > 0) {
-            setLatestDiary(data[0]);
+            const diaryEntry = data.sort((a, b) => new Date(b.entry_timestamp).getTime() - new Date(a.entry_timestamp).getTime())[0];
+            setLatestDiary(diaryEntry);
+            setReadableDiaryContent(parseBlockNoteJsonContent(diaryEntry.content));
+            
+            if (diaryEntry.id && activeSupabaseClient) {
+              try {
+                const tags = await getTagsForEntry(activeSupabaseClient, diaryEntry.id);
+                setLatestDiaryTags(tags);
+              } catch (error) {
+                console.error("Error fetching tags for diary:", error);
+                setLatestDiaryTags([]);
+              }
+            }
           }
         })
         .catch((error: Error) => console.error("Error fetching journal entries:", error));
@@ -146,7 +191,7 @@ const UserProfilePage = () => {
     return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 dark:from-gray-800 dark:via-gray-900 dark:to-black">Loading profile...</div>;
   }
   
-  const userNameToDisplay = user.firstName || profileData?.username || user.username || 'User';
+  const userNameToDisplay = user.username || profileData?.username || 'User';
   let finalAvatarSrc = user.imageUrl || '/avatars/shadcn.jpg';
   if (finalAvatarSrc && finalAvatarSrc !== '/avatars/shadcn.jpg' && !finalAvatarSrc.includes('?')) { 
       const params = new URLSearchParams();
@@ -231,41 +276,74 @@ const UserProfilePage = () => {
                   </div>
                 </div>
 
-                {latestDiary ? (
-                  <div>
-                    <h2 className="text-xl font-semibold mb-3">Latest Diary</h2>
-                    <div className="bg-[#b1dc98]/30 dark:bg-purple-900/50 backdrop-blur-md p-4 rounded-lg shadow-lg relative">
-                      <div className="flex items-start space-x-3">
-                        {latestDiary.manual_mood_label && (
-                           <img src={`/images/moods/${latestDiary.manual_mood_label.toLowerCase().replace(' ', '-')}.png`} alt={latestDiary.manual_mood_label} className="w-12 h-12 rounded-full"/>
-                        )}
-                        <div>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                            {latestDiary.entry_timestamp ? new Date(latestDiary.entry_timestamp).toLocaleDateString('en-US', { day: '2-digit', weekday: 'short' }) : 'Date not available'} 
-                            {latestDiary.title && `- ${latestDiary.title}`}
-                            </p>
-                          <p className="text-sm leading-relaxed">
-                            {latestDiary.content}
+                {latestDiary && latestDiary.id ? (
+                  <Link 
+                    to="/journal/diary" 
+                    className="block cursor-pointer group"
+                  >
+                    <h2 className="text-xl font-semibold mb-3 text-[#2F2569] dark:text-gray-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Latest Diary</h2>
+                    <div className="bg-[#99BC85] dark:bg-[#7E9C6F] p-4 sm:p-6 rounded-lg shadow-xl relative text-gray-800 dark:text-gray-100 group-hover:shadow-2xl transition-shadow">
+                      <div className="grid grid-cols-12 gap-4 items-start">
+                        <div className="col-span-3 md:col-span-2 flex items-center justify-center">
+                          <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-300/50 dark:bg-gray-700/50 rounded-lg flex items-center justify-center">
+                            <ImageIcon size={32} className="text-gray-500" />
+                          </div>
+                        </div>
+
+                        <div className="col-span-9 md:col-span-7">
+                          {latestDiary.title && (
+                            <h3 className="text-lg sm:text-xl font-semibold mb-1 text-gray-900 dark:text-white">{latestDiary.title}</h3>
+                          )}
+                          <p className="text-sm sm:text-base leading-relaxed whitespace-pre-line line-clamp-3 group-hover:line-clamp-none">
+                            {readableDiaryContent || "Content not available."}
                           </p>
+                          {latestDiaryTags.length > 0 && (
+                            <div className="mt-3 flex flex-wrap gap-2 items-center">
+                              <TagsIcon size={16} className="text-gray-700 dark:text-gray-300" />
+                              {latestDiaryTags.map(tag => (
+                                <span key={tag.id} className="text-xs bg-white/50 dark:bg-black/20 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full">
+                                  {tag.name}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="col-span-12 md:col-span-3 flex flex-col items-center md:items-end mt-2 md:mt-0">
+                          {latestDiary.manual_mood_label && (
+                            <div className="flex flex-col items-center mb-2">
+                              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/30 dark:bg-slate-700/50 rounded-full flex items-center justify-center mb-1">
+                                <Smile size={24} className="text-gray-600 dark:text-gray-300" />
+                              </div>
+                              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">{latestDiary.manual_mood_label}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center text-xs sm:text-sm mt-6 text-gray-700 dark:text-gray-300">
+                            <CalendarDays size={14} className="mr-1.5" />
+                            <span>
+                              {latestDiary.entry_timestamp ? new Date(latestDiary.entry_timestamp).toLocaleDateString('en-US', { day: '2-digit', weekday: 'short', month: 'short' }) : 'Date unavailable'}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      <div className="absolute top-3 right-3 flex space-x-1">
-                        <Button variant="ghost" size="icon" className="w-7 h-7 text-gray-600 dark:text-gray-400 hover:bg-gray-200/50 dark:hover:bg-gray-700/50">
+
+                      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="icon" className="w-7 h-7 text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-black/20 rounded-full">
                           <Share2 size={16} />
                         </Button>
-                        <Button variant="ghost" size="icon" className="w-7 h-7 text-gray-600 dark:text-gray-400 hover:bg-gray-200/50 dark:hover:bg-gray-700/50">
+                        <Button variant="ghost" size="icon" className="w-7 h-7 text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-black/20 rounded-full">
                           <Edit3 size={16} />
                         </Button>
-                        <Button variant="ghost" size="icon" className="w-7 h-7 text-red-500 hover:bg-red-100/50 dark:hover:bg-red-900/40">
+                        <Button variant="ghost" size="icon" className="w-7 h-7 text-red-600 dark:text-red-400 hover:bg-red-100/50 dark:hover:bg-red-900/30 rounded-full">
                           <Trash2 size={16} />
                         </Button>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ) : (
                   <div>
                      <h2 className="text-xl font-semibold mb-3">Latest Diary</h2>
-                     <p className="text-sm text-gray-500">No diary entries yet.</p>
+                     <p className="text-sm text-gray-500 dark:text-gray-400">No diary entries yet or still loading...</p>
                   </div>
                 )}
               </div>
@@ -293,7 +371,7 @@ const UserProfilePage = () => {
                  <div>
                   <h3 className="text-lg font-semibold mb-2">Tags</h3>
                   <div className="p-4 bg-white/30 dark:bg-slate-800/40 backdrop-blur-md rounded-lg shadow-lg text-sm text-gray-600 dark:text-gray-400">
-                    <p>Trending tags or user's frequent tags will appear here.</p>
+                    <p>User's frequent tags will appear here.</p>
                   </div>
                 </div>
               </div>
