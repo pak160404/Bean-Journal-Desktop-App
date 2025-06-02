@@ -344,20 +344,30 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
             } else {
               // 1. Delete attachments and files no longer in the editor content
               for (const attachment of existingAttachments) {
-                const attachmentPublicUrl = `${bucketBasePublicUrl}/${attachment.file_path}`;
-
-                if (!currentEditorImageUrls.includes(attachmentPublicUrl)) {
+                if (!currentEditorImageUrls.includes(attachment.file_path)) {
                   try {
-                    await deleteFiles(supabase, BUCKET_NAME, [
-                      attachment.file_path,
-                    ]);
+                    let relativePathToDelete = "";
+                    if (attachment.file_path.startsWith(bucketBasePublicUrl + "/")) {
+                      relativePathToDelete = attachment.file_path.substring(
+                        bucketBasePublicUrl.length + 1
+                      );
+                    } else {
+                      console.warn(`Unexpected file_path format for attachment ID ${attachment.id}: ${attachment.file_path}. Attempting direct use as path.`);
+                      relativePathToDelete = attachment.file_path;
+                    }
+                    
+                    if (relativePathToDelete) {
+                        await deleteFiles(supabase, BUCKET_NAME, [
+                          relativePathToDelete,
+                        ]);
+                    }
                     await deleteMediaAttachment(supabase, attachment.id!);
                     console.log(
-                      `Deleted attachment and file: ${attachment.file_path}`
+                      `Deleted attachment record for ${attachment.file_path} and attempted to delete file ${relativePathToDelete}`
                     );
                   } catch (deleteError) {
                     console.error(
-                      `Error deleting attachment or file ${attachment.file_path}:`,
+                      `Error deleting attachment or file for ${attachment.file_path}:`,
                       deleteError
                     );
                   }
@@ -367,20 +377,15 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
               // 2. Add new attachments for images newly added to the editor
               const refreshedExistingAttachments =
                 await getMediaAttachmentsByEntryId(supabase, diary.id);
-              const refreshedExistingAttachmentFilePaths =
+              const refreshedExistingAttachmentUrls =
                 refreshedExistingAttachments.map((att) => att.file_path);
 
               for (const imageUrl of currentEditorImageUrls) {
-                if (imageUrl.startsWith(bucketBasePublicUrl + "/")) {
-                  const relativeFilePath = imageUrl.substring(
-                    bucketBasePublicUrl.length + 1
-                  );
-
-                  if (
-                    !refreshedExistingAttachmentFilePaths.includes(
-                      relativeFilePath
-                    )
-                  ) {
+                if (!refreshedExistingAttachmentUrls.includes(imageUrl)) {
+                  if (imageUrl.startsWith(bucketBasePublicUrl + "/")) {
+                    const relativeFilePath = imageUrl.substring(
+                      bucketBasePublicUrl.length + 1
+                    );
                     let fileSize = -1;
                     const fileNameOriginal = relativeFilePath.substring(
                       relativeFilePath.lastIndexOf("/") + 1
@@ -434,13 +439,15 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
                     await createMediaAttachment(supabase, {
                       entry_id: diary.id,
                       user_id: userId,
-                      file_path: relativeFilePath,
+                      file_path: imageUrl,
                       file_name_original: fileNameOriginal,
                       file_type: "image",
                       mime_type: mimeType,
                       file_size_bytes: fileSize,
                     });
-                    console.log(`Created attachment for: ${relativeFilePath}`);
+                    console.log(`Created attachment for URL: ${imageUrl}`);
+                  } else {
+                    console.log(`Skipping non-Supabase storage URL: ${imageUrl}`);
                   }
                 }
               }

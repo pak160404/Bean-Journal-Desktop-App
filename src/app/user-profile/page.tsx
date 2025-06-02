@@ -7,13 +7,13 @@ import {
   Trash2,
   Share2,
   BarChart2,
-  Settings,
   PlusCircle,
   CalendarDays,
   Smile,
   Tags as TagsIcon,
   Pin,
   Check,
+  SquareUserRound,
 } from "lucide-react";
 import { useClerk, useSession } from "@clerk/clerk-react";
 import ActivityCalendar from "@/components/ui/ActivityCalendar";
@@ -24,37 +24,50 @@ import type { Profile, JournalEntry, Tag } from "@/types/supabase";
 import { createClerkSupabaseClient } from "@/utils/supabaseClient";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Link } from "@tanstack/react-router";
+import PhotoGallery from "@/components/PhotoGallery";
 
 const defaultCoverBg = "rgba(209, 213, 219, 0.5)";
 
 // Helper function to parse BlockNote JSON content
-// This is a simplified parser. A more robust one would handle various block types and styles.
+// This function will now return an object: { textContent: string, imageUrl: string | null }
 const parseBlockNoteJsonContent = (
   jsonContent: string | undefined | null
-): string => {
-  if (!jsonContent) return "";
+): { textContent: string; imageUrl: string | null } => {
+  if (!jsonContent) return { textContent: "", imageUrl: null };
   try {
     const blocks = JSON.parse(jsonContent);
     let readableContent = "";
+    let firstImageUrl: string | null = null;
+
     if (Array.isArray(blocks)) {
       for (const block of blocks) {
         if (block.type === "paragraph" && Array.isArray(block.content)) {
           for (const item of block.content) {
             if (item.type === "text" && typeof item.text === "string") {
-              readableContent += item.text + " "; // Add space between text items
+              readableContent += item.text + " ";
             }
           }
-          readableContent += "\n"; // Add newline after each paragraph
+          readableContent += "\n";
+        } else if (
+          block.type === "image" &&
+          block.props &&
+          typeof block.props.url === "string"
+        ) {
+          if (!firstImageUrl) {
+            // Capture only the first image
+            firstImageUrl = block.props.url;
+          }
         }
         // Add more conditions here to handle other block types (headings, lists, etc.)
       }
     }
-    return readableContent.trim();
+    return { textContent: readableContent.trim(), imageUrl: firstImageUrl };
   } catch (error) {
     console.error("Error parsing BlockNote JSON content:", error);
-    // Fallback to returning the original string if it's not valid JSON or parsing fails
-    // This is a basic fallback. Consider if the original string should be displayed if it's not JSON.
-    return typeof jsonContent === "string" ? jsonContent : "";
+    return {
+      textContent: typeof jsonContent === "string" ? jsonContent : "",
+      imageUrl: null,
+    };
   }
 };
 
@@ -74,7 +87,11 @@ const UserProfilePage = () => {
     []
   );
   const [readableDiaryContent, setReadableDiaryContent] = useState<string>("");
+  const [latestDiaryImageUrl, setLatestDiaryImageUrl] = useState<string | null>(
+    null
+  );
   const [latestDiaryTags, setLatestDiaryTags] = useState<Tag[]>([]);
+  const [activeTab, setActiveTab] = useState<"overview" | "photos">("overview");
 
   const activeSupabaseClient: SupabaseClient | null = useMemo(() => {
     if (session) {
@@ -104,9 +121,9 @@ const UserProfilePage = () => {
             );
             const diaryEntry = sortedEntries[0];
             setLatestDiary(diaryEntry);
-            setReadableDiaryContent(
-              parseBlockNoteJsonContent(diaryEntry.content)
-            );
+            const parsedContent = parseBlockNoteJsonContent(diaryEntry.content);
+            setReadableDiaryContent(parsedContent.textContent);
+            setLatestDiaryImageUrl(parsedContent.imageUrl);
 
             if (diaryEntry.id && activeSupabaseClient) {
               try {
@@ -124,6 +141,7 @@ const UserProfilePage = () => {
             setUserJournalEntries([]);
             setLatestDiary(null);
             setReadableDiaryContent("");
+            setLatestDiaryImageUrl(null);
             setLatestDiaryTags([]);
           }
         })
@@ -335,254 +353,287 @@ const UserProfilePage = () => {
               <div className="mt-4 md:mt-0 flex space-x-2">
                 <Button
                   variant="outline"
-                  className="text-xs dark:text-gray-300 dark:border-gray-600"
+                  className="text-xs bg-[#b1dc98] dark:text-gray-300 dark:border-gray-600"
+                  onClick={() =>
+                    setActiveTab((prev) =>
+                      prev === "photos" ? "overview" : "photos"
+                    )
+                  }
                 >
-                  <ImageIcon size={14} className="mr-1.5" /> Photo
+                  {activeTab === "photos" ? (
+                    <div className="flex items-center">
+                      <ImageIcon size={14} className="mr-1.5" />
+                      Overview
+                    </div>
+                  ) : (
+                    <div className="flex items-center">
+                      <SquareUserRound size={14} className="mr-1.5" />
+                      Photo Gallery
+                    </div>
+                  )}
                 </Button>
                 <Button
                   variant="outline"
-                  className="text-xs dark:text-gray-300 dark:border-gray-600"
+                  className="text-xs bg-[#b1dc98] dark:text-gray-300 dark:border-gray-600"
                 >
                   <PlusCircle size={14} className="mr-1.5" /> New Page
                 </Button>
                 <Button className="text-xs bg-[#b1dc98] text-[#2F2569] hover:bg-[#a1cb88]">
                   <Edit3 size={14} className="mr-1.5" /> Edit Profile
                 </Button>
-                <Button
+                {/* <Button
                   variant="ghost"
                   size="icon"
                   className="dark:text-gray-300 dark:hover:bg-gray-700"
                 >
                   <Settings size={18} />
-                </Button>
+                </Button> */}
               </div>
             </div>
           </div>
 
           <div className="py-4 md:py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Profile</h3>
-                    <div className="relative overflow-hidden bg-white/30 dark:bg-slate-800/40 backdrop-blur-md rounded-lg shadow-lg">
-                      <img
-                        src={finalAvatarSrc}
-                        alt={userNameToDisplay}
-                        className="w-full h-40 object-cover"
-                      />
-                      <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 via-black/50 to-transparent">
-                        <span className="font-semibold text-base text-white block truncate">
-                          {userNameToDisplay}
-                        </span>
-                        <p className="text-xs text-gray-200 block truncate">
-                          {profileData?.email || "No bio available."}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Streak</h3>
-                    <div className="relative p-4 bg-[#F0F7F0] dark:bg-gray-700/30 backdrop-blur-md rounded-lg shadow-lg text-sm">
-                      <Pin
-                        size={24}
-                        className="absolute top-1 right-1 text-red-500 -rotate-45 opacity-70"
-                      />
-                      <div className="flex items-center space-x-3">
-                        <div className="w-16 h-16 bg-[#A8D5B0] rounded-full flex items-center justify-center relative dark:bg-[#6A9C78]">
-                          <div className="w-10 h-10 bg-[#70A970] rounded-tl-[50px] rounded-tr-[50px] rounded-bl-[30px] rounded-br-[30px] dark:bg-[#507D50]"></div>
-                          <div className="absolute w-4 h-2 border-b-2 border-t-2 border-l-2 border-r-2 rounded-b-full border-black/70 dark:border-white/70 bottom-[22px] left-1/2 transform -translate-x-1/2"></div>
-                          <span
-                            className="absolute text-2xl font-bold text-white"
-                            style={{
-                              top: "50%",
-                              left: "50%",
-                              transform: "translate(-50%, -50%)",
-                            }}
-                          >
-                            {currentStreak}
+            {activeTab === "overview" && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Profile</h3>
+                      <div className="relative overflow-hidden bg-white/30 dark:bg-slate-800/40 backdrop-blur-md rounded-lg shadow-lg">
+                        <img
+                          src={finalAvatarSrc}
+                          alt={userNameToDisplay}
+                          className="w-full h-40 object-cover"
+                        />
+                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 via-black/50 to-transparent">
+                          <span className="font-semibold text-base text-white block truncate">
+                            {userNameToDisplay}
                           </span>
+                          <p className="text-xs text-gray-200 block truncate">
+                            {profileData?.email || "No bio available."}
+                          </p>
                         </div>
-                        <span className="text-2xl font-bold text-[#6A9C78] dark:text-[#A8D5B0]">
-                          day streak!
-                        </span>
-                      </div>
-                      <div className="mt-4 flex justify-around items-end">
-                        {weekDaysForStreakCard.map((date, index) => {
-                          const dayIsStreaked = index >= 7 - currentStreak;
-                          return (
-                            <div
-                              key={index}
-                              className="flex flex-col items-center space-y-1"
-                            >
-                              <div
-                                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center
-                                ${
-                                  dayIsStreaked
-                                    ? "bg-[#A8D5B0] border-[#A8D5B0] dark:bg-[#6A9C78] dark:border-[#6A9C78]"
-                                    : "border-[#A8D5B0] bg-white/30 dark:border-[#6A9C78] dark:bg-transparent"
-                                }`}
-                              >
-                                {dayIsStreaked && (
-                                  <Check size={18} className="text-white" />
-                                )}
-                              </div>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {getDayAbbreviationForStreak(date)}
-                              </span>
-                            </div>
-                          );
-                        })}
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h2 className="text-xl font-semibold mb-3">
-                    Mood Stat This Week
-                  </h2>
-                  <div className="p-4 bg-white/30 dark:bg-slate-800/40 backdrop-blur-md rounded-lg shadow-lg">
-                    <BarChart2
-                      size={64}
-                      className="mx-auto text-gray-400 dark:text-gray-500"
-                    />
-                    <p className="text-center text-sm text-gray-500 mt-2">
-                      Mood chart will appear here.
-                    </p>
-                  </div>
-                </div>
-
-                {latestDiary && latestDiary.id ? (
-                  <Link
-                    to="/journal/diary"
-                    className="block cursor-pointer group"
-                  >
-                    <h2 className="text-xl font-semibold mb-3 text-[#2F2569] dark:text-gray-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                      Latest Diary
-                    </h2>
-                    <div className="bg-[#99BC85] dark:bg-[#7E9C6F] p-4 sm:p-6 rounded-lg shadow-xl relative text-gray-800 dark:text-gray-100 group-hover:shadow-2xl transition-shadow">
-                      <div className="grid grid-cols-12 gap-4 items-start">
-                        <div className="col-span-3 md:col-span-2 flex items-center justify-center">
-                          <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-300/50 dark:bg-gray-700/50 rounded-lg flex items-center justify-center">
-                            <ImageIcon size={32} className="text-gray-500" />
-                          </div>
-                        </div>
-
-                        <div className="col-span-9 md:col-span-7">
-                          {latestDiary.title && (
-                            <h3 className="text-lg sm:text-xl font-semibold mb-1 text-gray-900 dark:text-white">
-                              {latestDiary.title}
-                            </h3>
-                          )}
-                          <p className="text-sm sm:text-base leading-relaxed whitespace-pre-line line-clamp-3 group-hover:line-clamp-none">
-                            {readableDiaryContent || "Content not available."}
-                          </p>
-                          {latestDiaryTags.length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-2 items-center">
-                              <TagsIcon
-                                size={16}
-                                className="text-gray-700 dark:text-gray-300"
-                              />
-                              {latestDiaryTags.map((tag) => (
-                                <span
-                                  key={tag.id}
-                                  className="text-xs bg-white/50 dark:bg-black/20 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full"
-                                >
-                                  {tag.name}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="col-span-12 md:col-span-3 flex flex-col items-center md:items-end mt-2 md:mt-0">
-                          {latestDiary.manual_mood_label && (
-                            <div className="flex flex-col items-center mb-2">
-                              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/30 dark:bg-slate-700/50 rounded-full flex items-center justify-center mb-1">
-                                <Smile
-                                  size={24}
-                                  className="text-gray-600 dark:text-gray-300"
-                                />
-                              </div>
-                              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {latestDiary.manual_mood_label}
-                              </span>
-                            </div>
-                          )}
-                          <div className="flex items-center text-xs sm:text-sm mt-6 text-gray-700 dark:text-gray-300">
-                            <CalendarDays size={14} className="mr-1.5" />
-                            <span>
-                              {latestDiary.entry_timestamp
-                                ? new Date(
-                                    latestDiary.entry_timestamp
-                                  ).toLocaleDateString("en-US", {
-                                    day: "2-digit",
-                                    weekday: "short",
-                                    month: "short",
-                                  })
-                                : "Date unavailable"}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Streak</h3>
+                      <div className="relative p-4 bg-[#F0F7F0] dark:bg-gray-700/30 backdrop-blur-md rounded-lg shadow-lg text-sm">
+                        <Pin
+                          size={24}
+                          className="absolute top-1 right-1 text-red-500 -rotate-45 opacity-70"
+                        />
+                        <div className="flex items-center space-x-3">
+                          <div className="w-16 h-16 bg-[#A8D5B0] rounded-full flex items-center justify-center relative dark:bg-[#6A9C78]">
+                            <div className="w-10 h-10 bg-[#70A970] rounded-tl-[50px] rounded-tr-[50px] rounded-bl-[30px] rounded-br-[30px] dark:bg-[#507D50]"></div>
+                            <div className="absolute w-4 h-2 border-b-2 border-t-2 border-l-2 border-r-2 rounded-b-full border-black/70 dark:border-white/70 bottom-[22px] left-1/2 transform -translate-x-1/2"></div>
+                            <span
+                              className="absolute text-2xl font-bold text-white"
+                              style={{
+                                top: "50%",
+                                left: "50%",
+                                transform: "translate(-50%, -50%)",
+                              }}
+                            >
+                              {currentStreak}
                             </span>
                           </div>
+                          <span className="text-2xl font-bold text-[#6A9C78] dark:text-[#A8D5B0]">
+                            day streak!
+                          </span>
+                        </div>
+                        <div className="mt-4 flex justify-around items-end">
+                          {weekDaysForStreakCard.map((date, index) => {
+                            const dayIsStreaked = index >= 7 - currentStreak;
+                            return (
+                              <div
+                                key={index}
+                                className="flex flex-col items-center space-y-1"
+                              >
+                                <div
+                                  className={`w-8 h-8 rounded-full border-2 flex items-center justify-center
+                                  ${
+                                    dayIsStreaked
+                                      ? "bg-[#A8D5B0] border-[#A8D5B0] dark:bg-[#6A9C78] dark:border-[#6A9C78]"
+                                      : "border-[#A8D5B0] bg-white/30 dark:border-[#6A9C78] dark:bg-transparent"
+                                  }`}
+                                >
+                                  {dayIsStreaked && (
+                                    <Check size={18} className="text-white" />
+                                  )}
+                                </div>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {getDayAbbreviationForStreak(date)}
+                                </span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
-
-                      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="w-7 h-7 text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-black/20 rounded-full"
-                        >
-                          <Share2 size={16} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="w-7 h-7 text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-black/20 rounded-full"
-                        >
-                          <Edit3 size={16} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="w-7 h-7 text-red-600 dark:text-red-400 hover:bg-red-100/50 dark:hover:bg-red-900/30 rounded-full"
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
                     </div>
-                  </Link>
-                ) : (
-                  <div>
-                    <h2 className="text-xl font-semibold mb-3">Latest Diary</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      No diary entries yet or still loading...
-                    </p>
                   </div>
-                )}
-              </div>
 
-              <div className="lg:col-span-1 space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Activity</h3>
-                  <div className="p-4 bg-white/30 dark:bg-slate-800/40 backdrop-blur-md rounded-lg shadow-lg">
-                    <ActivityCalendar
-                      journalEntries={userJournalEntries}
-                      colors={{
-                        light: "#ebedf0",
-                        dark: "#161b22",
-                        noActivity: "rgba(209, 213, 219, 0.3)",
-                      }}
-                    />
-                    <p className="text-center text-xs text-gray-500 mt-2">
-                      {userJournalEntries.length > 0
-                        ? "Journal activity based on your entries."
-                        : "No activity data yet. Write some entries!"}
-                    </p>
+                  <div>
+                    <h2 className="text-xl font-semibold mb-3">
+                      Mood Stat This Week
+                    </h2>
+                    <div className="p-4 bg-white/30 dark:bg-slate-800/40 backdrop-blur-md rounded-lg shadow-lg">
+                      <BarChart2
+                        size={64}
+                        className="mx-auto text-gray-400 dark:text-gray-500"
+                      />
+                      <p className="text-center text-sm text-gray-500 mt-2">
+                        Mood chart will appear here.
+                      </p>
+                    </div>
+                  </div>
+
+                  {latestDiary && latestDiary.id ? (
+                    <Link
+                      to="/journal/diary"
+                      className="block cursor-pointer group"
+                    >
+                      <h2 className="text-xl font-semibold mb-3 text-[#2F2569] dark:text-gray-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                        Latest Diary
+                      </h2>
+                      <div className="bg-[#99BC85] dark:bg-[#7E9C6F] p-4 sm:p-6 rounded-lg shadow-xl relative text-gray-800 dark:text-gray-100 group-hover:shadow-2xl transition-shadow">
+                        <div className="grid grid-cols-12 gap-4 items-start">
+                          <div className="col-span-3 md:col-span-2 flex items-center justify-center">
+                            <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-300/50 dark:bg-gray-700/50 rounded-lg flex items-center justify-center overflow-hidden">
+                              {latestDiaryImageUrl ? (
+                                <img
+                                  src={latestDiaryImageUrl}
+                                  alt="Latest diary image"
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <ImageIcon
+                                  size={32}
+                                  className="text-gray-500"
+                                />
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="col-span-9 md:col-span-7">
+                            {latestDiary.title && (
+                              <h3 className="text-lg sm:text-xl font-semibold mb-1 text-gray-900 dark:text-white">
+                                {latestDiary.title}
+                              </h3>
+                            )}
+                            <p className="text-sm sm:text-base leading-relaxed whitespace-pre-line line-clamp-3 group-hover:line-clamp-none">
+                              {readableDiaryContent || "Content not available."}
+                            </p>
+                            {latestDiaryTags.length > 0 && (
+                              <div className="mt-3 flex flex-wrap gap-2 items-center">
+                                <TagsIcon
+                                  size={16}
+                                  className="text-gray-700 dark:text-gray-300"
+                                />
+                                {latestDiaryTags.map((tag) => (
+                                  <span
+                                    key={tag.id}
+                                    className="text-xs bg-white/50 dark:bg-black/20 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full"
+                                  >
+                                    {tag.name}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="col-span-12 md:col-span-3 flex flex-col items-center md:items-end mt-2 md:mt-0">
+                            {latestDiary.manual_mood_label && (
+                              <div className="flex flex-col items-center mb-2">
+                                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/30 dark:bg-slate-700/50 rounded-full flex items-center justify-center mb-1">
+                                  <Smile
+                                    size={24}
+                                    className="text-gray-600 dark:text-gray-300"
+                                  />
+                                </div>
+                                <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  {latestDiary.manual_mood_label}
+                                </span>
+                              </div>
+                            )}
+                            <div className="flex items-center text-xs sm:text-sm mt-6 text-gray-700 dark:text-gray-300">
+                              <CalendarDays size={14} className="mr-1.5" />
+                              <span>
+                                {latestDiary.entry_timestamp
+                                  ? new Date(
+                                      latestDiary.entry_timestamp
+                                    ).toLocaleDateString("en-US", {
+                                      day: "2-digit",
+                                      weekday: "short",
+                                      month: "short",
+                                    })
+                                  : "Date unavailable"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="w-7 h-7 text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-black/20 rounded-full"
+                          >
+                            <Share2 size={16} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="w-7 h-7 text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-black/20 rounded-full"
+                          >
+                            <Edit3 size={16} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="w-7 h-7 text-red-600 dark:text-red-400 hover:bg-red-100/50 dark:hover:bg-red-900/30 rounded-full"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
+                      </div>
+                    </Link>
+                  ) : (
+                    <div>
+                      <h2 className="text-xl font-semibold mb-3">
+                        Latest Diary
+                      </h2>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        No diary entries yet or still loading...
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="lg:col-span-1 space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Activity</h3>
+                    <div className="p-4 bg-white/30 dark:bg-slate-800/40 backdrop-blur-md rounded-lg shadow-lg">
+                      <ActivityCalendar
+                        journalEntries={userJournalEntries}
+                        colors={{
+                          light: "#ebedf0",
+                          dark: "#161b22",
+                          noActivity: "rgba(209, 213, 219, 0.3)",
+                        }}
+                      />
+                      <p className="text-center text-xs text-gray-500 mt-2">
+                        {userJournalEntries.length > 0
+                          ? "Journal activity based on your entries."
+                          : "No activity data yet. Write some entries!"}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
+            {activeTab === "photos" && activeSupabaseClient && user?.id && (
+              <PhotoGallery supabase={activeSupabaseClient} userId={user.id} />
+            )}
           </div>
         </div>
       </div>
