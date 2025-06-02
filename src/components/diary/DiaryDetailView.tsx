@@ -17,9 +17,27 @@ import { getPublicUrl, deleteFiles } from "@/services/storageService";
 import "@blocknote/core/fonts/inter.css";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
-import { useCreateBlockNote } from "@blocknote/react";
-import { PartialBlock, Block } from "@blocknote/core";
-import { v4 as uuidv4 } from 'uuid'; // For unique file names
+import {
+  BlockTypeSelectItem,
+  blockTypeSelectItems,
+  FormattingToolbar,
+  FormattingToolbarController,
+  getDefaultReactSlashMenuItems,
+  SuggestionMenuController,
+  useCreateBlockNote,
+  type DefaultReactSuggestionItem,
+} from "@blocknote/react";
+import {
+  PartialBlock,
+  Block,
+  BlockNoteSchema,
+  defaultBlockSpecs,
+  insertOrUpdateBlock,
+  filterSuggestionItems,
+} from "@blocknote/core";
+import { v4 as uuidv4 } from "uuid"; // For unique file names
+import { Alert } from "../editor/alert/alert";
+import { RiAlertFill } from "react-icons/ri";
 
 interface DiaryDetailViewProps {
   diary: JournalEntry;
@@ -42,8 +60,12 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
   supabase,
 }) => {
   const [editableTitle, setEditableTitle] = useState(diary.title || "");
-  const [currentEditorContentString, setCurrentEditorContentString] = useState<string | undefined>(undefined);
-  const [initialDiaryContentString, setInitialDiaryContentString] = useState<string | undefined>(undefined);
+  const [currentEditorContentString, setCurrentEditorContentString] = useState<
+    string | undefined
+  >(undefined);
+  const [initialDiaryContentString, setInitialDiaryContentString] = useState<
+    string | undefined
+  >(undefined);
 
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(
@@ -72,44 +94,92 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
     return yiq >= 128 ? "#000000" : "#FFFFFF";
   };
 
-  const handleFileUploadCallback = useCallback(async (file: File): Promise<string> => {
-    if (!supabase || !userId || !diary || !diary.id) {
-      console.error("Supabase client, userId, or diaryId not available for file upload.");
-      throw new Error("Upload context not ready. Ensure the diary entry is loaded.");
-    }
-    
-    const fileExtension = file.name.split('.').pop();
-    const uniqueFileName = `${uuidv4()}.${fileExtension}`; // Use UUID for unique names
-    const filePath = `${userId}/${diary.id}/${uniqueFileName}`;
+  const handleFileUploadCallback = useCallback(
+    async (file: File): Promise<string> => {
+      if (!supabase || !userId || !diary || !diary.id) {
+        console.error(
+          "Supabase client, userId, or diaryId not available for file upload."
+        );
+        throw new Error(
+          "Upload context not ready. Ensure the diary entry is loaded."
+        );
+      }
 
-    const { data, error } = await supabase.storage
-      .from(BUCKET_NAME)
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false, 
-      });
+      const fileExtension = file.name.split(".").pop();
+      const uniqueFileName = `${uuidv4()}.${fileExtension}`; // Use UUID for unique names
+      const filePath = `${userId}/${diary.id}/${uniqueFileName}`;
 
-    if (error) {
-      console.error("Error uploading file to Supabase Storage:", error);
-      throw new Error(`Storage upload failed: ${error.message}`);
-    }
-    
-    if (!data || !data.path) {
-        console.error("Upload successful but path is missing in response data.");
+      const { data, error } = await supabase.storage
+        .from(BUCKET_NAME)
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (error) {
+        console.error("Error uploading file to Supabase Storage:", error);
+        throw new Error(`Storage upload failed: ${error.message}`);
+      }
+
+      if (!data || !data.path) {
+        console.error(
+          "Upload successful but path is missing in response data."
+        );
         throw new Error("Storage upload failed: path missing in response.");
-    }
+      }
 
-    const { data: publicUrlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(data.path);
-    
-    if (!publicUrlData?.publicUrl) {
-         console.error("Error getting public URL for uploaded file:", data.path);
-         throw new Error("Failed to get public URL. File uploaded but cannot be displayed.");
-    }
-    return publicUrlData.publicUrl;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supabase, userId, diary?.id, BUCKET_NAME]);
+      const { data: publicUrlData } = supabase.storage
+        .from(BUCKET_NAME)
+        .getPublicUrl(data.path);
+
+      if (!publicUrlData?.publicUrl) {
+        console.error("Error getting public URL for uploaded file:", data.path);
+        throw new Error(
+          "Failed to get public URL. File uploaded but cannot be displayed."
+        );
+      }
+      return publicUrlData.publicUrl;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [supabase, userId, diary?.id, BUCKET_NAME]
+  );
+
+  const schema = BlockNoteSchema.create({
+    blockSpecs: {
+      // Adds all default blocks.
+      ...defaultBlockSpecs,
+      // Adds the Alert block.
+      alert: Alert,
+    },
+  });
+
+  // Slash menu item to insert an Alert block
+  const insertAlert = (editor: typeof schema.BlockNoteEditor) => ({
+    title: "Alert",
+    subtext: "Alert for emphasizing text",
+    onItemClick: () =>
+      // If the block containing the text caret is empty, `insertOrUpdateBlock`
+      // changes its type to the provided block. Otherwise, it inserts the new
+      // block below and moves the text caret to it. We use this function with an
+      // Alert block.
+      insertOrUpdateBlock(editor, {
+        type: "alert",
+      }),
+    aliases: [
+      "alert",
+      "notification",
+      "emphasize",
+      "warning",
+      "error",
+      "info",
+      "success",
+    ],
+    group: "Basic blocks",
+    icon: <RiAlertFill />,
+  });
 
   const editor = useCreateBlockNote({
+    schema,
     uploadFile: handleFileUploadCallback,
   });
 
@@ -141,39 +211,41 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
     let contentStrToStore: string;
 
     if (diary.content) {
-        try {
-            const parsed = JSON.parse(diary.content);
-            if (Array.isArray(parsed) && parsed.length > 0) { 
-                blocksToLoad = parsed;
-                contentStrToStore = diary.content;
-            } else if (Array.isArray(parsed) && parsed.length === 0) { // Handle empty array as valid empty content
-                blocksToLoad = defaultInitialBlocks;
-                contentStrToStore = defaultInitialContentString;
-            }
-            else {
-                console.warn("Diary content is not a valid BlockNote array, using default.");
-                blocksToLoad = defaultInitialBlocks;
-                contentStrToStore = defaultInitialContentString;
-            }
-        } catch (e) {
-            console.error("Failed to parse diary content, using default:", e);
-            blocksToLoad = defaultInitialBlocks;
-            contentStrToStore = defaultInitialContentString;
+      try {
+        const parsed = JSON.parse(diary.content);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          blocksToLoad = parsed;
+          contentStrToStore = diary.content;
+        } else if (Array.isArray(parsed) && parsed.length === 0) {
+          // Handle empty array as valid empty content
+          blocksToLoad = defaultInitialBlocks;
+          contentStrToStore = defaultInitialContentString;
+        } else {
+          console.warn(
+            "Diary content is not a valid BlockNote array, using default."
+          );
+          blocksToLoad = defaultInitialBlocks;
+          contentStrToStore = defaultInitialContentString;
         }
-    } else {
+      } catch (e) {
+        console.error("Failed to parse diary content, using default:", e);
         blocksToLoad = defaultInitialBlocks;
         contentStrToStore = defaultInitialContentString;
+      }
+    } else {
+      blocksToLoad = defaultInitialBlocks;
+      contentStrToStore = defaultInitialContentString;
     }
-    
+
     const currentDocString = JSON.stringify(editor.document);
     if (contentStrToStore !== currentDocString) {
-        editor.replaceBlocks(editor.document, blocksToLoad);
+      editor.replaceBlocks(editor.document, blocksToLoad);
     }
-    
-    setInitialDiaryContentString(contentStrToStore);
-    setCurrentEditorContentString(contentStrToStore); 
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    setInitialDiaryContentString(contentStrToStore);
+    setCurrentEditorContentString(contentStrToStore);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [diary?.id, diary?.content, editor]);
 
   const handleVideoModalCancel = () => {
@@ -202,11 +274,11 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
         : isoStringInput.toISOString();
     }
   };
-  
+
   const extractImageUrlsFromBN = (blocks: Block[]): string[] => {
     let urls: string[] = [];
     for (const block of blocks) {
-      if (block.type === "image" && typeof block.props?.url === 'string') {
+      if (block.type === "image" && typeof block.props?.url === "string") {
         urls.push(block.props.url);
       }
       if (block.children && Array.isArray(block.children)) {
@@ -251,7 +323,7 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
           try {
             const parsedBlocks: Block[] = JSON.parse(currentContentString);
             const currentEditorImageUrls = extractImageUrlsFromBN(parsedBlocks);
-            
+
             const existingAttachments = await getMediaAttachmentsByEntryId(
               supabase,
               diary.id
@@ -261,112 +333,117 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
               BUCKET_NAME,
               ""
             );
-            const bucketBasePublicUrl = rawBucketBasePublicUrl ? rawBucketBasePublicUrl.replace(/\/$/, "") : undefined;
+            const bucketBasePublicUrl = rawBucketBasePublicUrl
+              ? rawBucketBasePublicUrl.replace(/\/$/, "")
+              : undefined;
 
             if (!bucketBasePublicUrl) {
-                console.error("Could not determine bucket base public URL. Skipping media sync.");
+              console.error(
+                "Could not determine bucket base public URL. Skipping media sync."
+              );
             } else {
-                // 1. Delete attachments and files no longer in the editor content
-                for (const attachment of existingAttachments) {
-                  const attachmentPublicUrl = `${bucketBasePublicUrl}/${attachment.file_path}`;
-                  
-                  if (!currentEditorImageUrls.includes(attachmentPublicUrl)) {
-                    try {
-                      await deleteFiles(supabase, BUCKET_NAME, [
-                        attachment.file_path,
-                      ]);
-                      await deleteMediaAttachment(supabase, attachment.id!); 
-                      console.log(
-                        `Deleted attachment and file: ${attachment.file_path}`
-                      );
-                    } catch (deleteError) {
-                      console.error(
-                        `Error deleting attachment or file ${attachment.file_path}:`,
-                        deleteError
-                      );
-                    }
+              // 1. Delete attachments and files no longer in the editor content
+              for (const attachment of existingAttachments) {
+                const attachmentPublicUrl = `${bucketBasePublicUrl}/${attachment.file_path}`;
+
+                if (!currentEditorImageUrls.includes(attachmentPublicUrl)) {
+                  try {
+                    await deleteFiles(supabase, BUCKET_NAME, [
+                      attachment.file_path,
+                    ]);
+                    await deleteMediaAttachment(supabase, attachment.id!);
+                    console.log(
+                      `Deleted attachment and file: ${attachment.file_path}`
+                    );
+                  } catch (deleteError) {
+                    console.error(
+                      `Error deleting attachment or file ${attachment.file_path}:`,
+                      deleteError
+                    );
                   }
                 }
+              }
 
-                // 2. Add new attachments for images newly added to the editor
-                const refreshedExistingAttachments =
-                  await getMediaAttachmentsByEntryId(supabase, diary.id);
-                const refreshedExistingAttachmentFilePaths =
-                  refreshedExistingAttachments.map((att) => att.file_path);
+              // 2. Add new attachments for images newly added to the editor
+              const refreshedExistingAttachments =
+                await getMediaAttachmentsByEntryId(supabase, diary.id);
+              const refreshedExistingAttachmentFilePaths =
+                refreshedExistingAttachments.map((att) => att.file_path);
 
-                for (const imageUrl of currentEditorImageUrls) {
-                  if (imageUrl.startsWith(bucketBasePublicUrl + "/")) {
-                    const relativeFilePath = imageUrl.substring(
-                      bucketBasePublicUrl.length + 1
+              for (const imageUrl of currentEditorImageUrls) {
+                if (imageUrl.startsWith(bucketBasePublicUrl + "/")) {
+                  const relativeFilePath = imageUrl.substring(
+                    bucketBasePublicUrl.length + 1
+                  );
+
+                  if (
+                    !refreshedExistingAttachmentFilePaths.includes(
+                      relativeFilePath
+                    )
+                  ) {
+                    let fileSize = -1;
+                    const fileNameOriginal = relativeFilePath.substring(
+                      relativeFilePath.lastIndexOf("/") + 1
                     );
 
-                    if (
-                      !refreshedExistingAttachmentFilePaths.includes(
-                        relativeFilePath
-                      )
-                    ) {
-                      let fileSize = -1;
-                      const fileNameOriginal = relativeFilePath.substring(
-                        relativeFilePath.lastIndexOf("/") + 1
-                      );
-
-                      try {
-                        const response = await fetch(imageUrl, {
-                          method: "HEAD",
-                          cache: "no-store",
-                        });
-                        if (response.ok) {
-                          const contentLength =
-                            response.headers.get("Content-Length");
-                          if (contentLength) fileSize = parseInt(contentLength, 10);
-                          else
-                            console.warn(
-                              `Content-Length header missing for ${imageUrl}`
-                            );
-                        } else {
-                          console.warn(
-                            `HEAD request failed for ${imageUrl}: ${response.status}`
-                          );
-                        }
-                      } catch (headError) {
-                        console.warn(
-                          `Failed to fetch image size for ${imageUrl}:`,
-                          headError
-                        );
-                      }
-
-                      let mimeType = "application/octet-stream";
-                      const extension = fileNameOriginal
-                        .split(".")
-                        .pop()
-                        ?.toLowerCase();
-                      if (extension) {
-                        if (extension === "jpg" || extension === "jpeg")
-                          mimeType = "image/jpeg";
-                        else if (extension === "png") mimeType = "image/png";
-                        else if (extension === "gif") mimeType = "image/gif";
-                        else if (extension === "webp") mimeType = "image/webp";
-                      }
-
-                      if (fileSize === -1) {
-                        console.warn(
-                          `Could not determine file size for ${imageUrl}. Storing as -1.`
-                        );
-                      }
-                      
-                      await createMediaAttachment(supabase, {
-                        entry_id: diary.id,
-                        user_id: userId,
-                        file_path: relativeFilePath,
-                        file_name_original: fileNameOriginal,
-                        file_type: "image",
-                        mime_type: mimeType,
-                        file_size_bytes: fileSize,
+                    try {
+                      const response = await fetch(imageUrl, {
+                        method: "HEAD",
+                        cache: "no-store",
                       });
-                      console.log(`Created attachment for: ${relativeFilePath}`);
+                      if (response.ok) {
+                        const contentLength =
+                          response.headers.get("Content-Length");
+                        if (contentLength)
+                          fileSize = parseInt(contentLength, 10);
+                        else
+                          console.warn(
+                            `Content-Length header missing for ${imageUrl}`
+                          );
+                      } else {
+                        console.warn(
+                          `HEAD request failed for ${imageUrl}: ${response.status}`
+                        );
+                      }
+                    } catch (headError) {
+                      console.warn(
+                        `Failed to fetch image size for ${imageUrl}:`,
+                        headError
+                      );
                     }
+
+                    let mimeType = "application/octet-stream";
+                    const extension = fileNameOriginal
+                      .split(".")
+                      .pop()
+                      ?.toLowerCase();
+                    if (extension) {
+                      if (extension === "jpg" || extension === "jpeg")
+                        mimeType = "image/jpeg";
+                      else if (extension === "png") mimeType = "image/png";
+                      else if (extension === "gif") mimeType = "image/gif";
+                      else if (extension === "webp") mimeType = "image/webp";
+                    }
+
+                    if (fileSize === -1) {
+                      console.warn(
+                        `Could not determine file size for ${imageUrl}. Storing as -1.`
+                      );
+                    }
+
+                    await createMediaAttachment(supabase, {
+                      entry_id: diary.id,
+                      user_id: userId,
+                      file_path: relativeFilePath,
+                      file_name_original: fileNameOriginal,
+                      file_type: "image",
+                      mime_type: mimeType,
+                      file_size_bytes: fileSize,
+                    });
+                    console.log(`Created attachment for: ${relativeFilePath}`);
                   }
                 }
+              }
             }
           } catch (error) {
             console.error(
@@ -386,7 +463,7 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
 
         setLastSaved(new Date());
         setInitialLoadedTagIds([...tagsToUpdate]);
-        if(currentContentString !== undefined) {
+        if (currentContentString !== undefined) {
           setInitialDiaryContentString(currentContentString);
         }
         setHasUnsavedChanges(false);
@@ -405,7 +482,7 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
       onUpdateDiary,
       initialLoadedTagIds,
       selectedTagIds,
-      BUCKET_NAME
+      BUCKET_NAME,
     ]
   );
 
@@ -425,12 +502,16 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
   }, [diary.title, diary.id]);
 
   useEffect(() => {
-    if (currentEditorContentString === undefined || initialDiaryContentString === undefined) {
-        return;
+    if (
+      currentEditorContentString === undefined ||
+      initialDiaryContentString === undefined
+    ) {
+      return;
     }
 
     const titleChanged = editableTitle !== (diary.title || "");
-    const contentChanged = currentEditorContentString !== initialDiaryContentString;
+    const contentChanged =
+      currentEditorContentString !== initialDiaryContentString;
 
     let tagsHaveChangedVsSavedState = false;
     if (selectedTagIds.length !== initialLoadedTagIds.length) {
@@ -625,11 +706,64 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
       </header>
 
       <div className="flex-grow p-4 md:p-6 overflow-y-scroll">
-        {editor && <BlockNoteView editor={editor} theme="light" onChange={() => {
-          if (editor) {
-            setCurrentEditorContentString(JSON.stringify(editor.document));
-          }
-        }} />}
+        {editor && (
+          <BlockNoteView
+            editor={editor}
+            theme="light"
+            onChange={() => {
+              if (editor) {
+                setCurrentEditorContentString(JSON.stringify(editor.document));
+              }
+            }}
+          >
+            {/* Replaces the default Formatting Toolbar */}
+            <FormattingToolbarController
+              formattingToolbar={() => (
+                // Uses the default Formatting Toolbar.
+                <FormattingToolbar
+                  // Sets the items in the Block Type Select.
+                  blockTypeSelectItems={[
+                    // Gets the default Block Type Select items.
+                    ...blockTypeSelectItems(editor.dictionary),
+                    // Adds an item for the Alert block.
+                    {
+                      name: "Alert",
+                      type: "alert",
+                      icon: RiAlertFill,
+                      isSelected: (block) => block.type === "alert",
+                    } satisfies BlockTypeSelectItem,
+                  ]}
+                />
+              )}
+            />
+            {/* Replaces the default Slash Menu. */}
+            <SuggestionMenuController
+              triggerCharacter={"/"}
+              getItems={async (query) => {
+                // Gets all default slash menu items.
+                const defaultItems = getDefaultReactSlashMenuItems(editor);
+                // Finds index of last item in "Basic blocks" group.
+                let lastBasicBlockIndex = -1;
+                for (let i = defaultItems.length - 1; i >= 0; i--) {
+                  const item: DefaultReactSuggestionItem = defaultItems[i];
+                  if (item.group === "Basic blocks") {
+                    lastBasicBlockIndex = i;
+                    break;
+                  }
+                }
+                // Inserts the Alert item as the last item in the "Basic blocks" group.
+                defaultItems.splice(
+                  lastBasicBlockIndex + 1,
+                  0,
+                  insertAlert(editor)
+                );
+
+                // Returns filtered items based on the query.
+                return filterSuggestionItems(defaultItems, query);
+              }}
+            />
+          </BlockNoteView>
+        )}
       </div>
 
       {currentVideoUrl && (
