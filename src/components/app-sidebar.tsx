@@ -6,7 +6,6 @@ import {
   PieChart,
   Home,
   CheckSquare,
-  CreditCard,
   Palette,
   ShoppingBag,
   UserCircle,
@@ -246,52 +245,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     labelIcon={<ShoppingBag size={16} />}
                   >
                     <ThemeShopPage />
-                  </UserButton.UserProfilePage>
-                  <UserButton.UserProfilePage
-                    label="Billing"
-                    url="billing"
-                    labelIcon={<CreditCard size={16} />}
-                  >
-                    <div className="w-full">
-                      <h1 className="text-[1.05rem] font-bold text-gray-900 dark:text-white mb-2 border-b border-gray-200 dark:border-gray-700 pb-4">
-                        Billing Settings
-                      </h1>
-                      <p className="mt-4 mb-4 text-sm text-gray-600 dark:text-gray-400">
-                        Manage your subscription and payment methods
-                      </p>
-
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between border-b pb-3">
-                          <div className="text-sm">Current Plan</div>
-                          <div className="flex items-center gap-2">
-                            <span className="px-1.5 py-0.5 bg-green-100 text-green-800 rounded text-xs font-medium">
-                              Active
-                            </span>
-                            <span className="text-sm">Free Plan</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between border-b pb-3">
-                          <div className="text-sm">Payment Method</div>
-                          <button className="text-[#9645ff] text-xs font-medium">
-                            Add payment method
-                          </button>
-                        </div>
-
-                        <div className="flex items-center justify-between border-b pb-3">
-                          <div className="text-sm">Billing History</div>
-                          <div className="text-xs text-gray-500">
-                            No previous invoices
-                          </div>
-                        </div>
-
-                        <div className="flex justify-end pt-1">
-                          <button className="px-3 py-1.5 bg-[#9645ff] text-white rounded-md hover:bg-[#8435ef] text-xs font-medium">
-                            Upgrade Plan
-                          </button>
-                        </div>
-                      </div>
-                    </div>
                   </UserButton.UserProfilePage>
                 </UserButton>
               </div>
