@@ -1,9 +1,10 @@
 import React from 'react';
-import { JournalEntry } from '@/types/supabase'; // Import JournalEntry type
+import { JournalEntry, Profile } from '@/types/supabase'; // Import JournalEntry and Profile types
 import { useNavigate } from '@tanstack/react-router'; // Import useNavigate
 
 interface HeaderCardProps {
     journalEntries: JournalEntry[]; // Add journalEntries prop
+    userProfile: Profile; // Add userProfile prop
 }
 
 const HeaderCard: React.FC<HeaderCardProps> = ({ journalEntries }) => {

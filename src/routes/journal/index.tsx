@@ -5,283 +5,25 @@ import "@fontsource/readex-pro/600.css"; // Medium weight
 // import { CalendarIcon, ClockIcon } from "lucide-react"; // Assuming lucide-react for icons - Removed unused import
 import "react-day-picker/dist/style.css"; // Import default styles (we'll override)
 import { useState, useEffect, useMemo } from "react";
-import beanLogo from "@/images/logo_bean_journal.png";
+// import beanLogo from "@/images/logo_bean_journal.png"; // No longer needed here
 import HeaderCard from "@/components/journal/HeaderCard";
-import RecentCards from "@/components/journal/RecentCards";
-import CalendarSection, {
-  CalendarEvent,
-} from "@/components/journal/CalendarSection";
 import FloatingActionButton from "@/components/journal/FloatingActionButton";
 import DebugControls from "@/components/journal/DebugControls";
-import { Tag } from "../../types/supabase"; // Import Tag interface
-import TagCreateModal from "@/components/journal/TagCreateModal"; // Import the modal
-import TagEditModal from "@/components/journal/TagEditModal"; // Import the edit modal
-import ConfirmDeleteModal from "@/components/journal/ConfirmDeleteModal"; // Import the delete confirmation modal
-import { getTagsByUserId, createTag, updateTag, deleteTag } from "../../services/tagService"; // Import tag services
+import { Profile } from "../../types/supabase"; // Import Profile interface
+// import { StreakModal, StreakModalProps } from "../../components/journal/StreakModal"; // Now handled by StreakManagement
+import TagSection from "../../components/journal/TagSection"; // Import TagSection
 import { JournalEntry } from "../../types/supabase"; // Import JournalEntry interface
 import { getJournalEntriesByUserId } from "../../services/journalEntryService"; // Import journal entry services
+import { getProfileByUserId } from "../../services/profileService"; // Import profile services
 import { createClerkSupabaseClient } from "../../utils/supabaseClient"; // Import Supabase client creator
 import { useAuth } from "@clerk/clerk-react";
+import JournalCalendarSection from "../../components/journal/JournalCalendarSection"; // Import JournalCalendarSection
+import StreakManagement from "../../components/journal/StreakManagement"; // Import StreakManagement
 
 // Update the route path to make it a child of the journal root
 export const Route = createFileRoute("/journal/")({
   component: Homepage,
 });
-
-// Streak Modal Component
-interface StreakModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  streakDays: number;
-  activeDaysOfWeek: ("M" | "Tu" | "W" | "Th" | "F" | "Sa" | "Su")[];
-}
-
-function StreakModal({
-  isOpen,
-  onClose,
-  streakDays,
-  activeDaysOfWeek,
-}: StreakModalProps) {
-  if (!isOpen) return null;
-
-  const daysMap: Record<string, boolean> = {
-    M: activeDaysOfWeek.includes("M"),
-    Tu: activeDaysOfWeek.includes("Tu"),
-    W: activeDaysOfWeek.includes("W"),
-    Th: activeDaysOfWeek.includes("Th"),
-    F: activeDaysOfWeek.includes("F"),
-    Sa: activeDaysOfWeek.includes("Sa"),
-    Su: activeDaysOfWeek.includes("Su"),
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-2xl shadow-xl w-[600px] overflow-hidden transform transition-all">
-        <div className="p-8 flex flex-col items-center">
-          <div className="relative mb-8">
-            <img
-              src={beanLogo}
-              alt="Bean Logo"
-              className="w-48 h-48 scale-150 ml-[-1rem] mr-[1rem]"
-            />
-            <div className="absolute inset-0 mt-[5.75rem] flex items-center justify-center">
-              <span className="text-white text-6xl font-bold">
-                {streakDays}
-              </span>
-            </div>
-          </div>
-          <div className="flex justify-between w-full mb-8 px-8 font-montserrat font-bold">
-            <div className="flex flex-col items-center">
-              <span
-                className={`text-3xl mb-2 ${daysMap["M"] ? "text-[#A192F8]" : "text-[#ADA0F9]"}`}
-              >
-                M
-              </span>
-              <div
-                className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap["M"] ? "border-[#B6D78A]" : "border-[#DBDBDB]"}`}
-              >
-                {daysMap["M"] && (
-                  <svg
-                    width="16"
-                    height="12"
-                    viewBox="0 0 16 12"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1 6L6 11L15 1"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col items-center">
-              <span
-                className={`text-3xl mb-2 ${daysMap["Tu"] ? "text-[#A192F8]" : "text-[#ADA0F9]"}`}
-              >
-                Tu
-              </span>
-              <div
-                className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap["Tu"] ? "border-[#B6D78A]" : "border-[#DBDBDB]"}`}
-              >
-                {daysMap["Tu"] && (
-                  <svg
-                    width="16"
-                    height="12"
-                    viewBox="0 0 16 12"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1 6L6 11L15 1"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col items-center">
-              <span
-                className={`text-3xl mb-2 ${daysMap["W"] ? "text-[#A192F8]" : "text-[#ADA0F9]"}`}
-              >
-                W
-              </span>
-              <div
-                className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap["W"] ? "border-[#B6D78A]" : "border-[#DBDBDB]"}`}
-              >
-                {daysMap["W"] && (
-                  <svg
-                    width="16"
-                    height="12"
-                    viewBox="0 0 16 12"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1 6L6 11L15 1"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col items-center">
-              <span
-                className={`text-3xl mb-2 ${daysMap["Th"] ? "text-[#A192F8]" : "text-[#ADA0F9]"}`}
-              >
-                Th
-              </span>
-              <div
-                className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap["Th"] ? "border-[#B6D78A]" : "border-[#DBDBDB]"}`}
-              >
-                {daysMap["Th"] && (
-                  <svg
-                    width="16"
-                    height="12"
-                    viewBox="0 0 16 12"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1 6L6 11L15 1"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col items-center">
-              <span
-                className={`text-3xl mb-2 ${daysMap["F"] ? "text-[#2F2569]" : "text-[#ADA0F9]"}`}
-              >
-                F
-              </span>
-              <div
-                className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap["F"] ? "border-[#B6D78A] bg-[#B6D78A]" : "border-[#DBDBDB]"}`}
-              >
-                {daysMap["F"] && (
-                  <svg
-                    width="16"
-                    height="12"
-                    viewBox="0 0 16 12"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1 6L6 11L15 1"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col items-center">
-              <span
-                className={`text-3xl mb-2 ${daysMap["Sa"] ? "text-[#A192F8]" : "text-[#ADA0F9]"}`}
-              >
-                Sa
-              </span>
-              <div
-                className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap["Sa"] ? "border-[#B6D78A]" : "border-[#DBDBDB]"}`}
-              >
-                {daysMap["Sa"] && (
-                  <svg
-                    width="16"
-                    height="12"
-                    viewBox="0 0 16 12"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1 6L6 11L15 1"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col items-center">
-              <span
-                className={`text-3xl mb-2 ${daysMap["Su"] ? "text-[#A192F8]" : "text-[#ADA0F9]"}`}
-              >
-                Su
-              </span>
-              <div
-                className={`w-12 h-12 rounded-full border-4 flex items-center justify-center ${daysMap["Su"] ? "border-[#B6D78A]" : "border-[#DBDBDB]"}`}
-              >
-                {daysMap["Su"] && (
-                  <svg
-                    width="16"
-                    height="12"
-                    viewBox="0 0 16 12"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1 6L6 11L15 1"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </div>
-            </div>
-          </div>
-          <p className="text-[#2F2569] text-2xl mb-8 font-semibold">
-            Write down your Bean Journey everyday
-          </p>
-          <button
-            onClick={onClose}
-            className="w-full py-5 bg-[#E5D1FE] rounded-xl text-[#9645FF] text-2xl font-medium hover:bg-[#d9bbff] transition-colors"
-          >
-            Continue
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function Homepage() {
   const animationStyles = `
@@ -529,61 +271,44 @@ function Homepage() {
   // Memoize the Supabase client instance
   const supabase = useMemo(() => createClerkSupabaseClient(getToken), [getToken]);
 
-  const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
-  const [streakDays, setStreakDays] = useState(3);
-  const [activeDaysOfWeek, setActiveDaysOfWeek] = useState<
-    ("M" | "Tu" | "W" | "Th" | "F" | "Sa" | "Su")[]
-  >(["M", "Tu", "W"]);
-  const [showDebugButton, setShowDebugButton] = useState(true);
+  const [showDebugButton, setShowDebugButton] = useState(true);  const [debugStreakKey, setDebugStreakKey] = useState(0); // Key to force StreakManagement update
 
-  // Tag related state
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [isTagCreateModalOpen, setIsTagCreateModalOpen] = useState(false);
-  const [loadingTags, setLoadingTags] = useState(false);
-  const [tagError, setTagError] = useState<string | null>(null);
-  
-  // State for editing tags
-  const [editingTag, setEditingTag] = useState<Tag | null>(null);
-  const [isTagEditModalOpen, setIsTagEditModalOpen] = useState(false);
+  // Profile related state
+  const [userProfile, setUserProfile] = useState<Profile | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
-  // State for deleting tags
-  const [tagToDelete, setTagToDelete] = useState<Tag | null>(null);
-  const [isConfirmDeleteModalOpen, setIsConfirmDeleteModalOpen] = useState(false);
-  
-  // Journal Entry related state
+  // Journal Entry related state - partially kept for HeaderCard, main logic moved to JournalCalendarSection
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
   const [loadingJournalEntries, setLoadingJournalEntries] = useState(false);
   const [journalEntryError, setJournalEntryError] = useState<string | null>(null);
 
-  // Placeholder for current user ID - replace with actual user management logic
-  const currentUserId = userId; // Use userId from Clerk
-
-  // Fetch tags on component mount
+  // Fetch profile on component mount
   useEffect(() => {
-    const fetchTags = async () => {
-      if (!currentUserId) return;
-      setLoadingTags(true);
-      setTagError(null);
+    const fetchProfile = async () => {
+      if (!userId) return;
+      setLoadingProfile(true);
+      setProfileError(null);
       try {
-        const fetchedTags = await getTagsByUserId(supabase, currentUserId);
-        setTags(fetchedTags || []);
+        const profile = await getProfileByUserId(supabase, userId);
+        setUserProfile(profile);
       } catch (error) {
-        console.error("Failed to fetch tags:", error);
-        setTagError("Failed to load tags.");
+        console.error("Failed to fetch profile:", error);
+        setProfileError("Failed to load user profile.");
       }
-      setLoadingTags(false);
+      setLoadingProfile(false);
     };
-    fetchTags();
-  }, [currentUserId, supabase]);
+    fetchProfile();
+  }, [userId, supabase]);
 
   // Fetch journal entries on component mount
   useEffect(() => {
     const fetchJournalEntries = async () => {
-      if (!currentUserId) return;
+      if (!userId) return;
       setLoadingJournalEntries(true);
       setJournalEntryError(null);
       try {
-        const fetchedEntries = await getJournalEntriesByUserId(supabase, currentUserId);
+        const fetchedEntries = await getJournalEntriesByUserId(supabase, userId);
         setJournalEntries(fetchedEntries || []);
       } catch (error) {
         console.error("Failed to fetch journal entries:", error);
@@ -591,202 +316,15 @@ function Homepage() {
       }
       setLoadingJournalEntries(false);
     };
-    fetchJournalEntries();
-  }, [currentUserId, supabase]);
-
-  const handleCloseStreakModal = () => {
-    const now = new Date();
-    const currentDayIndex = now.getDay();
-    const dayMapping = ["Su", "M", "Tu", "W", "Th", "F", "Sa"] as const;
-    const today = dayMapping[currentDayIndex];
-
-    if (!activeDaysOfWeek.includes(today)) {
-      setActiveDaysOfWeek([...activeDaysOfWeek, today]);
+    if (supabase && userId) {
+        fetchJournalEntries();
     }
-    setIsStreakModalOpen(false);
-  };
-
-  useEffect(() => {
-    const checkFirstVisitOfDay = () => {
-      const lastVisit = localStorage.getItem("beanJourney_lastVisit");
-      const now = new Date();
-      const today = now.toISOString().split("T")[0];
-
-      if (!lastVisit || lastVisit !== today) {
-        let streak = Number(localStorage.getItem("beanJourney_streak") || "0");
-
-        if (lastVisit) {
-          const yesterday = new Date(now);
-          yesterday.setDate(yesterday.getDate() - 1);
-          const yesterdayStr = yesterday.toISOString().split("T")[0];
-
-          if (lastVisit !== yesterdayStr) {
-            streak = 1;
-          } else {
-            streak += 1;
-          }
-        } else {
-          streak = 1;
-        }
-
-        localStorage.setItem("beanJourney_streak", streak.toString());
-        localStorage.setItem("beanJourney_lastVisit", today);
-        setStreakDays(streak);
-
-        const currentDayIndex = now.getDay();
-        const mondayFirstIndex =
-          currentDayIndex === 0 ? 6 : currentDayIndex - 1;
-        const dayMapping = ["M", "Tu", "W", "Th", "F", "Sa", "Su"] as const;
-        const activeDays: typeof activeDaysOfWeek = [];
-
-        for (let i = 0; i < Math.min(streak, 7); i++) {
-          const dayIndex = (mondayFirstIndex - i + 7) % 7;
-          activeDays.unshift(dayMapping[dayIndex]);
-        }
-        setActiveDaysOfWeek(activeDays);
-        setIsStreakModalOpen(true);
-      }
-    };
-    checkFirstVisitOfDay();
-  }, []);
-
-  const handleAddNewTag = () => {
-    setIsTagCreateModalOpen(true);
-  };
-
-  const handleTagSubmit = async (tagData: {
-    name: string;
-    color_hex: string;
-  }) => {
-    if (!currentUserId) {
-      setTagError("User not identified. Cannot create tag.");
-      return;
-    }
-    setLoadingTags(true); // Reuse loading state for simplicity
-    setTagError(null);
-    try {
-      const newTag = await createTag(supabase, {
-        ...tagData,
-        user_id: currentUserId,
-        // id is generated by Supabase, is_ai_suggested defaults in DB
-      });
-      if (newTag) {
-        setTags((prevTags) => [...prevTags, newTag]);
-      }
-    } catch (error) {
-      console.error("Failed to create tag:", error);
-    }
-    setIsTagCreateModalOpen(false);
-    setLoadingTags(false);
-  };
-
-  // Placeholder functions for editing and deleting tags
-  const handleEditTag = (tag: Tag) => {
-    setEditingTag(tag);
-    setIsTagEditModalOpen(true);
-  };
-
-  const handleDeleteTag = (tagId: string) => {
-    const ttd = tags.find(t => t.id === tagId);
-    if (ttd) {
-        setTagToDelete(ttd);
-        setIsConfirmDeleteModalOpen(true);
-    }
-  };
-
-  const handleTagUpdate = async (tagData: Partial<Tag>) => {
-    if (!editingTag || !editingTag.id) {
-      setTagError("Tag to update not identified.");
-      return;
-    }
-    setLoadingTags(true);
-    setTagError(null);
-    try {
-      const updated = await updateTag(supabase, editingTag.id, tagData);
-      if (updated) {
-        setTags(prevTags => prevTags.map(t => t.id === updated.id ? updated : t));
-      }
-    } catch (error) {
-      console.error("Failed to update tag:", error);
-      setTagError("Failed to update tag.");
-    }
-    setIsTagEditModalOpen(false);
-    setEditingTag(null);
-    setLoadingTags(false);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!tagToDelete || !tagToDelete.id) {
-      setTagError("Tag to delete not identified.");
-      return;
-    }
-    setLoadingTags(true);
-    setTagError(null);
-    try {
-      await deleteTag(supabase, tagToDelete.id);
-      setTags(prevTags => prevTags.filter(t => t.id !== tagToDelete.id));
-    } catch (error) {
-      console.error("Failed to delete tag:", error);
-      setTagError("Failed to delete tag.");
-    }
-    setIsConfirmDeleteModalOpen(false);
-    setTagToDelete(null);
-    setLoadingTags(false);
-  };
-
-  const [currentMonth, setCurrentMonth] = useState(new Date()); // Use current date for initial month
-
-  // Transform journal entries for the calendar
-  const transformedCalendarEvents: CalendarEvent[] = useMemo(() => {
-    return journalEntries.map((entry) => {
-      // Basic mood to emoji/style mapping (can be expanded)
-      let emoji = "/images/bean-journey/figma/emoji_face_03.png"; // Neutral default
-      let emojiBg = "bg-[#E0E0E0]"; // Neutral default
-      let textBg = "bg-[#BDBDBD]"; // Neutral default
-      let currentMood: CalendarEvent['mood'] = "neutral"; // Default to neutral typed mood
-
-      // Use manual_mood_label from JournalEntry
-      const entryMood = entry.manual_mood_label?.toLowerCase();
-
-      if (entryMood === "amazing") {
-        emoji = "/images/bean-journey/figma/emoji_face_01.png";
-        emojiBg = "bg-[#FFEBF2]";
-        textBg = "bg-[#FCA7C4]";
-        currentMood = "amazing";
-      } else if (entryMood === "happy") {
-        emoji = "/images/bean-journey/figma/emoji_face_02.png";
-        emojiBg = "bg-[#E6F9F1]";
-        textBg = "bg-[#12A7F1]";
-        currentMood = "happy";
-      } else if (entryMood === "sad") {
-        emoji = "/images/bean-journey/figma/emoji_face_04.png";
-        emojiBg = "bg-[#E6F9F1]"; // Placeholder, update with actual sad color
-        textBg = "bg-[#FF4BEF]"; // Placeholder, update with actual sad color
-        currentMood = "sad";
-      } else if (entryMood === "mad") {
-        // Add mad mood assets if available, otherwise use neutral or another fallback
-        emoji = "/images/bean-journey/figma/emoji_face_mad.png"; // Example path
-        emojiBg = "bg-[#FFDDDD]"; // Example color
-        textBg = "bg-[#FF8888]"; // Example color
-        currentMood = "mad";
-      }
-      // Add more mood conditions as needed
-
-      return {
-        id: entry.id, // Add entry id
-        date: new Date(entry.entry_timestamp), // Use entry_timestamp
-        emoji: emoji,
-        text: entry.title ? entry.title.substring(0, 15) + "..." : "No title...",
-        emojiBg: emojiBg,
-        textBg: textBg,
-        mood: currentMood, // Use the correctly typed mood
-      };
-    });
-  }, [journalEntries]);
+  }, [userId, supabase]);
 
   const handleDebugClick = () => {
     localStorage.removeItem("beanJourney_lastVisit");
-    window.location.reload();
+    setDebugStreakKey(prevKey => prevKey + 1); // Increment key to trigger effect in StreakManagement
+    // window.location.reload(); // Removed page reload
   };
 
   const toggleDebugButton = () => {
@@ -797,64 +335,43 @@ function Homepage() {
     <>
       <style>{animationStyles}</style>
       <div className="h-[calc(100vh-100px)] overflow-auto px-4 bg-white dark:bg-[#1E1726] border-x-1 dark:border-x-2">
-        <HeaderCard journalEntries={journalEntries} />
-        {/* Display loading or error for tags */}
-        {loadingTags && (
-          <p className="text-center text-gray-500 py-4">Loading tags...</p>
+        {loadingProfile && (
+          <p className="text-center text-gray-500 py-4">Loading profile...</p>
         )}
-        {tagError && (
-          <p className="text-center text-red-500 py-4">{tagError}</p>
+        {profileError && (
+          <p className="text-center text-red-500 py-4">{profileError}</p>
         )}
-        {!loadingTags && !tagError && (
-          <RecentCards 
-            tags={tags} 
-            onAddNewTag={handleAddNewTag} 
-            onEditTag={handleEditTag}
-            onDeleteTag={handleDeleteTag}
-          />
+        {!loadingProfile && !profileError && userProfile && (
+          <HeaderCard journalEntries={journalEntries} userProfile={userProfile} />
         )}
-        {/* Display loading or error for journal entries */}
-        {loadingJournalEntries && (
-          <p className="text-center text-gray-500 py-4">Loading journal entries...</p>
+        {/* Render TagSection if supabase and userId are available */} 
+        {supabase && userId && <TagSection supabase={supabase} currentUserId={userId} />}
+
+        {/* Render JournalCalendarSection, passing fetched data and loading/error states */} 
+        {supabase && userId && (
+            <JournalCalendarSection 
+                journalEntries={journalEntries} 
+                loadingJournalEntries={loadingJournalEntries}
+                journalEntryError={journalEntryError}
+            />
         )}
-        {journalEntryError && (
-          <p className="text-center text-red-500 py-4">{journalEntryError}</p>
-        )}
-        {!loadingJournalEntries && !journalEntryError && (
-          <CalendarSection
-            events={transformedCalendarEvents} // Use transformed events
-            currentMonth={currentMonth}
-            setCurrentMonth={setCurrentMonth}
-          />
-        )}
+
         <DebugControls
           showDebugButton={showDebugButton}
           handleDebugClick={handleDebugClick}
           toggleDebugButton={toggleDebugButton}
         />
-        <StreakModal
-          isOpen={isStreakModalOpen}
-          onClose={handleCloseStreakModal}
-          streakDays={streakDays}
-          activeDaysOfWeek={activeDaysOfWeek}
-        />
-        <TagCreateModal
-          isOpen={isTagCreateModalOpen}
-          onClose={() => setIsTagCreateModalOpen(false)}
-          onSubmit={handleTagSubmit}
-        />
-        <TagEditModal 
-          isOpen={isTagEditModalOpen}
-          onClose={() => { setIsTagEditModalOpen(false); setEditingTag(null); }}
-          onSubmit={handleTagUpdate}
-          initialData={editingTag}
-        />
-        <ConfirmDeleteModal 
-          isOpen={isConfirmDeleteModalOpen}
-          onClose={() => { setIsConfirmDeleteModalOpen(false); setTagToDelete(null); }}
-          onConfirm={handleConfirmDelete}
-          itemName={tagToDelete?.name}
-        />
+        
+        {/* Render StreakManagement if supabase, userId and userProfile are available */} 
+        {supabase && userId && userProfile && (
+            <StreakManagement 
+                supabase={supabase} 
+                userId={userId} 
+                userProfile={userProfile} 
+                journalEntries={journalEntries} // Pass journal entries
+                debugStreakKey={debugStreakKey}   // Pass debug key
+            />
+        )}
         <FloatingActionButton />
       </div>
     </>
