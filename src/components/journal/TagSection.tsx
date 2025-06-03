@@ -134,12 +134,15 @@ const TagSection: React.FC<TagSectionProps> = ({ supabase, currentUserId }) => {
           onAddNewTag={handleAddNewTag}
           onEditTag={handleEditTag}
           onDeleteTag={handleDeleteTag}
+          supabase={supabase}
         />
       )}
       <TagCreateModal
         isOpen={isTagCreateModalOpen}
         onClose={() => setIsTagCreateModalOpen(false)}
         onSubmit={handleTagSubmit}
+        currentUserId={currentUserId!}
+        supabase={supabase}
       />
       <TagEditModal
         isOpen={isTagEditModalOpen}
@@ -149,6 +152,8 @@ const TagSection: React.FC<TagSectionProps> = ({ supabase, currentUserId }) => {
         }}
         onSubmit={handleTagUpdate}
         initialData={editingTag}
+        currentUserId={currentUserId!}
+        supabase={supabase}
       />
       <ConfirmDeleteModal
         isOpen={isConfirmDeleteModalOpen}

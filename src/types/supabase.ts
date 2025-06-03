@@ -53,7 +53,12 @@ export interface Tag {
   name: string; // TEXT NOT NULL
   color_hex?: string; // TEXT
   is_ai_suggested?: boolean; // BOOLEAN DEFAULT FALSE
+  icon_name?: string; // TEXT
+  icon_emoji?: string; // TEXT
+  image_path?: string; // TEXT
+  image_url_cached?: string; // TEXT
   created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+  updated_at?: string; // TIMESTAMPTZ DEFAULT NOW()
   // UNIQUE (user_id, name)
 }
 
