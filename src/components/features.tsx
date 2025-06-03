@@ -129,11 +129,11 @@ export function Features() {
     <div className="container my-[3rem]" ref={componentRef}>
       <div className="mb-20 text-center">
         <p className=" mb-2 font-medium text-neutral-500 text-sm uppercase">
-          How does it work ?
+          Discover Bean Journal
         </p>
 
         <h2 className="mb-4 font-semibold text-3xl text-neutral-800 tracking-tighter dark:text-neutral-300">
-          How to use the Easiest component librairy : Cuicui
+          Unlock Your Journaling Potential with Bean Journal
         </h2>
       </div>
       <div className=" grid grid-cols-1 gap-4 md:grid-cols-2">
