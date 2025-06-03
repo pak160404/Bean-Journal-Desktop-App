@@ -1,12 +1,14 @@
 "use client";
 
 import { createFileRoute } from "@tanstack/react-router";
-import { SignIn } from "@clerk/clerk-react"; // Import standard SignIn
 // import { BeanJournalLogo } from '@/components/icons/BeanJournalLogo'; // Assuming you have a logo component
 
 // TODO: Replace with actual Apple icon if desired
 // import { AppleIcon } from '@/components/icons'
 import logo_bean_journey from "@/images/logo_bean_journal.png";
+import { SignIn } from "@clerk/clerk-react";
+import Silk from "@/components/Silk/Silk";
+// import Silk from '@/components/effects/Silk'; // FIXME: Please verify the path to your Silk component and uncomment.
 
 export const Route = createFileRoute("/sign-in")({
   component: RouteComponent,
@@ -16,71 +18,81 @@ function RouteComponent() {
   const signUpUrl = import.meta.env.VITE_CLERK_SIGN_UP_URL || "/sign-up";
   const afterSignInUrl = import.meta.env.VITE_CLERK_AFTER_SIGN_IN_URL || "/journal";
 
+  const funFacts = [
+    "Journaling can reduce stress and improve your mood.",
+    "The world consumes over 2.25 billion cups of coffee every day.",
+    "Keeping a journal can boost your memory and cognitive functions.",
+    "Brazil is the largest coffee-producing country in the world.",
+    "Reflective writing in a journal can lead to better problem-solving skills.",
+  ];
+  const randomFact = funFacts[Math.floor(Math.random() * funFacts.length)];
+
   return (
-    <div className="grid min-h-screen place-items-center bg-gradient-to-b from-[#f6efff] to-[#ead6ff] px-4 py-10">
-      <div className="w-full max-w-sm space-y-6">
-        {" "}
-        {/* Adjusted max-width slightly */}
-        {/* 1. Your Custom Header */}
-        <div className="text-center">
-          <img
-            src={logo_bean_journey}
-            alt="Bean Journey Logo"
-            className="w-[6rem] h-[6rem] object-contain mx-auto"
-          />
-          <h1 className="text-xl font-publica-sans font-semibold tracking-tight text-gray-900">
-            Sign in to Bean Journal
-          </h1>
-          <p className="mt-1 font-mono text-sm text-gray-600">
-            Welcome back! Please sign in to continue
-          </p>
-        </div>
-        {/* 2. Clerk Sign In Component */}
-        <SignIn
-          routing="path"
-          path="/sign-in"
-          signUpUrl={signUpUrl}
-          afterSignInUrl={afterSignInUrl}
-          redirectUrl="/sign-in/sso-callback"
-          appearance={{
-            variables: {
-              colorPrimary: "#9645FF",
-              borderRadius: "1rem",
-              colorText: "#111827", // Darker text (like Tailwind gray-900)
-              colorTextSecondary: "#4B5563", // Medium gray text
-              colorInputText: "#111827",
-              colorBackground: "#ffffff", // Ensure card bg is white
-              fontFamily: "Publica Sans",
-            },
-            elements: {
-              rootBox: "bg-transparent",
-              card: {
-                backgroundColor: 'white',
-                border: 'none',
-                borderRadius: '1rem',
-                padding: '1.5rem 2rem',
-                boxShadow: 'none',
-                borderColor: 'transparent'
-              },
-              header: "hidden",
-              socialButtonsContainer: "mb-4 gap-4", // Add gap between social buttons
-              socialButtonsBlockButton:
-                "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl py-2", // Updated style
-              dividerRow: "my-5", // Adjust divider spacing
-              dividerText: "text-gray-500 text-xs",
-              formFieldLabel: "text-gray-800 text-sm font-medium mb-1",
-              formInput:
-                "bg-white border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-400 py-2", // Updated input style
-              formButtonPrimary:
-                "border border-[#9645FF] bg-white text-[#9645FF] hover:bg-purple-50 text-sm font-medium rounded-lg py-2.5", // Updated button style
-              alternativeMethodsContainer: "pt-4", // Spacing above footer link
-              footer: "bg-transparent pt-2", // Adjust footer container if needed
-              footerActionText: "text-sm text-gray-500",
-              footerActionLink:
-                "text-[#9645FF] hover:text-[#7d37d3] text-sm font-medium", // Updated sign up link style
-            },
-          }}
+    <div className="relative grid min-h-screen place-items-center px-4 py-10">
+      <div className="absolute inset-0 -z-10">
+        <Silk
+          speed={5}
+          scale={1}
+          color="#647E5D" // Dark green background
+          noiseIntensity={1.5}
+          rotation={0}
         />
+      </div>
+      {/* New "Glass Card" wrapper */}
+      <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-4 sm:p-6 md:p-8 w-full max-w-md sm:max-w-lg md:max-w-3xl lg:max-w-4xl overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-stretch w-full">
+
+          {/* Left Section: Text & Logo */}
+          <div className="flex flex-col items-center md:items-start text-center md:text-left py-4 md:flex-none md:w-2/5">
+            <img
+              src={logo_bean_journey}
+              alt="Bean Journey Logo"
+              className="w-[11rem] h-[11rem] object-contain md:mx-0 md:-ml-6 md:-mt-12"
+            />
+            <h1 className="mt-4 text-2xl sm:text-3xl font-publica-sans font-semibold tracking-tight text-white">
+              Sign in to Bean Journal
+            </h1>
+            <p className="mt-2 font-mono text-sm sm:text-base text-gray-200"> {/* Adjusted size slightly */}
+              Welcome back! Please sign in to continue
+            </p>
+            {/* Fun Fact Section */}
+            <div className="mt-8 p-4 bg-white/5 rounded-lg w-full max-w-xs md:max-w-sm text-center md:text-left">
+              <h3 className="font-semibold text-sm text-white/90 mb-1">Did you know?</h3>
+              <p className="text-xs text-gray-300/80 italic">{randomFact}</p>
+            </div>
+
+            {/* Key Features Section */}
+            <div className="mt-6 p-4 w-full max-w-xs md:max-w-sm text-center md:text-left">
+              <h3 className="font-semibold text-sm text-white/90 mb-2">What awaits you:</h3>
+              <ul className="space-y-1.5 text-xs text-gray-300/80 list-inside list-disc marker:text-green-300/70">
+                <li>Effortlessly log your daily reflections.</li>
+                <li>Track your mood and habits over time.</li>
+                <li>Gain insights with personalized statistics.</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Separator: Horizontal on mobile, Vertical on md+ */}
+          <div className="w-4/5 h-px bg-gray-400/30 my-6 self-center md:hidden"></div>
+          <div className="hidden md:block w-px bg-gray-400/30 self-stretch mx-4 sm:mx-6 lg:mx-8"></div>
+
+          {/* Right Section: Clerk Sign In Form */}
+          <div className="flex items-center justify-center py-4 pl-6 md:flex-1">
+            <SignIn
+              routing="path"
+              path="/sign-in"
+              signUpUrl={signUpUrl}
+              afterSignInUrl={afterSignInUrl}
+              redirectUrl="/sign-in/sso-callback"
+              appearance={{
+                elements: {
+                  rootBox: "bg-transparent w-full", // Updated
+                  header: "hidden",
+                },
+              }}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

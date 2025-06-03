@@ -3,6 +3,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { SignUp, useSignUp } from '@clerk/clerk-react';
 import logo_bean_journey from "@/images/logo_bean_journal.png";
+import Silk from "@/components/Silk/Silk";
 import { useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 
@@ -67,94 +68,81 @@ function RouteComponent() {
     }
   }, [isLoaded, signUp, navigate, signUpUrl]);
 
-  if (!isLoaded) {
-    return <div>Loading...</div>;
-  }
-
   return (
-    <div className="grid min-h-screen place-items-center bg-gradient-to-b from-[#f6efff] to-[#ead6ff] px-4 py-10">
-      <div className="w-full max-w-sm space-y-6">
-        {/* Custom Header */}
-        <div className="text-center">
-          <img
-            src={logo_bean_journey}
-            alt="Bean Journey Logo"
-            className="w-[6rem] h-[6rem] object-contain mx-auto"
-          />
-          <h1 className="text-xl font-semibold tracking-tight text-gray-900">
-            Complete your registration
-          </h1>
-          <p className="mt-1 text-sm text-gray-600">
-            You're almost there! Just a few more details.
-          </p>
-        </div>
+    <div className="relative grid min-h-screen place-items-center px-4 py-10">
+      <div className="absolute inset-0 -z-10">
+        <Silk
+          speed={5}
+          scale={1}
+          color="#647E5D"
+          noiseIntensity={1.5}
+          rotation={0}
+        />
+      </div>
+      <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-4 sm:p-6 md:p-8 w-full max-w-md sm:max-w-lg md:max-w-3xl lg:max-w-4xl overflow-hidden">
+        {!isLoaded ? (
+          <div className="text-center py-12">
+            <h2 className="text-xl sm:text-2xl text-white">Loading session...</h2>
+            <div className="mt-4 w-10 h-10 rounded-full border-4 border-t-purple-500 border-purple-200 animate-spin mx-auto"></div>
+          </div>
+        ) : (
+          <div className="flex flex-col md:flex-row md:items-stretch w-full">
+            <div className="flex flex-col items-center md:items-start text-center md:text-left py-4 md:flex-none md:w-2/5">
+              <img
+                src={logo_bean_journey}
+                alt="Bean Journey Logo"
+                className="w-[11rem] h-[11rem] object-contain md:mx-0 md:-ml-6 md:-mt-12"
+              />
+              <h1 className="mt-4 text-2xl sm:text-3xl font-publica-sans font-semibold tracking-tight text-white">
+                Complete your registration
+              </h1>
+              <p className="mt-2 font-mono text-sm sm:text-base text-gray-200">
+                You're almost there! Just a few more details.
+              </p>
+              <div className="mt-8 p-4 bg-white/5 rounded-lg w-full max-w-xs md:max-w-sm text-center md:text-left">
+                <p className="text-xs text-gray-300/80 italic">
+                  Finalize your account to start your Bean Journal journey.
+                </p>
+              </div>
+            </div>
 
-        {/* Debug info - will only show during development */}
-        {import.meta.env.DEV && (
-          <div className="bg-white p-4 rounded-lg border border-gray-200 text-xs overflow-auto max-h-40">
-            <pre>{debugInfo}</pre>
+            <div className="w-4/5 h-px bg-gray-400/30 my-6 self-center md:hidden"></div>
+            <div className="hidden md:block w-px bg-gray-400/30 self-stretch mx-4 sm:mx-6 lg:mx-8"></div>
+
+            <div className="flex flex-col items-center justify-center py-4 md:pl-6 md:flex-1">
+              {import.meta.env.DEV && (
+                <div className="w-full bg-white/20 p-3 rounded-md border border-gray-300/30 text-xs overflow-auto max-h-40 mb-4 shadow">
+                  <p className="text-white/80 text-sm font-semibold mb-1">Dev Debug Info:</p>
+                  <pre className="text-white/90 whitespace-pre-wrap break-all">{debugInfo}</pre>
+                </div>
+              )}
+              <SignUp
+                routing="path"
+                path="/sign-up/continue"
+                signInUrl={signInUrl}
+                afterSignUpUrl={afterSignUpUrl}
+                redirectUrl={afterSignUpUrl}
+                initialValues={{
+                  username: ''
+                }}
+                appearance={{
+                  elements: {
+                    rootBox: "bg-transparent w-full", // Updated
+                    header: "hidden",
+                  },
+                }}
+              />
+              <div className="text-center pt-6 w-full">
+                <button
+                  onClick={() => navigate({ to: signInUrl })}
+                  className="text-sm text-gray-300 hover:text-white hover:underline"
+                >
+                  Cancel and go to Sign In
+                </button>
+              </div>
+            </div>
           </div>
         )}
-
-        {/* Clerk SignUp Component */}
-        <SignUp
-          routing="path"
-          path="/sign-up/continue"
-          signInUrl={signInUrl}
-          afterSignUpUrl={afterSignUpUrl}
-          redirectUrl={afterSignUpUrl}
-          initialValues={{
-            // Force focus on username field if needed
-            username: ''
-          }}
-          appearance={{
-            variables: {
-              colorPrimary: '#9645FF',
-              borderRadius: '1rem',
-              colorText: '#111827',
-              colorTextSecondary: '#4B5563',
-              colorInputText: '#111827',
-              colorBackground: '#ffffff',
-              fontFamily: "Publica Sans",
-            },
-            elements: {
-              rootBox: 'bg-transparent',
-              card: {
-                backgroundColor: 'white',
-                border: 'none',
-                borderRadius: '1rem',
-                padding: '1.5rem 2rem',
-                boxShadow: 'none',
-                borderColor: 'transparent'
-              },
-              header: 'hidden',
-              socialButtonsContainer: 'mb-4 gap-4',
-              socialButtonsBlockButton:
-                'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl py-2',
-              dividerRow: 'my-5',
-              dividerText: 'text-gray-500 text-xs',
-              formFieldLabel: 'text-gray-800 text-sm font-medium mb-1',
-              formInput:
-                'bg-white border border-gray-300 rounded-lg focus:ring-1 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder:text-gray-400 py-2',
-              formButtonPrimary:
-                'border border-[#9645FF] bg-white text-[#9645FF] hover:bg-purple-50 text-sm font-medium rounded-lg py-2.5 shadow-sm',
-              alternativeMethodsContainer: 'pt-4',
-              footer: 'bg-transparent pt-2',
-              footerActionText: 'text-sm text-gray-500',
-              footerActionLink: 'text-[#9645FF] hover:text-[#7d37d3] text-sm font-medium',
-            }
-          }}
-        />
-
-        {/* Cancel option */}
-        <div className="text-center pt-2">
-          <button
-            onClick={() => navigate({ to: signInUrl })}
-            className="text-sm text-gray-500 hover:text-gray-700"
-          >
-            Cancel
-          </button>
-        </div>
       </div>
     </div>
   );
