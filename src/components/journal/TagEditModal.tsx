@@ -3,12 +3,15 @@ import { Tag } from '../../types/supabase';
 import { uploadFile, getPublicUrl } from '@/services/storageService';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
+import LucideIconPicker from '../common/LucideIconPicker';
+import { Icon } from "lucide-react";
+import { type LucideIconName, lucideIconNodes } from "@/utils/lucideIconNames";
 
 interface TagEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Partial<Tag>) => void;
-  initialData: Tag | null;
+  onSubmit: (data: Partial<Omit<Tag, 'icon_name'> & { icon_name?: LucideIconName }>) => void;
+  initialData: (Omit<Tag, 'icon_name'> & { icon_name?: LucideIconName | null }) | null;
   currentUserId: string;
   supabase: SupabaseClient;
 }
@@ -38,7 +41,7 @@ const TagEditModal: React.FC<TagEditModalProps> = ({
 }) => {
   const [tagName, setTagName] = useState('');
   const [tagColor, setTagColor] = useState(PredefinedColors[0]);
-  const [iconName, setIconName] = useState('');
+  const [iconName, setIconName] = useState<LucideIconName | ''>( '');
   const [iconEmoji, setIconEmoji] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
@@ -46,6 +49,7 @@ const TagEditModal: React.FC<TagEditModalProps> = ({
   const [removeCurrentImage, setRemoveCurrentImage] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showIconPicker, setShowIconPicker] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -72,6 +76,7 @@ const TagEditModal: React.FC<TagEditModalProps> = ({
       setRemoveCurrentImage(false);
       setIsUploading(false);
       setShowColorPicker(false);
+      setShowIconPicker(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -86,6 +91,7 @@ const TagEditModal: React.FC<TagEditModalProps> = ({
       setRemoveCurrentImage(false);
       setIsUploading(false);
       setShowColorPicker(false);
+      setShowIconPicker(false);
     }
   }, [isOpen, initialData, supabase]);
 
@@ -149,11 +155,11 @@ const TagEditModal: React.FC<TagEditModalProps> = ({
     }
 
     setIsUploading(true);
-    const updatePayload: Partial<Tag> = {
+    const updatePayload: Partial<Omit<Tag, 'icon_name'> & { icon_name?: LucideIconName }> = {
       id: initialData.id, // Essential for update
       name: tagName,
       color_hex: tagColor,
-      icon_name: iconName.trim() || undefined,
+      icon_name: iconName || undefined,
       icon_emoji: iconEmoji.trim() || undefined,
       // image_path and image_url_cached will be set below
     };
@@ -266,19 +272,39 @@ const TagEditModal: React.FC<TagEditModalProps> = ({
             )}
           </div>
 
-          {/* Icon Name */}
+          {/* Icon Name - Replaced with Lucide Icon Picker */}
           <div>
-            <label htmlFor={`editIconName-${initialData.id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Icon Name (Optional)
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Lucide Icon (Optional)
             </label>
-            <input
-                type="text"
-                id={`editIconName-${initialData.id}`}
-                value={iconName}
-                onChange={(e) => setIconName(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                placeholder="e.g., FaBook (from library)"
-            />
+            <div className="flex items-center space-x-2 mb-2">
+                {iconName && lucideIconNodes[iconName] && (
+                    <div className="p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700">
+                        <Icon
+                            iconNode={lucideIconNodes[iconName]}
+                            size={24} 
+                            className="text-gray-700 dark:text-gray-300" 
+                        />
+                    </div>
+                )}
+                <button
+                    type="button"
+                    onClick={() => setShowIconPicker(!showIconPicker)}
+                    className="px-4 py-2.5 text-sm font-medium text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-800 hover:bg-purple-200 dark:hover:bg-purple-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors"
+                >
+                    {showIconPicker ? 'Close Picker' : iconName ? 'Change Icon' : 'Choose Icon'}
+                </button>
+            </div>
+            {showIconPicker && (
+                <LucideIconPicker 
+                    onSelectIcon={(selectedName) => {
+                        setIconName(selectedName);
+                        setShowIconPicker(false);
+                    }}
+                    selectedIconName={iconName || undefined}
+                    onClose={() => setShowIconPicker(false)}
+                />
+            )}
           </div>
 
           {/* Icon Emoji */}
