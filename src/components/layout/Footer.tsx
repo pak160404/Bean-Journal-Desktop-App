@@ -131,13 +131,13 @@ export default function FooterSection() {
                         className="block size-fit">
                         <Logo />
                     </a>
-                    <div className="flex flex-wrap justify-center gap-6 text-sm">
+                    <div className="flex flex-wrap justify-center gap-6 mb-4 text-sm">
                         <a
                             href="#"
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label="X/Twitter"
-                            className="text-muted-foreground hover:text-primary block">
+                            className="hover:text-primary block">
                             <svg
                                 className="size-6"
                                 xmlns="http://www.w3.org/2000/svg"
@@ -154,7 +154,7 @@ export default function FooterSection() {
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label="LinkedIn"
-                            className="text-muted-foreground hover:text-primary block">
+                            className="hover:text-primary block">
                             <svg
                                 className="size-6"
                                 xmlns="http://www.w3.org/2000/svg"
@@ -171,7 +171,7 @@ export default function FooterSection() {
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label="Facebook"
-                            className="text-muted-foreground hover:text-primary block">
+                            className="hover:text-primary block">
                             <svg
                                 className="size-6"
                                 xmlns="http://www.w3.org/2000/svg"
@@ -188,7 +188,7 @@ export default function FooterSection() {
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label="Threads"
-                            className="text-muted-foreground hover:text-primary block">
+                            className="hover:text-primary block">
                             <svg
                                 className="size-6"
                                 xmlns="http://www.w3.org/2000/svg"
@@ -210,7 +210,7 @@ export default function FooterSection() {
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label="Instagram"
-                            className="text-muted-foreground hover:text-primary block">
+                            className="hover:text-primary block">
                             <svg
                                 className="size-6"
                                 xmlns="http://www.w3.org/2000/svg"
@@ -227,7 +227,7 @@ export default function FooterSection() {
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label="TikTok"
-                            className="text-muted-foreground hover:text-primary block">
+                            className="hover:text-primary block">
                             <svg
                                 className="size-6"
                                 xmlns="http://www.w3.org/2000/svg"
@@ -254,7 +254,7 @@ export default function FooterSection() {
                                     <a
                                         key={index}
                                         href={item.href}
-                                        className="text-muted-foreground hover:text-primary block duration-150">
+                                        className="text-[#99BC85] hover:text-primary block duration-150">
                                         <span>{item.title}</span>
                                     </a>
                                 ))}
@@ -274,16 +274,16 @@ export default function FooterSection() {
                                     id="mail"
                                     name="mail"
                                     placeholder="Your email"
-                                    className="h-8 text-sm"
+                                    className="h-8 text-sm placeholder:text-[#99BC85]"
                                 />
                                 <Button size="sm">Submit</Button>
                             </div>
-                            <span className="text-muted-foreground block text-sm">Don't miss any update!</span>
+                            <span className="text-[#99BC85] block text-sm">Don't miss any update!</span>
                         </div>
                     </form>
                 </div>
                 <div className="mt-12 flex flex-wrap items-end justify-between gap-6 border-t py-6">
-                    <small className="text-muted-foreground order-last block text-center text-sm md:order-first">© {new Date().getFullYear()} Tailark, All rights reserved</small>
+                    <small className="order-last block text-center text-sm md:order-first">© {new Date().getFullYear()} Pentpals, All rights reserved</small>
                     <form action="">
                         <div className="relative">
                             <ChevronsUpDown

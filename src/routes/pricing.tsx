@@ -1,5 +1,4 @@
 import { useRef, useEffect } from 'react';
-import Pricing from '@/components/pricing';
 import Comparator from '@/components/pricing-comparator';
 import { HeroHeader } from "@/components/hero5-header";
 
@@ -8,7 +7,8 @@ import '../landing-page-theme.css';
 import '../landing-page-app.css';
 import { createFileRoute } from '@tanstack/react-router';
 import Footer from '@/components/layout/Footer';
-
+import { PricingTable } from '@clerk/clerk-react';
+import Cta from '@/components/call-to-action';
 export const Route = createFileRoute('/pricing')({
   component: Index,
 })
@@ -30,10 +30,13 @@ function Index() {
       <HeroHeader />
 
       <main className="relative z-10 mt-[7rem]">
-        <Pricing />
+        <div className='max-w-5xl mx-auto mb-6 mt-[8rem]'>
+
+        <PricingTable /> 
+        </div>
         <Comparator />
       </main>
-
+      <Cta />
       <Footer />
 
     </div>

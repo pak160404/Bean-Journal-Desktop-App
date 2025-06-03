@@ -121,50 +121,7 @@
   border-color: hsl(var(--secondary)) !important;
 }
 
-/* Testimonial cards specific styling */
-.landing-page-theme .testimonial-card-selector, /* Old placeholder */
-.landing-page-theme section.py-16 .card /* Targeting cards within the testimonial section */ {
-    background-color: hsl(var(--card)) !important;
-    color: hsl(var(--card-foreground)) !important;
-    border-color: hsl(var(--border)) !important;
-}
 
-.landing-page-theme section.py-16 .card p,
-.landing-page-theme section.py-16 .card cite,
-.landing-page-theme section.py-16 .card span {
-  color: hsl(var(--card-foreground)) !important; /* Ensure text within cards uses card foreground */
-}
-.landing-page-theme section.py-16 .text-muted-foreground {
-    color: hsl(var(--muted-foreground)) !important;
-}
-
-/* Footer specific styling */
-.landing-page-theme footer,
-.landing-page-theme .footer-class-name /* Old placeholder */ {
-    background-color: hsl(var(--background)) !important; /* Or a specific footer bg */
-    color: hsl(var(--foreground)) !important;
-    border-color: hsl(var(--border)) !important; /* Added border color for consistency */
-}
-.landing-page-theme footer a {
-    color: hsl(var(--primary)) !important; /* Example: Footer links use primary color */
-}
-
-/* Specific override for the SVG logo text in the footer */
-.landing-page-theme footer a svg g path {
-    fill: hsl(var(--primary)) !important; /* Explicitly set path fill to primary */
-}
-/* Fallback if the above is too specific or if the g has overrides */
-.landing-page-theme footer a svg {
-    color: hsl(var(--primary)) !important; /* Ensure SVG itself inherits the link color */
-}
-.landing-page-theme footer a svg g {
-    fill: hsl(var(--primary)) !important; /* Override group's fill */
-    stroke: hsl(var(--primary)) !important; /* Override group's stroke if necessary */
-}
-
-.landing-page-theme footer .text-muted-foreground {
-    color: hsl(var(--muted-foreground)) !important; /* Ensure muted text in footer respects theme */
-}
 
 /* Styles for the dynamically created shooting star - dark color for light theme */
 .landing-page-theme .shooting-star {
