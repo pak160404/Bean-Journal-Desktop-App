@@ -3,7 +3,8 @@ import { TextEffect } from "@/components/ui/text-effect";
 import { AnimatedGroup } from "@/components/ui/animated-group";
 import LogoCloud from "@/components/logo-cloud";
 import { ArrowRight } from "lucide-react";
-import headerImage from "@/images/bean-journal.png";
+// import headerImage from "@/images/bean-journal.png"; // Commenting out as it will be replaced
+import ParallaxVideo from "@/components/parallax-video"; // Import the new component
 import React from "react";
 import { Link } from "@tanstack/react-router";
 // Infinite marquee component
@@ -229,7 +230,7 @@ export default function HeroSection() {
                   preset="fade-in-blur"
                   speedSegment={0.3}
                   as="h1"
-                  className="mt-8 text-balance text-6xl font-publica-sans md:text-7xl lg:mt-16 xl:text-[5.25rem]"
+                  className="z-10 mt-8 text-balance text-6xl font-publica-sans md:text-7xl lg:mt-16 xl:text-[5.25rem]"
                 >
                   Your Journal, Amplified: AI Video & Productivity Tools
                 </TextEffect>
@@ -306,20 +307,25 @@ export default function HeroSection() {
                 },
                 ...transitionVariants,
               }}
+              className="flex flex-col items-center"
             >
-              <div className="relative -mr-56 mt-8 overflow-hidden px-2 sm:mr-0 sm:mt-12 md:mt-20 [mask-image:linear-gradient(to_bottom,black_30%,transparent_100%)]">
+              <div className="relative w-full -mt-32 md:w-[130%] md:-mt-[30rem] overflow-hidden px-2 [mask-image:linear-gradient(to_bottom,black_70%,transparent_100%)]">
                 <div
                   aria-hidden
-                  className="bg-linear-to-b to-background absolute inset-0 z-10 from-transparent from-35%"
+                  className="absolute inset-0 bg-transparent"
                 />
-                <div className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background relative mx-auto max-w-7xl overflow-hidden rounded-2xl border shadow-lg shadow-zinc-950/15 ring-1">
+                <div className="w-full max-w-xl mx-auto mt-32 -mb-16 md:max-w-[110rem] md:ml-[17rem] md:mt-[30rem] md:-mb-[12rem] ring-background dark:inset-shadow-white/20 bg-transparent relative overflow-hidden shadow-zinc-950/15 ring-1">
                   <div className="relative">
-                    <img
+                    {/* <img
                       className="z-2 border-border/25 aspect-15/8 relative rounded-2xl border dark:hidden"
                       src={headerImage}
                       alt="app screen"
                       width="2700"
                       height="1440"
+                    /> */}
+                    <ParallaxVideo
+                      className="-z-50 aspect-15/8 relative dark:hidden"
+                      alt="App screen parallax video"
                     />
                   </div>
                 </div>
