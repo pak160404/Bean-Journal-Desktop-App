@@ -8,7 +8,7 @@ import { useState, useEffect, useMemo } from "react";
 // import beanLogo from "@/images/logo_bean_journal.png"; // No longer needed here
 import HeaderCard from "@/components/journal/HeaderCard";
 import FloatingActionButton from "@/components/journal/FloatingActionButton";
-import DebugControls from "@/components/journal/DebugControls";
+// import DebugControls from "@/components/journal/DebugControls";
 import { Profile } from "../../types/supabase"; // Import Profile interface
 // import { StreakModal, StreakModalProps } from "../../components/journal/StreakModal"; // Now handled by StreakManagement
 import TagSection from "../../components/journal/TagSection"; // Import TagSection
@@ -271,7 +271,7 @@ function Homepage() {
   // Memoize the Supabase client instance
   const supabase = useMemo(() => createClerkSupabaseClient(getToken), [getToken]);
 
-  const [showDebugButton, setShowDebugButton] = useState(true);  const [debugStreakKey, setDebugStreakKey] = useState(0); // Key to force StreakManagement update
+  // const [showDebugButton, setShowDebugButton] = useState(false);  const [debugStreakKey, setDebugStreakKey] = useState(0); // Key to force StreakManagement update
 
   // Profile related state
   const [userProfile, setUserProfile] = useState<Profile | null>(null);
@@ -321,15 +321,15 @@ function Homepage() {
     }
   }, [userId, supabase]);
 
-  const handleDebugClick = () => {
-    localStorage.removeItem("beanJourney_lastVisit");
-    setDebugStreakKey(prevKey => prevKey + 1); // Increment key to trigger effect in StreakManagement
-    // window.location.reload(); // Removed page reload
-  };
+  // const handleDebugClick = () => {
+  //   localStorage.removeItem("beanJourney_lastVisit");
+  //   setDebugStreakKey(prevKey => prevKey + 1); // Increment key to trigger effect in StreakManagement
+  //   // window.location.reload(); // Removed page reload
+  // };
 
-  const toggleDebugButton = () => {
-    setShowDebugButton((prev) => !prev);
-  };
+  // const toggleDebugButton = () => {
+  //   setShowDebugButton((prev) => !prev);
+  // };
 
   return (
     <>
@@ -356,11 +356,11 @@ function Homepage() {
             />
         )}
 
-        <DebugControls
+        {/* <DebugControls
           showDebugButton={showDebugButton}
           handleDebugClick={handleDebugClick}
           toggleDebugButton={toggleDebugButton}
-        />
+        /> */}
         
         {/* Render StreakManagement if supabase, userId and userProfile are available */} 
         {supabase && userId && userProfile && (
@@ -369,7 +369,7 @@ function Homepage() {
                 userId={userId} 
                 userProfile={userProfile} 
                 journalEntries={journalEntries} // Pass journal entries
-                debugStreakKey={debugStreakKey}   // Pass debug key
+                // debugStreakKey={debugStreakKey}   // Pass debug key
             />
         )}
         <FloatingActionButton />
