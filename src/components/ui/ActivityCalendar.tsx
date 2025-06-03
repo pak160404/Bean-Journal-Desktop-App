@@ -1,13 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { cn } from "@/utils/css";
-
-interface Activity {
-  date: string; // YYYY-MM-DD
-  level: number; // 0-4 (0: no activity, 4: high activity)
-}
+import type { JournalEntry } from '@/types/supabase'; // Added JournalEntry type import
 
 interface ActivityCalendarProps {
-  activityData?: Activity[];
+  journalEntries?: JournalEntry[]; // Changed activityData to journalEntries
   colors?: {
     light: string;
     dark: string;
@@ -41,18 +37,11 @@ const formatDate = (date: Date): string => {
   return date.toISOString().split('T')[0];
 };
 
-const generateMockActivity = (days: Date[]): Activity[] => {
-  return days.map(date => ({
-    date: formatDate(date),
-    level: Math.floor(Math.random() * 5),
-  }));
-};
-
 // Helper to get month names
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 const ActivityCalendar: React.FC<ActivityCalendarProps> = ({
-  activityData,
+  journalEntries, // Changed from activityData
   colors = defaultColors,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -97,6 +86,7 @@ const ActivityCalendar: React.FC<ActivityCalendarProps> = ({
         clearTimeout(debounceTimerRef.current);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [numberOfWeeks, MIN_WEEKS, DESIRED_WEEK_COLUMN_WIDTH]); // Added MIN_WEEKS and DESIRED_WEEK_COLUMN_WIDTH to dependencies as they are used in effect
 
   const numDaysToDisplay = useMemo(() => numberOfWeeks * 7, [numberOfWeeks]);
@@ -107,19 +97,41 @@ const ActivityCalendar: React.FC<ActivityCalendarProps> = ({
     return getPastNDays(numDaysToDisplay, currentEndDate);
   }, [numDaysToDisplay, currentEndDate]);
   
-  const dataToDisplay = useMemo(() => {
-    // console.log('Recalculating dataToDisplay');
-    return activityData || generateMockActivity(displayDays);
-  }, [activityData, displayDays]);
-
   const activityMap = useMemo(() => {
-    // console.log('Recalculating activityMap');
     const map = new Map<string, number>();
-    dataToDisplay.forEach(activity => {
-      map.set(activity.date, activity.level);
+    if (!journalEntries || journalEntries.length === 0) {
+      displayDays.forEach(day => {
+        map.set(formatDate(day), 0); // Default to 0 activity if no entries
+      });
+      return map;
+    }
+
+    const entryCountsByDate = new Map<string, number>();
+    journalEntries.forEach(entry => {
+      if (entry.entry_timestamp) {
+        const entryDateStr = formatDate(new Date(entry.entry_timestamp));
+        entryCountsByDate.set(entryDateStr, (entryCountsByDate.get(entryDateStr) || 0) + 1);
+      }
     });
+
+    displayDays.forEach(day => {
+      const dateStr = formatDate(day);
+      const count = entryCountsByDate.get(dateStr) || 0;
+      let level = 0;
+      if (count === 1) {
+        level = 1;
+      } else if (count === 2) {
+        level = 2;
+      } else if (count === 3) {
+        level = 3;
+      } else if (count >= 4) {
+        level = 4;
+      }
+      map.set(dateStr, level);
+    });
+
     return map;
-  }, [dataToDisplay]);
+  }, [displayDays, journalEntries]);
 
   const getColorForLevel = (level: number | undefined): string => {
     const currentColors = { ...defaultColors, ...colors };
@@ -215,6 +227,7 @@ const ActivityCalendar: React.FC<ActivityCalendarProps> = ({
         labels.push({ name: monthNames[displayDays[0].getMonth()], startColumn: 0, span: WEEKS_IN_DATA_PERIOD });
     }
     return labels.filter(label => label.span > 0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayDays, numberOfWeeks, actualColumnsToRenderValue]); // Added actualColumnsToRenderValue
 
 

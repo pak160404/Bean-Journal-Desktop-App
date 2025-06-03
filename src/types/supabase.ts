@@ -13,6 +13,7 @@ export interface Profile {
   user_level?: number; // INT DEFAULT 1
   current_journal_streak?: number; // INT DEFAULT 0
   longest_journal_streak?: number; // INT DEFAULT 0
+  last_entry_date?: string; // TIMESTAMPTZ - Adding this field for streak calculation
   preferences?: Record<string, unknown>; // JSONB
   created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
   updated_at?: string; // TIMESTAMPTZ DEFAULT NOW()
@@ -52,7 +53,12 @@ export interface Tag {
   name: string; // TEXT NOT NULL
   color_hex?: string; // TEXT
   is_ai_suggested?: boolean; // BOOLEAN DEFAULT FALSE
+  icon_name?: string; // TEXT
+  icon_emoji?: string; // TEXT
+  image_path?: string; // TEXT
+  image_url_cached?: string; // TEXT
   created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
+  updated_at?: string; // TIMESTAMPTZ DEFAULT NOW()
   // UNIQUE (user_id, name)
 }
 
