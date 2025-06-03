@@ -7,6 +7,7 @@ import { ArrowRight } from "lucide-react";
 import ParallaxVideo from "@/components/parallax-video"; // Import the new component
 import React from "react";
 import { Link } from "@tanstack/react-router";
+import { useAuth } from "@clerk/clerk-react"; // Added import
 // Infinite marquee component
 interface InfiniteMarqueeProps {
   thickness?: string;
@@ -160,6 +161,7 @@ const transitionVariants = {
 };
 
 export default function HeroSection() {
+  const { isSignedIn } = useAuth(); // Added to get auth state
   return (
     <>
       <main className="overflow-hidden">
@@ -202,7 +204,7 @@ export default function HeroSection() {
             </AnimatedGroup>
             <div className="absolute inset-0 -z-10 size-full [background:radial-gradient(125%_125%_at_50%_100%,transparent_0%,var(--color-background)_75%)]"></div>
             <div className="mx-auto max-w-7xl px-6">
-              <div className="text-center sm:mx-auto lg:mr-auto lg:mt-0">
+              <div className="text-center sm:mx-auto lg:mr-auto lg:mt-0 relative z-10">
                 <AnimatedGroup variants={transitionVariants}>
                   <a
                     href="#link"
@@ -271,7 +273,7 @@ export default function HeroSection() {
                       size="lg"
                       className="rounded-xl px-5 text-base"
                     >
-                      <Link to="/sign-in">
+                      <Link to={isSignedIn ? "/journal" : "/sign-in"}>
                         <span className="text-nowrap font-publica-sans">
                           Get Started
                         </span>
