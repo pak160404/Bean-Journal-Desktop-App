@@ -58,7 +58,7 @@ const data = {
     },
     {
       title: "ToDo List",
-      url: "/todo",
+      url: "/journal/todo",
       icon: CheckSquare,
       items: [],
     },
