@@ -41,6 +41,7 @@ import { RiAlertFill } from "react-icons/ri";
 import { TodoItem } from "../editor/todo/todoItem"; // Import TodoItem
 import { createTodoItem, updateTodoItem, getTodoItemsByEntryId, deleteTodoItem } from "@/services/todoItemService"; // Import services
 import { BsCheck2Square } from "react-icons/bs"; // Icon for the slash command
+import MoodSelector from "./MoodSelector";
 
 interface DiaryDetailViewProps {
   diary: JournalEntry;
@@ -69,6 +70,8 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
   const [initialDiaryContentString, setInitialDiaryContentString] = useState<
     string | undefined
   >(undefined);
+  const [currentSelectedMood, setCurrentSelectedMood] = useState<string | undefined | null>(diary.manual_mood_label);
+  const [initialMoodLabel, setInitialMoodLabel] = useState<string | undefined | null>(diary.manual_mood_label);
 
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(
@@ -299,6 +302,11 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [diary?.id, diary?.content, editor]);
 
+  useEffect(() => {
+    setCurrentSelectedMood(diary.manual_mood_label);
+    setInitialMoodLabel(diary.manual_mood_label);
+  }, [diary.manual_mood_label, diary.id]);
+
   const handleVideoModalCancel = () => {
     setIsVideoModalVisible(false);
     setCurrentVideoUrl(null);
@@ -343,7 +351,8 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
     async (
       currentTitle: string,
       currentContentString?: string,
-      tagIdsForSave?: string[]
+      tagIdsForSave?: string[],
+      moodToSave?: string | undefined | null
     ) => {
       if (!diary.id || !userId || !supabase) {
         console.error("Cannot save, diary ID or user ID is missing.");
@@ -570,6 +579,7 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
           content: currentContentString || defaultInitialContentString,
           is_draft: false,
           updated_at: new Date().toISOString(),
+          manual_mood_label: moodToSave === null ? undefined : moodToSave,
         };
         await onUpdateDiary(coreUpdates);
 
@@ -578,6 +588,7 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
         if (currentContentString !== undefined) {
           setInitialDiaryContentString(currentContentString);
         }
+        setInitialMoodLabel(moodToSave);
         setHasUnsavedChanges(false);
       } catch (error) {
         console.error("Error saving diary:", error);
@@ -601,8 +612,8 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
   const debouncedSave = useMemo(
     () =>
       debounce(
-        (newTitle: string, newContentString?: string, newTagIds?: string[]) => {
-          handleSave(newTitle, newContentString, newTagIds);
+        (newTitle: string, newContentString?: string, newTagIds?: string[], newMood?: string | undefined | null) => {
+          handleSave(newTitle, newContentString, newTagIds, newMood);
         },
         2000
       ),
@@ -625,6 +636,8 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
     const contentChanged =
       currentEditorContentString !== initialDiaryContentString;
 
+    const moodChanged = currentSelectedMood !== initialMoodLabel;
+
     let tagsHaveChangedVsSavedState = false;
     if (selectedTagIds.length !== initialLoadedTagIds.length) {
       tagsHaveChangedVsSavedState = true;
@@ -636,9 +649,9 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
       );
     }
 
-    if (titleChanged || contentChanged || tagsHaveChangedVsSavedState) {
+    if (titleChanged || contentChanged || tagsHaveChangedVsSavedState || moodChanged) {
       setHasUnsavedChanges(true);
-      debouncedSave(editableTitle, currentEditorContentString, selectedTagIds);
+      debouncedSave(editableTitle, currentEditorContentString, selectedTagIds, currentSelectedMood);
     } else {
       setHasUnsavedChanges(false);
       debouncedSave.cancel();
@@ -655,6 +668,8 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
     initialLoadedTagIds,
     diary.title,
     debouncedSave,
+    currentSelectedMood,
+    initialMoodLabel,
   ]);
 
   const showDeleteConfirm = () => {
@@ -749,6 +764,13 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
                   </span>
                 );
               }}
+            />
+          </div>
+          <div className="mt-3">
+            <h3 className="text-sm font-medium text-slate-500 mb-1" style={{ fontFamily: 'Readex Pro, sans-serif' }}>How are you feeling?</h3>
+            <MoodSelector
+                selectedMoodValue={currentSelectedMood}
+                onMoodSelect={(moodVal) => setCurrentSelectedMood(moodVal)}
             />
           </div>
           {diary.entry_timestamp && (
