@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { JournalEntry, Tag } from "@/types/supabase";
 import { Modal as AntModal, Select } from "antd";
 import debounce from "lodash/debounce";
+import type { TodoItem as TodoItemType } from "@/types/supabase";
 import {
   getTagsByUserId,
   getTagsForEntry,
@@ -400,16 +401,25 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
                   const blockIsCompleted = block.props.checked === "true";
                   const blockPriority = parseInt(block.props.priority || "0", 10); // Get priority from block, default to 0
                   
-                  if (
-                    dbTodo.task_description !== blockContentText || 
-                    dbTodo.is_completed !== blockIsCompleted ||
-                    dbTodo.priority !== blockPriority // Compare priority
-                  ) {
-                    await updateTodoItem(supabase, block.props.todoId as string, {
-                      task_description: blockContentText, 
-                      is_completed: blockIsCompleted,
-                      priority: blockPriority, // Update priority in DB
-                    });
+                  const updates: Partial<TodoItemType> = {};
+                  let needsUpdate = false;
+
+                  if (dbTodo.task_description !== blockContentText) {
+                    updates.task_description = blockContentText;
+                    needsUpdate = true;
+                  }
+                  if (dbTodo.is_completed !== blockIsCompleted) {
+                    updates.is_completed = blockIsCompleted;
+                    updates.completed_at = blockIsCompleted ? new Date().toISOString() : undefined; // Use undefined instead of null
+                    needsUpdate = true;
+                  }
+                  if (dbTodo.priority !== blockPriority) { // Compare priority
+                    updates.priority = blockPriority;
+                    needsUpdate = true;
+                  }
+
+                  if (needsUpdate) {
+                    await updateTodoItem(supabase, block.props.todoId as string, updates);
                   }
                 } else {
                   console.warn(`Todo block with ID ${block.props.todoId} found in editor but not in DB. Skipping update.`);

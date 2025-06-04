@@ -210,6 +210,7 @@ export interface TodoItem {
   created_at?: string; // TIMESTAMPTZ DEFAULT NOW()
   updated_at?: string; // TIMESTAMPTZ DEFAULT NOW()
   completed_at?: string; // TIMESTAMPTZ
+  journal_entries?: { title?: string | null } | null; // Added field for linked journal entry title
 }
 
 export interface UserIntegration {

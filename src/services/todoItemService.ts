@@ -6,7 +6,7 @@ import type { TodoItem } from '../types/supabase';
 export const getTodoItemsByUserId = async (supabase: SupabaseClient, userId: string) => {
   const { data, error } = await supabase
     .from('todo_items')
-    .select('*')
+    .select('*, journal_entries (title)')
     .eq('user_id', userId);
   if (error) throw error;
   return data as TodoItem[];

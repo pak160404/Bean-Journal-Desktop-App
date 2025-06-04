@@ -357,6 +357,12 @@ const TodoPage = () => {
                                     >
                                     {task.task_description}
                                     </label>
+                                    {task.entry_id && task.journal_entries && (
+                                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                        From Journal:{" "}
+                                        <span className="font-semibold">{task.journal_entries.title}</span>
+                                      </p>
+                                    )}
                                 </div>
                                 {task.due_date && (
                                     <span className={`text-xs bg-[#E6F0E2] ${primaryButtonText} dark:bg-slate-700/80 dark:text-gray-300 px-2 py-1 rounded-full`}>
@@ -428,6 +434,12 @@ const TodoPage = () => {
                             >
                             {task.task_description}
                             </label>
+                            {task.entry_id && task.journal_entries && (
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                From Journal:{" "}
+                                <span className="font-semibold">{task.journal_entries.title}</span>
+                                </p>
+                            )}
                             <div className="flex items-center space-x-2 text-xs mt-1">
                                 <span className={`w-2.5 h-2.5 rounded-full ${priorityStyle.dotColor}`}></span>
                                 <span className={`${priorityStyle.textColor} opacity-80`}>{priorityStyle.label}</span>
