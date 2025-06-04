@@ -177,14 +177,14 @@ const DayContent = (props: { date: Date; displayMonth: Date; events: CalendarEve
                     )}
 
                     {/* Hover effect to show all event texts for the day */} 
-                    {dailyEvents.length > 0 && (
+                    {/* {dailyEvents.length > 0 && (
                         <div className="absolute inset-0 bg-black bg-opacity-75 text-white p-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-auto z-30">
                             <p className="font-bold mb-1">{format(props.date, 'MMM d')}:</p>
                             {dailyEvents.map((e, index) => (
                                 <p key={index} className="truncate">- {e.text}</p>
                             ))}
                         </div>
-                    )}
+                    )} */}
                 </>
             )}
             {props.date.getDate() === new Date().getDate() && 
