@@ -1,0 +1,116 @@
+.bn-todo-item-container {
+  display: flex;
+  align-items: flex-start; /* Align items to the start for multi-line text */
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 12px; /* Roughly p-3 / p-4 */
+  border-radius: 12px; /* Roughly rounded-xl */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); /* Roughly shadow-md */
+  margin-bottom: 8px; /* Space between items */
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.bn-todo-item-container:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); /* Roughly shadow-lg */
+}
+
+/* Dark mode styles */
+[data-theme="dark"] .bn-todo-item-container {
+  background-color: rgba(41, 51, 64, 0.9); /* slate-800 with opacity */
+}
+
+.bn-todo-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px; /* Roughly space-x-3/4 */
+  margin-top: 2px; /* Align with first line of text */
+  cursor: pointer;
+  user-select: none;
+}
+
+.bn-todo-checkbox-icon {
+  color: #A9C4A0; /* Muted green border color from page.tsx */
+}
+
+.bn-todo-item-container.checked .bn-todo-checkbox-icon {
+  color: #DAE6D4; /* Light green/beige background for checked (icon color becomes fill) */
+  /* To make it look more like a filled checkbox, you might need a different icon or SVG path */
+}
+
+.bn-todo-content-wrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column; /* Stack text and priority */
+}
+
+.bn-inline-content {
+  flex-grow: 1;
+  outline: none;
+  color: #374151; /* Default text color (gray-700) */
+}
+
+.bn-todo-item-container.checked .bn-inline-content {
+  text-decoration: line-through;
+  color: #6b7280; /* Muted text color for checked (gray-500) */
+}
+
+/* Dark mode text */
+[data-theme="dark"] .bn-inline-content {
+  color: #f3f4f6; /* gray-100 */
+}
+
+[data-theme="dark"] .bn-todo-item-container.checked .bn-inline-content {
+  color: #9ca3af; /* gray-400 */
+}
+
+.bn-todo-priority-indicator {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+  font-size: 0.75rem; /* text-xs */
+  cursor: pointer;
+  user-select: none;
+}
+
+.bn-todo-priority-dot {
+  width: 0.75rem; /* w-3 */
+  height: 0.75rem; /* h-3 */
+  border-radius: 9999px; /* rounded-full */
+  margin-right: 0.5rem; /* space-x-2 */
+}
+
+/* Priority colors from page.tsx */
+.priority-dot-low {
+  background-color: #A9C4A0; 
+}
+.priority-text-low {
+  color: #374151; /* Default text, or a specific low priority text color */
+  font-weight: 500;
+}
+
+.priority-dot-medium {
+  background-color: #f59e0b; /* yellow-500 */
+}
+.priority-text-medium {
+  color: #a16207; /* yellow-700 */
+  font-weight: 500;
+}
+
+.priority-dot-high {
+  background-color: #ef4444; /* red-500 */
+}
+.priority-text-high {
+  color: #b91c1c; /* red-700 */
+  font-weight: 500;
+}
+
+/* Dark mode priority text adjustments if needed */
+[data-theme="dark"] .priority-text-low {
+  color: #d1d5db; /* gray-300 */
+}
+[data-theme="dark"] .priority-text-medium {
+  color: #fcd34d; /* yellow-300 */
+}
+[data-theme="dark"] .priority-text-high {
+  color: #fca5a5; /* red-300 */
+}

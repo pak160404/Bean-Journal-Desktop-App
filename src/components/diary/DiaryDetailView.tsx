@@ -38,6 +38,9 @@ import {
 import { v4 as uuidv4 } from "uuid"; // For unique file names
 import { Alert } from "../editor/alert/alert";
 import { RiAlertFill } from "react-icons/ri";
+import { TodoItem } from "../editor/todo/todoItem"; // Import TodoItem
+import { createTodoItem, updateTodoItem, getTodoItemsByEntryId, deleteTodoItem } from "@/services/todoItemService"; // Import services
+import { BsCheck2Square } from "react-icons/bs"; // Icon for the slash command
 
 interface DiaryDetailViewProps {
   diary: JournalEntry;
@@ -150,6 +153,8 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
       ...defaultBlockSpecs,
       // Adds the Alert block.
       alert: Alert,
+      // Adds the TodoItem block.
+      todo: TodoItem,
     },
   });
 
@@ -176,6 +181,52 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
     ],
     group: "Basic blocks",
     icon: <RiAlertFill />,
+  });
+
+  // Slash menu item to insert a TodoItem block
+  const insertTodo = (editor: typeof schema.BlockNoteEditor) => ({
+    title: "Todo",
+    subtext: "Track a task with a checkbox.",
+    onItemClick: async () => {
+      if (!diary || !diary.id || !userId || !supabase) {
+        console.error("Cannot create todo: missing diary context.");
+        return;
+      }
+      try {
+        const newTodo = await createTodoItem(supabase, {
+          user_id: userId,
+          entry_id: diary.id,
+          task_description: "", // Use task_description as per your change
+          is_completed: false,
+          priority: 0, // Default to Low priority (numeric 0)
+        });
+
+        if (newTodo && newTodo.id) {
+          insertOrUpdateBlock(editor, {
+            type: "todo",
+            props: { 
+              checked: "false", 
+              todoId: newTodo.id,
+              priority: "0", // Store priority as string in block props
+            },
+          });
+        } else {
+          console.error("Failed to create todo item in database.");
+          // Optionally, show a user-facing error message
+        }
+      } catch (error) {
+        console.error("Error creating todo item:", error);
+        // Optionally, show a user-facing error message
+      }
+    },
+    aliases: [
+      "todo",
+      "task",
+      "checklist",
+      "listitem"
+    ],
+    group: "Basic blocks",
+    icon: <BsCheck2Square />,
   });
 
   const editor = useCreateBlockNote({
@@ -294,7 +345,7 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
       currentContentString?: string,
       tagIdsForSave?: string[]
     ) => {
-      if (!diary.id || !userId) {
+      if (!diary.id || !userId || !supabase) {
         console.error("Cannot save, diary ID or user ID is missing.");
         return;
       }
@@ -320,9 +371,63 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
         }
 
         if (currentContentString && diary.id) {
+          const parsedBlocks: Block<typeof schema.blockSchema>[] = JSON.parse(currentContentString);
+
+          // Sync Todo Items
           try {
-            const parsedBlocks: Block[] = JSON.parse(currentContentString);
-            const currentEditorImageUrls = extractImageUrlsFromBN(parsedBlocks);
+            const editorTodoBlocks = parsedBlocks.filter(block => block.type === "todo");
+            const editorTodoItemIds = editorTodoBlocks.map(block => block.props.todoId).filter(id => !!id) as string[];
+            
+            const existingDbTodoItems = await getTodoItemsByEntryId(supabase, diary.id);
+            const existingDbTodoItemIds = existingDbTodoItems.map(item => item.id as string);
+
+            // 1. Update existing or create new todos based on editor blocks
+            for (const block of editorTodoBlocks) {
+              if (block.props.todoId) {
+                const blockContentText = block.content && Array.isArray(block.content) ? block.content.map(c => c.type === 'text' ? c.text : '').join('') : '';
+                const dbTodo = existingDbTodoItems.find(item => item.id === block.props.todoId);
+
+                if (dbTodo) {
+                  const blockIsCompleted = block.props.checked === "true";
+                  const blockPriority = parseInt(block.props.priority || "0", 10); // Get priority from block, default to 0
+                  
+                  if (
+                    dbTodo.task_description !== blockContentText || 
+                    dbTodo.is_completed !== blockIsCompleted ||
+                    dbTodo.priority !== blockPriority // Compare priority
+                  ) {
+                    await updateTodoItem(supabase, block.props.todoId as string, {
+                      task_description: blockContentText, 
+                      is_completed: blockIsCompleted,
+                      priority: blockPriority, // Update priority in DB
+                    });
+                  }
+                } else {
+                  console.warn(`Todo block with ID ${block.props.todoId} found in editor but not in DB. Skipping update.`);
+                }
+              }
+              // If block.props.todoId is missing, it means it wasn't created properly or is a new block not yet saved.
+              // The slash command should ensure todoId is set after creation.
+            }
+
+            // 2. Delete todos from DB if they are no longer in the editor
+            for (const dbTodoId of existingDbTodoItemIds) {
+              if (!editorTodoItemIds.includes(dbTodoId)) {
+                try {
+                  await deleteTodoItem(supabase, dbTodoId);
+                } catch (deleteError) {
+                  console.error(`Failed to delete todo item ${dbTodoId} from database:`, deleteError);
+                }
+              }
+            }
+
+          } catch (todoSyncError) {
+            console.error("Error syncing todo items:", todoSyncError);
+          }
+          
+          // Media Attachments Sync (existing logic)
+          try {
+            const currentEditorImageUrls = extractImageUrlsFromBN(parsedBlocks as unknown as Block[]);
 
             const existingAttachments = await getMediaAttachmentsByEntryId(
               supabase,
@@ -763,6 +868,12 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
                   lastBasicBlockIndex + 1,
                   0,
                   insertAlert(editor)
+                );
+                // Inserts the Todo item after the Alert item.
+                defaultItems.splice(
+                  lastBasicBlockIndex + 2, // +2 because Alert was just added
+                  0,
+                  insertTodo(editor) as DefaultReactSuggestionItem // Cast to satisfy type
                 );
 
                 // Returns filtered items based on the query.
