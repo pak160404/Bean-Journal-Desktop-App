@@ -697,7 +697,7 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg h-full flex flex-col">
+    <div className="bg-white rounded-xl shadow-lg flex flex-col">
       <header className="p-4 md:p-6 flex justify-between items-start border-b border-slate-200">
         <div className="flex-grow mr-4">
           <input
@@ -839,7 +839,7 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
         </div>
       </header>
 
-      <div className="flex-grow p-4 md:p-6 overflow-y-scroll">
+      <div className="flex-grow p-4 md:p-6">
         {editor && (
           <BlockNoteView
             editor={editor}

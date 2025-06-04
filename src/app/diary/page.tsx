@@ -90,6 +90,7 @@ const DiaryPage = () => {
         entry_timestamp: new Date().toISOString(),
         title: "New Draft Diary", // Default title for new draft
         content: "", // Start with empty content
+        manual_mood_label: "neutral", // Default mood for new draft
         is_draft: true, // Mark as draft
       };
       const newDiaryEntry = await createJournalEntry(supabase, newEntryBasics as Partial<JournalEntry>);
