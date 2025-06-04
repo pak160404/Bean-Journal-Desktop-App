@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { JournalEntry, Tag } from "@/types/supabase";
 import { Modal as AntModal, Select } from "antd";
 import debounce from "lodash/debounce";
+import type { TodoItem as TodoItemType } from "@/types/supabase";
 import {
   getTagsByUserId,
   getTagsForEntry,
@@ -38,6 +39,10 @@ import {
 import { v4 as uuidv4 } from "uuid"; // For unique file names
 import { Alert } from "../editor/alert/alert";
 import { RiAlertFill } from "react-icons/ri";
+import { TodoItem } from "../editor/todo/todoItem"; // Import TodoItem
+import { createTodoItem, updateTodoItem, getTodoItemsByEntryId, deleteTodoItem } from "@/services/todoItemService"; // Import services
+import { BsCheck2Square } from "react-icons/bs"; // Icon for the slash command
+import MoodSelector from "./MoodSelector";
 
 interface DiaryDetailViewProps {
   diary: JournalEntry;
@@ -66,6 +71,8 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
   const [initialDiaryContentString, setInitialDiaryContentString] = useState<
     string | undefined
   >(undefined);
+  const [currentSelectedMood, setCurrentSelectedMood] = useState<string | undefined | null>(diary.manual_mood_label);
+  const [initialMoodLabel, setInitialMoodLabel] = useState<string | undefined | null>(diary.manual_mood_label);
 
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(
@@ -150,6 +157,8 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
       ...defaultBlockSpecs,
       // Adds the Alert block.
       alert: Alert,
+      // Adds the TodoItem block.
+      todo: TodoItem,
     },
   });
 
@@ -176,6 +185,52 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
     ],
     group: "Basic blocks",
     icon: <RiAlertFill />,
+  });
+
+  // Slash menu item to insert a TodoItem block
+  const insertTodo = (editor: typeof schema.BlockNoteEditor) => ({
+    title: "Todo",
+    subtext: "Track a task with a checkbox.",
+    onItemClick: async () => {
+      if (!diary || !diary.id || !userId || !supabase) {
+        console.error("Cannot create todo: missing diary context.");
+        return;
+      }
+      try {
+        const newTodo = await createTodoItem(supabase, {
+          user_id: userId,
+          entry_id: diary.id,
+          task_description: "", // Use task_description as per your change
+          is_completed: false,
+          priority: 0, // Default to Low priority (numeric 0)
+        });
+
+        if (newTodo && newTodo.id) {
+          insertOrUpdateBlock(editor, {
+            type: "todo",
+            props: { 
+              checked: "false", 
+              todoId: newTodo.id,
+              priority: "0", // Store priority as string in block props
+            },
+          });
+        } else {
+          console.error("Failed to create todo item in database.");
+          // Optionally, show a user-facing error message
+        }
+      } catch (error) {
+        console.error("Error creating todo item:", error);
+        // Optionally, show a user-facing error message
+      }
+    },
+    aliases: [
+      "todo",
+      "task",
+      "checklist",
+      "listitem"
+    ],
+    group: "Basic blocks",
+    icon: <BsCheck2Square />,
   });
 
   const editor = useCreateBlockNote({
@@ -248,6 +303,11 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [diary?.id, diary?.content, editor]);
 
+  useEffect(() => {
+    setCurrentSelectedMood(diary.manual_mood_label);
+    setInitialMoodLabel(diary.manual_mood_label);
+  }, [diary.manual_mood_label, diary.id]);
+
   const handleVideoModalCancel = () => {
     setIsVideoModalVisible(false);
     setCurrentVideoUrl(null);
@@ -292,9 +352,10 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
     async (
       currentTitle: string,
       currentContentString?: string,
-      tagIdsForSave?: string[]
+      tagIdsForSave?: string[],
+      moodToSave?: string | undefined | null
     ) => {
-      if (!diary.id || !userId) {
+      if (!diary.id || !userId || !supabase) {
         console.error("Cannot save, diary ID or user ID is missing.");
         return;
       }
@@ -320,9 +381,72 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
         }
 
         if (currentContentString && diary.id) {
+          const parsedBlocks: Block<typeof schema.blockSchema>[] = JSON.parse(currentContentString);
+
+          // Sync Todo Items
           try {
-            const parsedBlocks: Block[] = JSON.parse(currentContentString);
-            const currentEditorImageUrls = extractImageUrlsFromBN(parsedBlocks);
+            const editorTodoBlocks = parsedBlocks.filter(block => block.type === "todo");
+            const editorTodoItemIds = editorTodoBlocks.map(block => block.props.todoId).filter(id => !!id) as string[];
+            
+            const existingDbTodoItems = await getTodoItemsByEntryId(supabase, diary.id);
+            const existingDbTodoItemIds = existingDbTodoItems.map(item => item.id as string);
+
+            // 1. Update existing or create new todos based on editor blocks
+            for (const block of editorTodoBlocks) {
+              if (block.props.todoId) {
+                const blockContentText = block.content && Array.isArray(block.content) ? block.content.map(c => c.type === 'text' ? c.text : '').join('') : '';
+                const dbTodo = existingDbTodoItems.find(item => item.id === block.props.todoId);
+
+                if (dbTodo) {
+                  const blockIsCompleted = block.props.checked === "true";
+                  const blockPriority = parseInt(block.props.priority || "0", 10); // Get priority from block, default to 0
+                  
+                  const updates: Partial<TodoItemType> = {};
+                  let needsUpdate = false;
+
+                  if (dbTodo.task_description !== blockContentText) {
+                    updates.task_description = blockContentText;
+                    needsUpdate = true;
+                  }
+                  if (dbTodo.is_completed !== blockIsCompleted) {
+                    updates.is_completed = blockIsCompleted;
+                    updates.completed_at = blockIsCompleted ? new Date().toISOString() : undefined; // Use undefined instead of null
+                    needsUpdate = true;
+                  }
+                  if (dbTodo.priority !== blockPriority) { // Compare priority
+                    updates.priority = blockPriority;
+                    needsUpdate = true;
+                  }
+
+                  if (needsUpdate) {
+                    await updateTodoItem(supabase, block.props.todoId as string, updates);
+                  }
+                } else {
+                  console.warn(`Todo block with ID ${block.props.todoId} found in editor but not in DB. Skipping update.`);
+                }
+              }
+              // If block.props.todoId is missing, it means it wasn't created properly or is a new block not yet saved.
+              // The slash command should ensure todoId is set after creation.
+            }
+
+            // 2. Delete todos from DB if they are no longer in the editor
+            for (const dbTodoId of existingDbTodoItemIds) {
+              if (!editorTodoItemIds.includes(dbTodoId)) {
+                try {
+                  await deleteTodoItem(supabase, dbTodoId);
+                } catch (deleteError) {
+                  console.error(`Failed to delete todo item ${dbTodoId} from database:`, deleteError);
+                }
+              }
+            }
+
+          } catch (todoSyncError) {
+            console.error("Error syncing todo items:", todoSyncError);
+          }
+          
+          // Media Attachments Sync (existing logic)
+          try {
+            const currentEditorImageUrls = extractImageUrlsFromBN(parsedBlocks as unknown as Block[]);
 
             const existingAttachments = await getMediaAttachmentsByEntryId(
               supabase,
@@ -465,6 +589,7 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
           content: currentContentString || defaultInitialContentString,
           is_draft: false,
           updated_at: new Date().toISOString(),
+          manual_mood_label: moodToSave === null ? undefined : moodToSave,
         };
         await onUpdateDiary(coreUpdates);
 
@@ -473,6 +598,7 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
         if (currentContentString !== undefined) {
           setInitialDiaryContentString(currentContentString);
         }
+        setInitialMoodLabel(moodToSave);
         setHasUnsavedChanges(false);
       } catch (error) {
         console.error("Error saving diary:", error);
@@ -496,8 +622,8 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
   const debouncedSave = useMemo(
     () =>
       debounce(
-        (newTitle: string, newContentString?: string, newTagIds?: string[]) => {
-          handleSave(newTitle, newContentString, newTagIds);
+        (newTitle: string, newContentString?: string, newTagIds?: string[], newMood?: string | undefined | null) => {
+          handleSave(newTitle, newContentString, newTagIds, newMood);
         },
         2000
       ),
@@ -520,6 +646,8 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
     const contentChanged =
       currentEditorContentString !== initialDiaryContentString;
 
+    const moodChanged = currentSelectedMood !== initialMoodLabel;
+
     let tagsHaveChangedVsSavedState = false;
     if (selectedTagIds.length !== initialLoadedTagIds.length) {
       tagsHaveChangedVsSavedState = true;
@@ -531,9 +659,9 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
       );
     }
 
-    if (titleChanged || contentChanged || tagsHaveChangedVsSavedState) {
+    if (titleChanged || contentChanged || tagsHaveChangedVsSavedState || moodChanged) {
       setHasUnsavedChanges(true);
-      debouncedSave(editableTitle, currentEditorContentString, selectedTagIds);
+      debouncedSave(editableTitle, currentEditorContentString, selectedTagIds, currentSelectedMood);
     } else {
       setHasUnsavedChanges(false);
       debouncedSave.cancel();
@@ -550,6 +678,8 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
     initialLoadedTagIds,
     diary.title,
     debouncedSave,
+    currentSelectedMood,
+    initialMoodLabel,
   ]);
 
   const showDeleteConfirm = () => {
@@ -577,7 +707,7 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg h-full flex flex-col">
+    <div className="bg-white rounded-xl shadow-lg flex flex-col">
       <header className="p-4 md:p-6 flex justify-between items-start border-b border-slate-200">
         <div className="flex-grow mr-4">
           <input
@@ -646,6 +776,13 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
               }}
             />
           </div>
+          <div className="mt-3">
+            <h3 className="text-sm font-medium text-slate-500 mb-1" style={{ fontFamily: 'Readex Pro, sans-serif' }}>How are you feeling?</h3>
+            <MoodSelector
+                selectedMoodValue={currentSelectedMood}
+                onMoodSelect={(moodVal) => setCurrentSelectedMood(moodVal)}
+            />
+          </div>
           {diary.entry_timestamp && (
             <p
               className="text-xs text-slate-400 mt-1"
@@ -712,7 +849,7 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
         </div>
       </header>
 
-      <div className="flex-grow p-4 md:p-6 overflow-y-scroll">
+      <div className="flex-grow p-4 md:p-6">
         {editor && (
           <BlockNoteView
             editor={editor}
@@ -763,6 +900,12 @@ const DiaryDetailView: React.FC<DiaryDetailViewProps> = ({
                   lastBasicBlockIndex + 1,
                   0,
                   insertAlert(editor)
+                );
+                // Inserts the Todo item after the Alert item.
+                defaultItems.splice(
+                  lastBasicBlockIndex + 2, // +2 because Alert was just added
+                  0,
+                  insertTodo(editor) as DefaultReactSuggestionItem // Cast to satisfy type
                 );
 
                 // Returns filtered items based on the query.

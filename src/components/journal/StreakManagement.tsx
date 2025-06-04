@@ -8,15 +8,14 @@ interface StreakManagementProps {
   userId: string | null | undefined;
   userProfile: Profile | null;
   journalEntries: JournalEntry[];
-  debugStreakKey: number;
+  // debugStreakKey: number;
 }
 
 const StreakManagement: React.FC<StreakManagementProps> = ({ 
   supabase, 
   userId, 
   userProfile, 
-  journalEntries, 
-  debugStreakKey 
+  journalEntries
 }) => {
   const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
   const [activeDaysOfWeek, setActiveDaysOfWeek] = useState<StreakModalProps['activeDaysOfWeek']>([]);
@@ -66,7 +65,7 @@ const StreakManagement: React.FC<StreakManagementProps> = ({
       setActiveDaysOfWeek(finalActiveDays);
 
       // Modal opening logic
-      if (!lastVisit || lastVisit !== todayStr || debugStreakKey > 0) {
+      if (!lastVisit || lastVisit !== todayStr) {
         if (!lastVisit || lastVisit !== todayStr) { 
             localStorage.setItem("beanJourney_lastVisit", todayStr);
         }
@@ -77,7 +76,7 @@ const StreakManagement: React.FC<StreakManagementProps> = ({
     if (userId && supabase && userProfile) {
       checkFirstVisitOfDay();
     }
-  }, [userId, supabase, userProfile, journalEntries, debugStreakKey]);
+  }, [userId, supabase, userProfile, journalEntries]);
 
   if (!userProfile) return null;
 

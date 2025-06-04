@@ -22,6 +22,7 @@ import { Route as JournalIndexImport } from './routes/journal/index'
 import { Route as SignUpContinueImport } from './routes/sign-up/continue'
 import { Route as SignInSsoCallbackImport } from './routes/sign-in/sso-callback'
 import { Route as JournalUserProfileImport } from './routes/journal/user-profile'
+import { Route as JournalTodoImport } from './routes/journal/todo'
 import { Route as JournalDiaryImport } from './routes/journal/diary'
 import { Route as JournalDashboardImport } from './routes/journal/dashboard'
 import { Route as JournalBeanJourneyImport } from './routes/journal/bean-journey'
@@ -90,6 +91,12 @@ const SignInSsoCallbackRoute = SignInSsoCallbackImport.update({
 const JournalUserProfileRoute = JournalUserProfileImport.update({
   id: '/user-profile',
   path: '/user-profile',
+  getParentRoute: () => JournalRoute,
+} as any)
+
+const JournalTodoRoute = JournalTodoImport.update({
+  id: '/todo',
+  path: '/todo',
   getParentRoute: () => JournalRoute,
 } as any)
 
@@ -185,6 +192,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JournalDiaryImport
       parentRoute: typeof JournalImport
     }
+    '/journal/todo': {
+      id: '/journal/todo'
+      path: '/todo'
+      fullPath: '/journal/todo'
+      preLoaderRoute: typeof JournalTodoImport
+      parentRoute: typeof JournalImport
+    }
     '/journal/user-profile': {
       id: '/journal/user-profile'
       path: '/user-profile'
@@ -222,6 +236,7 @@ interface JournalRouteChildren {
   JournalBeanJourneyRoute: typeof JournalBeanJourneyRoute
   JournalDashboardRoute: typeof JournalDashboardRoute
   JournalDiaryRoute: typeof JournalDiaryRoute
+  JournalTodoRoute: typeof JournalTodoRoute
   JournalUserProfileRoute: typeof JournalUserProfileRoute
   JournalIndexRoute: typeof JournalIndexRoute
 }
@@ -230,6 +245,7 @@ const JournalRouteChildren: JournalRouteChildren = {
   JournalBeanJourneyRoute: JournalBeanJourneyRoute,
   JournalDashboardRoute: JournalDashboardRoute,
   JournalDiaryRoute: JournalDiaryRoute,
+  JournalTodoRoute: JournalTodoRoute,
   JournalUserProfileRoute: JournalUserProfileRoute,
   JournalIndexRoute: JournalIndexRoute,
 }
@@ -270,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/journal/bean-journey': typeof JournalBeanJourneyRoute
   '/journal/dashboard': typeof JournalDashboardRoute
   '/journal/diary': typeof JournalDiaryRoute
+  '/journal/todo': typeof JournalTodoRoute
   '/journal/user-profile': typeof JournalUserProfileRoute
   '/sign-in/sso-callback': typeof SignInSsoCallbackRoute
   '/sign-up/continue': typeof SignUpContinueRoute
@@ -286,6 +303,7 @@ export interface FileRoutesByTo {
   '/journal/bean-journey': typeof JournalBeanJourneyRoute
   '/journal/dashboard': typeof JournalDashboardRoute
   '/journal/diary': typeof JournalDiaryRoute
+  '/journal/todo': typeof JournalTodoRoute
   '/journal/user-profile': typeof JournalUserProfileRoute
   '/sign-in/sso-callback': typeof SignInSsoCallbackRoute
   '/sign-up/continue': typeof SignUpContinueRoute
@@ -304,6 +322,7 @@ export interface FileRoutesById {
   '/journal/bean-journey': typeof JournalBeanJourneyRoute
   '/journal/dashboard': typeof JournalDashboardRoute
   '/journal/diary': typeof JournalDiaryRoute
+  '/journal/todo': typeof JournalTodoRoute
   '/journal/user-profile': typeof JournalUserProfileRoute
   '/sign-in/sso-callback': typeof SignInSsoCallbackRoute
   '/sign-up/continue': typeof SignUpContinueRoute
@@ -323,6 +342,7 @@ export interface FileRouteTypes {
     | '/journal/bean-journey'
     | '/journal/dashboard'
     | '/journal/diary'
+    | '/journal/todo'
     | '/journal/user-profile'
     | '/sign-in/sso-callback'
     | '/sign-up/continue'
@@ -338,6 +358,7 @@ export interface FileRouteTypes {
     | '/journal/bean-journey'
     | '/journal/dashboard'
     | '/journal/diary'
+    | '/journal/todo'
     | '/journal/user-profile'
     | '/sign-in/sso-callback'
     | '/sign-up/continue'
@@ -354,6 +375,7 @@ export interface FileRouteTypes {
     | '/journal/bean-journey'
     | '/journal/dashboard'
     | '/journal/diary'
+    | '/journal/todo'
     | '/journal/user-profile'
     | '/sign-in/sso-callback'
     | '/sign-up/continue'
@@ -412,6 +434,7 @@ export const routeTree = rootRoute
         "/journal/bean-journey",
         "/journal/dashboard",
         "/journal/diary",
+        "/journal/todo",
         "/journal/user-profile",
         "/journal/"
       ]
@@ -444,6 +467,10 @@ export const routeTree = rootRoute
     },
     "/journal/diary": {
       "filePath": "journal/diary.tsx",
+      "parent": "/journal"
+    },
+    "/journal/todo": {
+      "filePath": "journal/todo.tsx",
       "parent": "/journal"
     },
     "/journal/user-profile": {

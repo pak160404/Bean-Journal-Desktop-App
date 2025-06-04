@@ -284,19 +284,27 @@ const RecentCards: React.FC<RecentCardsProps> = ({
                 {/* Text Content Section - Modified to include icon prominently */}
                 <div className="relative pt-2 pb-3 px-4 flex-1 flex flex-col justify-start items-start text-start">
                   {/* Conditionally render Lucide Icon here if tag.icon_name exists */}
-                  {tag.icon_name && typeof tag.icon_name === 'string' && lucideIconNodes[tag.icon_name as LucideIconName] && (
-                    // Icon container: positioned to overlap, with background & padding
-                    <div className="absolute -top-3 left-1/4 transform -translate-x-1/2 bg-white dark:bg-slate-700 p-1.5 rounded-full shadow-md">
-                      <Icon 
-                        iconNode={lucideIconNodes[tag.icon_name as LucideIconName]} 
-                        size={20} 
-                        className="text-purple-600 dark:text-purple-400"
-                      />
-                    </div>
-                  )}
+                  {tag.icon_name &&
+                    typeof tag.icon_name === "string" &&
+                    lucideIconNodes[tag.icon_name as LucideIconName] && (
+                      // Icon container: positioned to overlap, with background & padding
+                      <div
+                        className={`absolute -top-3 left-1/4 transform -translate-x-1/2 p-1.5 rounded-full shadow-md ${!tag.color_hex ? 'bg-white dark:bg-slate-700' : ''}`}
+                        style={tag.color_hex ? { backgroundColor: tag.color_hex.startsWith('#') ? tag.color_hex : `#${tag.color_hex}` } : {}}
+                      >
+                        <Icon
+                          iconNode={
+                            lucideIconNodes[tag.icon_name as LucideIconName]
+                          }
+                          color="gray"
+                          size={20}
+                          className={`${tag.color_hex ? 'text-white' : 'text-purple-600 dark:text-purple-400'}`}
+                        />
+                      </div>
+                    )}
                   {/* Add top padding to text if icon is present to avoid overlap */}
-                  <h3 
-                    className={`font-readex-pro text-[21px] leading-tight text-[#2F2569] dark:text-slate-100 font-normal w-full truncate group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-200 ${tag.icon_name ? 'pt-5' : 'pt-0'}`} 
+                  <h3
+                    className={`font-readex-pro text-[21px] leading-tight text-[#2F2569] dark:text-slate-100 font-normal w-full truncate group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-200 ${tag.icon_name ? "pt-5" : "pt-0"}`}
                     title={tag.name}
                     style={{ fontFamily: "'Readex Pro', sans-serif" }} // Ensure Readex Pro is used or a fallback
                   >

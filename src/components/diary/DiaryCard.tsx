@@ -3,6 +3,7 @@ import { JournalEntry, Tag } from '@/types/supabase'; // Import the JournalEntry
 import { cn } from "@/utils/css"; // For conditional class names
 import { getTagsForEntry } from '@/services/tagService'; // Added
 import { SupabaseClient } from '@supabase/supabase-js'; // Added
+import { moodOptions } from './MoodSelector'; // Import moodOptions
 
 // Define a simple type for Tiptap/ProseMirror node structure for text extraction
 interface Node {
@@ -116,12 +117,22 @@ const DiaryCard: React.FC<DiaryCardProps> = ({ diary, onSelectDiary, isSelected,
       }}
     >
       {/* Title - Figma style_SSNUMJ (Readex Pro, 20px, #2F2569 color from a different element but looks more like title) */}
-      <h3 
-        className="text-md font-semibold mb-1 truncate text-slate-700"
-        style={{ fontFamily: 'Readex Pro, sans-serif' }}
-      >
-        {diary.title}
-      </h3>
+      <div className="flex items-center justify-between mb-1">
+        <h3 
+          className="text-md font-semibold truncate text-slate-700 mr-2"
+          style={{ fontFamily: 'Readex Pro, sans-serif' }}
+        >
+          {diary.title}
+        </h3>
+        {diary.manual_mood_label && (
+          <img 
+            src={moodOptions.find(m => m.value === diary.manual_mood_label)?.emojiPath}
+            alt={diary.manual_mood_label}
+            className="w-5 h-5"
+            title={`Mood: ${diary.manual_mood_label}`}
+          />
+        )}
+      </div>
       {/* Content Snippet - Figma style_SQAN8F (Readex Pro, 10px, #989CB8) */}
       <p 
         className="text-xs text-slate-500 mb-1.5 line-clamp-2"

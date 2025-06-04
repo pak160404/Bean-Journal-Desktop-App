@@ -9,10 +9,11 @@ import { createClerkSupabaseClient } from "@/utils/supabaseClient"; // Added Sup
 import { useAuth } from "@clerk/clerk-react"; // Added Clerk useAuth
 import { createJournalEntry, getJournalEntriesByUserId, updateJournalEntry, deleteJournalEntry } from '@/services/journalEntryService'; // Added journal entry services and updateJournalEntry
 import { getTagsByUserId, getEntryTagsByEntryId } from '@/services/tagService'; // Added tag service and getEntryTagsByEntryId
-import Calendar from 'react-calendar'; // Added react-calendar import
-import 'react-calendar/dist/Calendar.css'; // Added react-calendar CSS
+// import Calendar from 'react-calendar'; // REMOVED react-calendar import
+// import 'react-calendar/dist/Calendar.css'; // REMOVED react-calendar CSS
 // import { useRouter, useSearchParams } from 'next/navigation'; // REMOVE Next.js router hooks
 import { useNavigate, useSearch, useRouterState } from '@tanstack/react-router'; // Import TanStack Router hooks
+import { ChevronLeft, ChevronRight } from 'lucide-react'; // Added Chevron icons
 
 // Define a type for your search params. 
 // This should align with your TanStack Router configuration for this route.
@@ -45,6 +46,8 @@ const getContrastColor = (hexcolor?: string): string => {
 interface JournalEntryWithTags extends JournalEntry {
   tag_ids?: string[];
 }
+
+const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]; // Added for new calendar
 
 const DiaryPage = () => {
   const { getToken, userId } = useAuth();
@@ -87,6 +90,7 @@ const DiaryPage = () => {
         entry_timestamp: new Date().toISOString(),
         title: "New Draft Diary", // Default title for new draft
         content: "", // Start with empty content
+        manual_mood_label: "neutral", // Default mood for new draft
         is_draft: true, // Mark as draft
       };
       const newDiaryEntry = await createJournalEntry(supabase, newEntryBasics as Partial<JournalEntry>);
@@ -265,6 +269,34 @@ const DiaryPage = () => {
     );
   };
 
+  // Calendar related logic from TodoPage
+  const calendarDateForLogic = selectedDate || new Date(); // Use selectedDate if available, else today for month display
+  const currentMonthName = calendarDateForLogic.toLocaleString('default', { month: 'long' });
+  const currentYear = calendarDateForLogic.getFullYear();
+  const daysInMonth = new Date(calendarDateForLogic.getFullYear(), calendarDateForLogic.getMonth() + 1, 0).getDate();
+  const firstDayOfMonth = new Date(calendarDateForLogic.getFullYear(), calendarDateForLogic.getMonth(), 1).getDay();
+
+  const getDaysArrayForMonth = useCallback(() => {
+    const daysArray = [];
+    for (let i = 0; i < firstDayOfMonth; i++) { daysArray.push(null); }
+    for (let i = 1; i <= daysInMonth; i++) { daysArray.push(i); }
+    return daysArray;
+  }, [firstDayOfMonth, daysInMonth]);
+
+  const calendarDays = getDaysArrayForMonth();
+
+  const handleCalendarDateChange = (newDate: Date) => {
+    setSelectedDate(newDate);
+  };
+
+  const handleMonthChange = (increment: number) => {
+    setSelectedDate(prevDate => {
+        const current = prevDate || new Date(); // If no date selected, change month from current
+        return new Date(current.getFullYear(), current.getMonth() + increment, 1);
+    });
+  };
+  // --- End Calendar Logic
+
   // Memoized filtered diaries for search, tag, and date filters
   const filteredDiaries = useMemo(() => {
     let tempDiaries = diaries;
@@ -366,40 +398,64 @@ const DiaryPage = () => {
             )}
           </div>
 
-          {/* Calendar Filter Section */}
-          <div className="mt-6">
-            <h2 className="text-sm font-medium text-slate-500 mb-2" style={{ fontFamily: 'Readex Pro, sans-serif' }}>Filter by Date:</h2>
-            <Calendar
-              onChange={(value) => {
-                if (Array.isArray(value)) {
-                  setSelectedDate(value[0]); // If it's a range, take the start date
-                } else {
-                  setSelectedDate(value); // Otherwise, it's a single date or null
-                }
-              }}
-              value={selectedDate}
-              className="border-slate-300 rounded-lg shadow-sm text-sm" // Basic styling
-              tileClassName={({ date, view }) => {
-                // Check if there's any diary entry for this date
-                if (view === 'month') {
-                  const diaryExistsOnDate = diaries.some(diary => {
+          {/* New Calendar Section */}
+          <div className="mt-6 bg-white/70 dark:bg-slate-800/70 p-1 sm:p-2 md:p-4 rounded-xl shadow-lg">
+            <div className="flex justify-between items-center mb-3 sm:mb-4">
+              <h4 className="text-base sm:text-lg font-semibold text-[#2F2569] dark:text-green-300" style={{ fontFamily: 'Readex Pro, sans-serif' }}>
+                {currentMonthName} {currentYear}
+              </h4>
+              <div className="flex space-x-1">
+                <button
+                  onClick={() => handleMonthChange(-1)}
+                  className="p-1.5 sm:p-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                  aria-label="Previous month"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  onClick={() => handleMonthChange(1)}
+                  className="p-1.5 sm:p-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                  aria-label="Next month"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+            <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-slate-500 dark:text-gray-400 mb-1 sm:mb-2">
+              {daysOfWeek.map(day => <div key={day}>{day.slice(0,2)}</div>)}
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+              {calendarDays.map((day, index) => {
+                const isToday = day && new Date(currentYear, calendarDateForLogic.getMonth(), day).toDateString() === new Date().toDateString();
+                const isSelectedDate = day && selectedDate && new Date(currentYear, calendarDateForLogic.getMonth(), day).toDateString() === selectedDate.toDateString();
+                const hasDiaryEntry = day && diaries.some(diary => {
                     const entryDate = new Date(diary.entry_timestamp);
-                    return (
-                      entryDate.getFullYear() === date.getFullYear() &&
-                      entryDate.getMonth() === date.getMonth() &&
-                      entryDate.getDate() === date.getDate()
-                    );
-                  });
-                  if (diaryExistsOnDate) {
-                    return 'bg-primary/20 !text-primary-foreground rounded-full'; // Highlight dates with entries
-                  }
-                }
-                return null;
-              }}
-            />
+                    return entryDate.getFullYear() === currentYear &&
+                           entryDate.getMonth() === calendarDateForLogic.getMonth() &&
+                           entryDate.getDate() === day;
+                });
+
+                return (
+                  <button
+                    key={index}
+                    onClick={() => day && handleCalendarDateChange(new Date(currentYear, calendarDateForLogic.getMonth(), day))}
+                    disabled={!day}
+                    className={`p-1.5 sm:p-2 rounded-full w-full aspect-square flex items-center justify-center text-xs sm:text-sm transition-colors
+                      ${!day ? "bg-transparent cursor-default" : "hover:bg-slate-200 dark:hover:bg-slate-700"}
+                      ${isSelectedDate ? "bg-primary text-primary-foreground ring-2 ring-primary dark:bg-green-600/80 dark:text-white" 
+                        : isToday ? "bg-primary/30 text-primary-foreground dark:bg-green-500/50 dark:text-white font-semibold" 
+                        : "text-slate-700 dark:text-gray-300"}
+                      ${hasDiaryEntry && !isSelectedDate ? "!bg-primary/20 dark:!bg-green-400/30 !font-bold" : ""}
+                    `}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
+            </div>
              <button
-                onClick={() => setSelectedDate(null)} // Reset date filter, type is now Date | null
-                className="w-full mt-2 px-4 py-1.5 text-xs font-medium text-slate-600 bg-slate-200 rounded-md hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-slate-400 transition-colors"
+                onClick={() => setSelectedDate(null)}
+                className="w-full mt-3 px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-200 rounded-md hover:bg-slate-300 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-slate-400 transition-colors dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
               >
                 Show All Dates
               </button>
